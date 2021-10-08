@@ -54,6 +54,10 @@ sudo apt install git-flow
 ## Initializing git flow
 Create a local branch named "dev"  
 ```
+git branch dev
+```
+Run git flow init command
+```
 git flow init
 ```
 Set main as the "release branch" when promted  
