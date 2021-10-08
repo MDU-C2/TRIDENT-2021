@@ -1,0 +1,3 @@
+all:
+	gnat clean -r -P path_planning.gpr
+	gnatmake -P path_planning.gpr

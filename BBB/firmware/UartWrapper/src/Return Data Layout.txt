@@ -1,0 +1,81 @@
+4 bytes vid uppstart
+A5 - startbyte
+03 - Type. 
+51 - Modell
+F9 - crc 
+
+-- Models (x03):
+-- x51 SS Towfish 340k Transducer
+-- x61 SS Towfish 670k Transducer Short Transducer 2 elements
+-- x62 SS Towfish 670k Transducer Long Transducer 4 elements
+-- x71 SS Towfish 1250k Transducer
+-- x81 OEM Embedded Sonar
+
+
+// ********************************
+// ****     Received data      ****
+// ********************************
+// 
+// ** Ping Return Packet **
+SOP1 0xFE 
+SOP2 0x05
+Size High
+Size Low
+Type 0x11 Next type is 12
+Sequence nr 0-255, +1 per ping Data size från här
+Active Sides Bit 0 left,1 right
+Time High [ms]
+Time Low  [ms]
+Type, - Sensor data(19) 
+ID(H), 
+ID(L), 
+Temp(H), 
+Temp(L), 
+Pressure(H), 
+Pressure(L), 
+MagX(H), 
+MagX(L), 
+MagY(H), 
+MagY(L), 
+MagZ(H), 
+MagZ(L), 
+AccX(H), 
+AccX(L), 
+AccY(H), 
+AccY(L), 
+AccZ(H), 
+AccZ(L)
+//  D_Ch0[0] Channel 0
+//  D_Ch1[1] Channel 1	
+//  ...
+//  D_Ch0[nSamples-1]
+//  D_Ch1[nSamples-1]
+//  ChkSum 
+//
+
+Exempel
+
+-> A5 98 81 BE 
+FE 05
+00 DF
+12
+00
+02
+00 71 Time
+FF Type
+D7 03 ID
+F4 02 Temp
+4D 03 
+2B F1 DA 03 44 03 Mag
+7A 42 11 00 00 00 Acc
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+91   

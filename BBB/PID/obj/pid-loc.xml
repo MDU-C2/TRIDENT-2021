@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\pid.gpr</vfs_file>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\pid\pid.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\pid\pid.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\pid_utils\pid_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\pid_utils\pid_utils.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\pid_utils\pid_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\serial_net\src\serial_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\PID\src\main.adb</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

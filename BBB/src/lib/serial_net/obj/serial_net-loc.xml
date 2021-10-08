@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project >
+    <file_marker column=" 54" line=" 42" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\software\motioncontrol\main\src\main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\software\motioncontrol\main\mainproject.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\lib\serial_net\serial_net.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\lib\math\math.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\lib\serial_net\serial_net.gpr</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Mr\Desktop\Naiad\naiad-auv-software-master\src\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

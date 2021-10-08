@@ -1,0 +1,42 @@
+[GENERATED OBJECT FILE]
+b__motion_control_main.o
+[PROJECT FILES]
+C:\Users\cag01\Desktop\BBB\software\motion_control\mainproject.gpr
+20000101000856
+C:\Users\cag01\Desktop\BBB\lib\radix\radix.gpr
+20000101012942
+C:\Users\cag01\Desktop\BBB\lib\server_net\server_net.gpr
+20000101035414
+C:\Users\cag01\Desktop\BBB\firmware\tcp_client\tcp_client.gpr
+20000101012934
+C:\Users\cag01\Desktop\BBB\lib\json\json.gpr
+20000101012940
+[BOUND OBJECT FILES]
+C:\Users\cag01\Desktop\BBB\lib\json\obj\gnatcoll.o
+C:\Users\cag01\Desktop\BBB\lib\json\obj\gnatcoll-json-utility.o
+C:\Users\cag01\Desktop\BBB\lib\json\obj\gnatcoll-json.o
+C:\Users\cag01\Desktop\BBB\software\motion_control\obj\pid.o
+C:\Users\cag01\Desktop\BBB\lib\radix\obj\radix.o
+C:\Users\cag01\Desktop\BBB\lib\server_net\obj\server_net.o
+C:\Users\cag01\Desktop\BBB\firmware\tcp_client\obj\tcp_client.o
+C:\Users\cag01\Desktop\BBB\software\motion_control\obj\pid_utils.o
+C:\Users\cag01\Desktop\BBB\software\motion_control\obj\motion_control_main.o
+[GENERATED SOURCE FILES]
+b__motion_control_main.ads
+b__motion_control_main.adb
+b__motion_control_main.ali
+[RESULTING OPTIONS]
+-LC:\Users\cag01\Desktop\BBB\software\motion_control\obj\
+-LC:\Users\cag01\Desktop\BBB\lib\json\obj\
+-LC:\Users\cag01\Desktop\BBB\firmware\tcp_client\obj\
+-LC:\Users\cag01\Desktop\BBB\lib\server_net\obj\
+-LC:\Users\cag01\Desktop\BBB\lib\radix\obj\
+-LC:/gnat/2012/lib/gcc/i686-pc-mingw32/4.5.4/adalib/
+-static
+-static-libgcc
+C:/gnat/2012/lib/gcc/i686-pc-mingw32/4.5.4/adalib/libgnarl.a
+C:/gnat/2012/lib/gcc/i686-pc-mingw32/4.5.4/adalib/libgnat.a
+-lws2_32
+-Xlinker
+--stack=0x200000,0x1000
+-mthreads

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file>/home/robocop1/Ada/bgw/lib/radix/radix.gpr</vfs_file>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/lib/radix/src/radix.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/lib/radix/src/radix.ads</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

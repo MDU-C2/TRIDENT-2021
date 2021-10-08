@@ -1,0 +1,23 @@
+BODLEVEL = DISABLED
+TA0SEL = [ ]
+OCDEN = [ ]
+JTAGEN = [X]
+SPIEN = [X]
+WDTON = [ ]
+EESAVE = [ ]
+BOOTSZ = 4096W_F000
+BOOTRST = [ ]
+CKDIV8 = [ ]
+CKOUT = [ ]
+SUT_CKSEL = EXTXOSC_8MHZ_XX_16KCK_0MS
+
+EXTENDED = 0xFF (valid)
+HIGH = 0x99 (valid)
+LOW = 0xDF (valid)
+
+
+LB = NO_LOCK
+BLB0 = NO_LOCK
+BLB1 = NO_LOCK
+
+LOCKBIT = 0xFF (valid)

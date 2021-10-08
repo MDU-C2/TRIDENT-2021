@@ -1,0 +1,22 @@
+#!/bin/bash
+if [ "$1" = "kill" ]
+then
+	kill -9 $(pidof path_planning_main)
+	kill -9 $(pidof mission_control_main)
+	kill -9 $(pidof motion_control_main)
+	kill -9 $(pidof net_com_main)
+	kill -9 $(pidof can_node_main)
+	kill -9 $(pidof sensor_node_main)
+	echo "All processes killed."
+
+elif [ "$1" = "run" ]
+then
+	bin/net_com_main &
+	bin/can_node_main &
+	bin/mission_control_main &
+	bin/path_planning_main &
+	bin/sensor_node_main &
+	bin/motion_control_main &
+	wait
+	echo "All processes done."
+fi

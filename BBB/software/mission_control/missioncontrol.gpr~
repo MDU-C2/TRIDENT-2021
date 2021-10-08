@@ -1,0 +1,14 @@
+with "../../lib/server_net/server_net.gpr";
+--with "../../lib/general/general.gpr";
+with "../tcp_client/tcp_client.gpr";
+with "../../lib/json/json.gpr";
+
+project MissionControl is
+
+   for Source_Dirs use ("src\**");
+   for Object_Dir use "obj";
+   for Main use ("mission_main.adb");
+for Exec_Dir use "bin/";
+
+end MissionControl;
+

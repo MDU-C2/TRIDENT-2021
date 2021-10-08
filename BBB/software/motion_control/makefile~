@@ -1,0 +1,3 @@
+all:
+	gnat clean -r -P mainproject.gpr
+	gnatmake -P  mainproject.gpr

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file>/home/robocop1/Ada/bgw/firmware/UartWrapper/uartwrapper.gpr</vfs_file>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Programmering/grek/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Programmering/grek/bgw/firmware/bbb_can/src/bbb_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Programmering/grek/bgw/firmware/bbb_can/src/bbb_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Programmering/grek/bgw/firmware/UartWrapper/uartwrapper.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/firmware/UartWrapper/src/uartwrapper.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/firmware/UartWrapper/uartwrapper.gpr</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

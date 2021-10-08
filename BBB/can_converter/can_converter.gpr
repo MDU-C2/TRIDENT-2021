@@ -1,0 +1,6 @@
+project Can_Converter is
+
+  for main use "main.adb";
+
+end Can_Converter;
+

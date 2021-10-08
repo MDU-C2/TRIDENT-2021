@@ -1,0 +1,43 @@
+[GENERATED OBJECT FILE]
+b__pid_main.o
+[PROJECT FILES]
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\mainproject.gpr
+20141126134132
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\radix\radix.gpr
+20141120092136
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\server_net\server_net.gpr
+20141002094528
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\tcp_client\tcp_client.gpr
+20141120111114
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\json\json.gpr
+20141030084304
+[BOUND OBJECT FILES]
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\json\obj\gnatcoll.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\json\obj\gnatcoll-json-utility.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\json\obj\gnatcoll-json.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\obj\pid.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\radix\obj\radix.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\server_net\obj\server_net.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\tcp_client\obj\tcp_client.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\obj\pid_utils.o
+C:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\obj\pid_main.o
+[GENERATED SOURCE FILES]
+b__pid_main.ads
+b__pid_main.adb
+b__pid_main.ali
+[RESULTING OPTIONS]
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\obj\
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\motion_control\obj\
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\json\obj\
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\software\tcp_client\obj\
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\server_net\obj\
+-LC:\Users\Mr\Dropbox\Robotics project\Naiad\BBB\lib\radix\obj\
+-LC:/gnat/2014/lib/gcc/i686-pc-mingw32/4.7.4/adalib/
+-static
+-static-libgcc
+C:/gnat/2014/lib/gcc/i686-pc-mingw32/4.7.4/adalib/libgnarl.a
+C:/gnat/2014/lib/gcc/i686-pc-mingw32/4.7.4/adalib/libgnat.a
+-lws2_32
+-Xlinker
+--stack=0x200000,0x1000
+-mthreads

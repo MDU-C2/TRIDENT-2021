@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file />
+    <file_marker column=" 9" line=" 5" >
+      <vfs_file>/home/robocop1/Ada/bgw/sensor_fusion_server/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 40" line=" 126" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 24" line=" 175" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 75" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 537" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/Json/gnatcoll-json.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 60" line=" 38" >
+      <vfs_file>/home/robocop1/Ada/bgw/sensor_fusion_server/src/sensor_fusion_server.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 13" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 84" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 171" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/sensor_fusion_server/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/sensor_fusion_server/src/sensor_fusion_server.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/sensor_fusion_server/src/sensor_fusion_server.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 6" line=" 2" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 7" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 92" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 16" line=" 97" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 94" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 18" line=" 92" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 18" line=" 92" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 16" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 96" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 6" line=" 2" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 7" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 10" line=" 124" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 70" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 293" >
+      <vfs_file>/home/robocop1/Ada/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 110" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/src/tcp_server.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_server/tcp_server.gpr</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/tcp_client/tcp_client.gpr</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

@@ -1,0 +1,7 @@
+this:
+	gnat clean -r -P net_com.gpr
+all:	
+	gnat clean -r -P net_com.gpr
+	gnatmake -P net_com.gpr
+clean:
+	gnat clean -c -r -P net_com.gpr

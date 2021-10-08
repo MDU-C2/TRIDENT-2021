@@ -1,0 +1,3 @@
+all:
+	gnat clean -r -P sensor_node.gpr
+	gnatmake -P sensor_node.gpr

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project>
+    <vfs_file>/home/grek/Desktop/bgw/firmware/bbb_can/bbb_can.gpr</vfs_file>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 9" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/firmware/bbb_can/bbb_can.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/firmware/bbb_can/src/bbb_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/firmware/bbb_can/src/bbb_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/lib/can_utils/src/can_utils.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/firmware/bbb_can/src/bbb_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/src/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 9" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.ads</vfs_file>
+    </file_marker>
+  </Project>
+  <Project >
+    <vfs_file  />
+    <file_marker column=" 1" line=" 1">
+      <vfs_file >/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1">
+      <vfs_file >/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1">
+      <vfs_file >/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 9">
+      <vfs_file >/home/grek/Desktop/bgw/lib/can_utils/src/can_utils.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1">
+      <vfs_file >/home/grek/Desktop/src/firmware/bbb_can/bbb_can.gpr</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

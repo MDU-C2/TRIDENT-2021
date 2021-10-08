@@ -1,0 +1,173 @@
+package body sensor is
+
+   procedure main is
+      use Ada.Real_Time;
+      sSender : string(1..3);
+      bNewMessage : boolean := false;
+      xJsonIn : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.Create_Object;
+      xJsonOut : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.Create_Object;
+      iEthId : integer := 0;
+      bSent : boolean := false;
+      tTime : Ada.Real_Time.Time;
+      tStartTime : Ada.Real_Time.Time;
+
+      --Measure_Value:Float;
+--        Middle_Value : Float:=0.00;
+--        X_Last:Float:=1.5;
+--        X_Middle:Float;
+--        X_Now:Float;
+--
+--        P_Last:Float:=0.5;
+--        P_Middle:Float;
+--        P_Now:Float;
+--
+--        Kg:Float:=0.00;
+--        Process_Noise_Q:Float:=0.01;
+--        Measure_Noise_R:Float:=0.056;
+
+      --Measure_Error:Float;
+      --KalmanF_Error:Float;
+
+   begin
+      tStartTime := Ada.Real_Time.Clock;
+      tcp_client.Set_IP_And_Port(sIP   => "192.168.1.1",
+                                 iPort => "sns");
+      tcp_client.SetTimeout(1.0);
+      loop
+         tcp_client.Get(xJson    => xJsonIn,
+                        bSuccess => bNewMessage);
+         if bNewMessage then
+            bNewMessage := false;
+
+
+
+            declare
+            begin
+               sSender := xJsonIn.get("sender");
+               iEthId := xJsonIn.get("ethid");
+            exception
+               when E : others =>
+                  Ada.Text_IO.Put_Line("Exception: " & Ada.Exceptions.Exception_Name(E) & ": " & Ada.Exceptions.Exception_Message(E));
+            end;
+
+
+
+            tTime := Ada.Real_Time.Clock;
+            Ada.Text_IO.Put_Line("recived from : " & sSender & " ethid : " & iEthId'Img & " at time : "
+                                 & integer'Image((tTime - tStartTime)/Ada.Real_Time.Seconds(1)));
+            if sSender = "can" then
+
+
+               declare
+               begin
+                  x := xJsonIn.get("posx");
+                  y := xJsonIn.get("posy");
+                  z := xJsonIn.get("posz");
+                  roll := xJsonIn.get("roll");
+                  pitch := xJsonIn.get("pitch");
+                  yaw := xJsonIn.get("yaw");
+                  accx := xJsonIn.get("accx");
+                  accy := xJsonIn.get("accy");
+                  accz := xJsonIn.get("accz");
+               exception
+                  when E : others =>
+                     Ada.Text_IO.Put_Line("Exception: " & Ada.Exceptions.Exception_Name(E) & ": " & Ada.Exceptions.Exception_Message(E));
+               end;
+
+
+--
+--                    X_Middle:= X_Last;
+--                    P_Middle := P_Last + Process_Noise_Q;
+--                    X_Now := X_Middle + Kg * (yaw - X_Middle);
+--                    Kg := P_Middle/(P_Middle + Measure_Noise_R);
+--                    P_Now := (1.00 - Kg) * P_Middle;
+--
+--                   -- Measure_Error:= yaw - Real_Value;
+--                    --KalmanF_Error:= X_Now - Real_Value;
+--
+--                    Put("Measure yaw value is :");
+--                    Put(yaw);
+--                    New_Line;
+--                    Put("After the kalman filter yaw value :");
+--                    Put(X_Now);
+--                    New_Line;
+--                   -- Put("The error between measure value and real value is :");
+--                   -- Put(Measure_Error);
+--                   -- New_Line;
+--                    --Put("The error between kalman filter value and real value is:");
+--                    --Put(KalmanF_Error);
+--                    --New_Line;
+--                    Put_Line("***************************************************************************");
+--                    New_Line;
+--                 yaw := X_Now;
+
+
+               declare
+               begin
+                  xJsonOut.set_field("sender", "sns");
+                  xJsonOut.set_field("posx", x);
+                  xJsonOut.set_field("posy", y);
+                  xJsonOut.set_field("posz", z);
+                  xJsonOut.set_field("roll", roll);
+                  xJsonOut.set_field("pitch", pitch);
+                  xJsonOut.set_field("yaw", yaw);
+                  xJsonOut.set_field("ethid", 1);
+                  xJsonOut.set_field("target", "pid");
+               exception
+                  when E : others =>
+                     Ada.Text_IO.Put_Line("Exception: " & Ada.Exceptions.Exception_Name(E) & ": " & Ada.Exceptions.Exception_Message(E));
+               end;
+
+
+               tcp_client.Send(xJson    => xJsonOut,
+                               bSuccess => bSent);
+
+
+               declare
+               begin
+                  xJsonOut.set_field("target", "pth");
+               exception
+                  when E : others =>
+                     Ada.Text_IO.Put_Line("Exception: " & Ada.Exceptions.Exception_Name(E) & ": " & Ada.Exceptions.Exception_Message(E));
+               end;
+
+
+               tcp_client.Send(xJson    => xJsonOut,
+                               bSuccess => bSent);
+
+               xJsonOut := GNATCOLL.JSON.JSON_Null;
+               xJsonOut := GNATCOLL.JSON.create_object;
+
+            end if;
+         end if;
+         declare
+         begin
+            xJsonOut.set_field("sender", "sns");
+            xJsonOut.set_field("posx", x);
+            xJsonOut.set_field("posy", y);
+            xJsonOut.set_field("posz", z);
+            xJsonOut.set_field("roll", roll);
+            xJsonOut.set_field("pitch", pitch);
+            xJsonOut.set_field("yaw", yaw);
+            xJsonOut.set_field("ethid", 1);
+            xJsonOut.set_field("target", "can");
+         exception
+            when E : others =>
+               Ada.Text_IO.Put_Line("Exception: " & Ada.Exceptions.Exception_Name(E) & ": " & Ada.Exceptions.Exception_Message(E));
+         end;
+
+
+               Ada.Text_IO.Put_Line("sending");
+         tcp_client.Send(xJson    => xJsonOut,
+                         bSuccess => bSent);
+
+               Ada.Text_IO.Put_Line("sent");
+
+
+         delay 0.05;
+      end loop;
+   end main;
+
+
+
+end sensor;

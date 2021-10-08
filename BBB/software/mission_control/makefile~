@@ -1,0 +1,3 @@
+all:
+	gnat clean -r -P missioncontrol.gpr
+	gnatmake -P missioncontrol.gpr

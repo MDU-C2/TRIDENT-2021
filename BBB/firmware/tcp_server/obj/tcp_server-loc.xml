@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project >
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/software/tcp_server/src/tcp_server.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Ada/bgw/software/tcp_server/src/tcp_server_main.adb</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

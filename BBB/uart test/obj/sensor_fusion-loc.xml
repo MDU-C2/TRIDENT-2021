@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project >
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\Sensor fusion\src\main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\Sensor fusion\src\Sensor_fusion\sensor_fusion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\general\src\general.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 44" line=" 4" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 43" line=" 12" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\serial_net\src\serial_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 43" line=" 4" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\serial_net\src\serial_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 43" line=" 12" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\serial_net\src\serial_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 25" line=" 11" >
+      <vfs_file>C:\Users\Administrator\Dropbox\Robotics project (1)\Naiad\BBB\lib\general\src\general.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 14" line=" 263" >
+      <vfs_file>C:\GNAT\2014\lib\gcc\i686-pc-mingw32\4.7.4\adainclude\a-textio.ads</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

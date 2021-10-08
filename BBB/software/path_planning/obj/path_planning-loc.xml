@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/path_planning/path_planning.gpr</vfs_file>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/mission_control - backup/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/mission_control - backup/src/mission_control.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/path_planning/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/path_planning/src/Path_Planner/path_planner.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 408" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/path_planning/src/Path_Planner/path_planner.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 19" line=" 407" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/path_planning/src/Path_Planner/path_planner.adb</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

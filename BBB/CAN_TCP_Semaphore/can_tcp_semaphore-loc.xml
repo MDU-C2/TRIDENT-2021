@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project >
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 23" line=" 44" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 32" line=" 43" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 508" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/g-socket.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 15" line=" 2" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 31" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 285" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 287" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 285" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 287" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 285" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 287" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 461" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 41" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 6" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 553" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 6" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 6" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 16" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 553" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 6" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 13" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 13" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 59" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/s-finroo.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 13" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 64" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 13" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 60" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/s-finroo.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 13" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 58" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/s-finroo.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 49" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 34" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 49" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 6" line=" 2" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 24" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 15" line=" 2" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 31" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/Json/gnatcoll-json.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 49" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 224" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 224" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 224" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 52" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 157" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 224" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 52" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 157" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 49" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 286" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 32" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 49" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 20" line=" 60" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 224" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 52" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 157" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 8" line=" 102" >
+      <vfs_file>/home/grek/Desktop/bgw/bouncer/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 6" >
+      <vfs_file>/home/grek/Desktop/bgw/json_conversion/src/json_conversion.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/CAN_TCP_Semaphore/src/CAN_TCP_Semaphore.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file>/home/grek/Desktop/bgw/CAN_TCP_Semaphore/can_tcp_semaphore.gpr</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

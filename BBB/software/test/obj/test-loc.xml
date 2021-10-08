@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project >
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/test/test.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/test/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/test/test.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/lib/server_net/src/server_net.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 7" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/software/test/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 14" line=" 37" >
+      <vfs_file>/home/robocop1/Dropbox/Robotics project/Naiad/BBB/lib/server_net/src/server_net.ads</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

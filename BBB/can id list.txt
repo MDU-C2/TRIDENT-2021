@@ -1,0 +1,20 @@
+LED:
+752-767 in
+-- 753 - turn of all lights
+-- 754 - start port/starboard blink sequence
+-- 755 - stop port/starboard blink sequence
+-- 756 - set left wing, if byte 1-6 /= 0 set led(1-6) = true
+-- 757 - set right wing, if byte 1-6 /= 0 set led(1-6) = true
+-- 760 - set pwm (data(1)) for front spotlight
+-- 761 - set pwm (data(1)) for bot spotlight
+
+THRUSTER:
+616-623 in
+616: set speed
+623: set limit
+
+INS: 1592 out
+pressure : 1593 out
+IMU Yaw and Pitch : 1594 
+IMU Roll and AccZ : 1595 
+IMU AccX and AccY : 1596 

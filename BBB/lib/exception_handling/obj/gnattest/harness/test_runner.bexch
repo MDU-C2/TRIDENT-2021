@@ -1,0 +1,35 @@
+[GENERATED OBJECT FILE]
+b__test_runner.o
+[PROJECT FILES]
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/test_driver.gpr
+20131024090316
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/exception_handling.gpr
+20131024082526
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/test_exception_handling.gpr
+20131024090316
+/usr/gnat/lib/gnat/aunit_shared.gpr
+20130417144704
+/usr/gnat/lib/gnat/aunit.gpr
+20130417144704
+[BOUND OBJECT FILES]
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/exception_handling.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/exception_handling-test_data.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/gnattest_generated.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/exception_handling-test_data-tests.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/exception_handling-test_data-tests-suite.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/gnattest_main_suite.o
+/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/test_runner.o
+[GENERATED SOURCE FILES]
+b__test_runner.ads
+b__test_runner.adb
+b__test_runner.ali
+[RESULTING OPTIONS]
+-L/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/
+-L/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/gnattest/harness/
+-L/usr/gnat/lib/aunit/native-full/
+-L/home/evr/git/naiad-auv-software/src/lib/exception_handling/obj/
+-L/usr/gnat/lib/gcc/x86_64-pc-linux-gnu/4.7.4/adalib/
+-static
+-static-libgcc
+/usr/gnat/lib/gcc/x86_64-pc-linux-gnu/4.7.4/adalib/libgnat.a
+-ldl

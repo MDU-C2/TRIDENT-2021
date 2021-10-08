@@ -1,0 +1,14 @@
+--with "../../lib/serial_net/serial_net.gpr";
+with "../../lib/json/json.gpr";
+with "../tcp_client/tcp_client.gpr";
+
+project Mainproject is
+
+   for Source_Dirs use ("src\**");
+   for Object_Dir use "obj";
+   for Main use ("pid_main.adb");
+   for Exec_Dir use "bin/";
+   for Languages use ("Ada");
+
+end Mainproject;
+
