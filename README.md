@@ -1,5 +1,5 @@
 # TRIDENT-2021
-An extention of the original NAIAD project where an autonomous platform is made for assiting with location detection to the Naiad.
+An extention of the original NAIAD project where an autonomous platform is made for assiting with location data to the Naiad.
 ![Make this a cool image of the NAIAD](https://i0.wp.com/robotnyheter.se/wp-content/uploads/2013/12/Naiad_AUV_robot_open.jpg?resize=900%2C429&ssl=1)
 
 
@@ -17,34 +17,45 @@ You can sign up with your student mail: https://www.gitkraken.com/student-resour
 ## Git CLI cheat sheet
 [Cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 
-Add files to repository: 
-* __git add [file]__ 
-
+Add files to the repository  
+```
+git add file_name
+```
 Commit files to repository with a message: 
-* __git commit -sm "Message"__
-
+```
+git commit -sm "Message"
+```
 Pull BEFORE pushing anything 
-* __git pull__
-
+```
+git pull
+```
 Upload files to repository: 
-* __git push__
-
+```
+git push
+```
 Did you fuck up? Don't push until you've sorted it out.
-* __git reset__ or __git rm file_name__
-
+```
+git reset
+```
+or
+```
+git rm file_name
+ ```
 ## Installing git flow:
 
 #### Windows 
 git flow is included in git bash terminal: https://git-scm.com/downloads
 
 #### Ubuntu
-* __sudo apt update__  
-* __sudo apt install git-flow__
-
+```
+sudo apt update  
+sudo apt install git-flow
+```
 ## Initializing git flow
 Create a local branch named "dev"  
-* __git flow init__
-
+```
+git flow init
+```
 Set main as the "release branch" when promted  
 Set dev as "next release branch" when prometed  
 Press enter for all of the other options.
@@ -52,16 +63,19 @@ Press enter for all of the other options.
 ## Did you fuck up?
 
 reinitialize with this command  
-* __git flow init -f__
-
+```
+git flow init -f
+```
 ## Using git flow
 
 To begin on your new feature:  
-* __git flow feature start feature_name__
-
+```
+git flow feature start feature_name
+```
 To push your finished feature to dev:  
-* __git flow feature finish feature_name__
-
+```
+git flow feature finish feature_name
+```
 All done! :)  
 __Between starting and finish of a feature you use the git tool you want as you usually do. CLI or GUI.__
 
