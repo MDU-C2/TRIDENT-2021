@@ -4,7 +4,7 @@ An extention of the original NAIAD project where an autonomous platform is made 
 
 
 __Git guidelines:__ We're utilizing git flow in this project, this means that we have a few layers of branches for safety of the release version.
-Each feature has a separate branch E.G one for ROS, This is the branch you push to each day. This is like your isolated experiment box.
+Each feature has a separate branch e.g. one for ROS, This is the branch you push to each day. This is like your isolated experiment box.
 When a feature is done or after a certain time period, you push your progress to the development branch called "dev".   
 __You do NOT push to main ever.__  
 Main is for each stable release of the project, so there will always be a working version.
