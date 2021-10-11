@@ -4,10 +4,13 @@ An extention of the original NAIAD project where an autonomous platform is made 
 
 
 __Git guidelines:__ We're utilizing git flow in this project, this means that we have a few layers of branches for safety of the release version.
+
+The workflow will look like illustrated in this picture.
+![Git flow](https://wac-cdn.atlassian.com/dam/jcr:34c86360-8dea-4be4-92f7-6597d4d5bfae/02%20Feature%20branches.svg?cdnVersion=1841)
 Each feature has a separate branch e.g. one for ROS, This is the branch you push to each day. This is like your isolated experiment box.
 When a feature is done or after a certain time period, you push your progress to the development branch called "dev".   
 __You do NOT push to main ever.__  
-Main is for each stable release of the project, so there will always be a working version.
+Main is for each stable release of the project, so there will always be a working version. This branch is updated at regular intervals when the upcoming release is due.
 
 If you're comfortable with CLI then there exists a wrapper called git flow.  
 More info here: https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow  
