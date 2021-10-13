@@ -1,0 +1,4 @@
+float32[] latitude
+float32[] longitude
+---
+int8 status
