@@ -15,6 +15,8 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <!-- The msgs_ws needs to be sourced before building in order to import the custom interface -->
+  <depend>trident_msgs</depend> 
 
   <export>
     <build_type>ament_python</build_type>
