@@ -106,8 +106,12 @@ class MainNode(Node):
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
         try:
-            resp = sensor_handle(pred_state, pred_covar)
-            return(resp.gain, esp.residual, resp.observationmatrix)
+            resp = sensor_handle(pred_state.flatten(), pred_covar.flatten())
+            x_size = len(pred_state)
+            y_size = len(resp.residual)
+            return(np.reshape(resp.gain,               (y_size, x_size)),
+                   np.reshape(resp.residual,           (-1,1)          ),
+                   np.reshape(resp.observationmatrix), (x_size, y_size))
         except rospy.ServiceException as e:
                 print("Couldn't get values from a service:",e)
     
