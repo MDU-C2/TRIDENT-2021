@@ -132,7 +132,7 @@ class MainNode(Node):
         # TODO: add control vector
         pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0)
         # Add noise
-        pred_state += np.matmul(self.proc_noise, np.random.randn(3, 1))
+        pred_state += np.matmul(self.proc_noise, np.random.randn(self.state.shape[1], 1))
         # Predict covariance of new state
         pred_covar = np.matmul(np.matmul(
                         state_trans_mat,
