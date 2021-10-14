@@ -21,7 +21,7 @@ class MissionControlNode(MissionControlBase):
     """    
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
-        rclpy.get_logger().info("Created mission control node.")
+        self.get_logger().info("Created mission control node.")
 
 
 def main(args=None):

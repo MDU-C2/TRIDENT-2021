@@ -11,7 +11,9 @@ baseclasses_package_path = os.path.join(
 setup(
     name=package_name,
     version='0.0.0',
-    package_dir={'baseclasses': baseclasses_package_path},
+    package_dir={
+        'baseclasses': baseclasses_package_path,
+    },
     packages=[package_name, 'baseclasses'],
     data_files=[
         ('share/ament_index/resource_index/packages',
