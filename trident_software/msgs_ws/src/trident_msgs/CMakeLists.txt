@@ -39,10 +39,15 @@ endif()
 
 find_package(rosidl_default_generators REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+set(msg_files
   "msg/Waypoint.msg"
   "msg/WaypointAction.msg"
   "msg/Mission.msg"
+  "srv/LoadMission.srv"
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
   DEPENDENCIES builtin_interfaces geometry_msgs std_msgs action_msgs nav_msgs
  )
 
