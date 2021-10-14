@@ -1,6 +1,6 @@
 # generated from ament_cmake_export_dependencies/cmake/ament_cmake_export_dependencies-extras.cmake.in
 
-set(_exported_dependencies "rosidl_runtime_c;rosidl_typesupport_interface")
+set(_exported_dependencies "builtin_interfaces;geometry_msgs;std_msgs;action_msgs;nav_msgs;builtin_interfaces;geometry_msgs;std_msgs;action_msgs;unique_identifier_msgs;nav_msgs;rosidl_runtime_c;rosidl_typesupport_interface;builtin_interfaces;geometry_msgs;std_msgs;action_msgs;unique_identifier_msgs;nav_msgs;builtin_interfaces;geometry_msgs;std_msgs;action_msgs;unique_identifier_msgs;nav_msgs;rosidl_default_runtime")
 
 find_package(ament_cmake_libraries QUIET REQUIRED)
 

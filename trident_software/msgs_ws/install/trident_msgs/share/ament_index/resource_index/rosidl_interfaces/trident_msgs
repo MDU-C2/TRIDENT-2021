@@ -1,4 +1,6 @@
-srv/KalmanSensorService.idl
-srv/KalmanSensorService.srv
-srv/KalmanSensorService_Request.msg
-srv/KalmanSensorService_Response.msg
+msg/Mission.idl
+msg/Mission.msg
+msg/Waypoint.idl
+msg/Waypoint.msg
+msg/WaypointAction.idl
+msg/WaypointAction.msg
