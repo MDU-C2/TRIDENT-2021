@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-import rospy
 import numpy as np
 from random import gauss
 
@@ -42,13 +41,10 @@ class MainNode(Node):
         #-----------------------------------------------#
         self.sensor_handles = []
         for service_name in sensor_list:
-            rospy.wait_for_service(service_name)
-            try:
-                #TODO: Fix a service for this (take x and P, return y, H, and K)
-                self.sensor_handles.append(
-                    rospy.ServiceProxy(service_name, KalmanSensorService))
-            except rospy.ServiceException as e:
-                print("Couldn't add handle for",service_name,":",e)
+			cli = self.create_client(KalmanSensorService, service_name)
+			while not cli.wait_for_service(timeout_sec=1.0):
+				print(service_name,"is taking a while...")
+			sensor_handles.append(cli)
         
         #----------------------------------------------------------------#
         # Following are some examples of inputs for the kalman variables #
@@ -105,14 +101,17 @@ class MainNode(Node):
     
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
+		req = KalmanSensorService.Request()
+		req.state = pred_state
+		req.covar = pred_covar
         try:
-            resp = sensor_handle(pred_state.flatten(), pred_covar.flatten())
+            resp = sensor_handle.call(req)
             x_size = len(pred_state)
             y_size = len(resp.residual)
             return(np.reshape(resp.gain,               (y_size, x_size)),
                    np.reshape(resp.residual,           (-1,1)          ),
                    np.reshape(resp.observationmatrix), (x_size, y_size))
-        except rospy.ServiceException as e:
+        except Exception as e:
                 print("Couldn't get values from a service:",e)
     
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
@@ -163,7 +162,7 @@ class MainNode(Node):
         
         # Finally, set the state and covariance to the new ones!
         self.state = pred_state
-        self.cover 0 pred_covar
+        self.covar = pred_covar
             
 '''            observed, observe_matrix = self.jacobian_csd(sensor['obs_func'], pred_state, 0)
             residual = sensor['last_read'] - observed
