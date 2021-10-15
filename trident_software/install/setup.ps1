@@ -21,6 +21,7 @@ function _colcon_prefix_chain_powershell_source_script {
   }
 }
 
+<<<<<<< HEAD
 # source chained prefixes
 _colcon_prefix_chain_powershell_source_script "/home/athena/ros2_foxy/ros2-linux\local_setup.ps1"
 _colcon_prefix_chain_powershell_source_script "/home/athena/ros2_foxy/install\local_setup.ps1"
@@ -28,6 +29,8 @@ _colcon_prefix_chain_powershell_source_script "/home/athena/Documents/gitclones/
 _colcon_prefix_chain_powershell_source_script "/home/athena/Documents/gitclones/TRIDENT-2021/code_experiments/experiment_ws/src/install\local_setup.ps1"
 _colcon_prefix_chain_powershell_source_script "/home/athena/Documents/gitclones/TRIDENT-2021/trident_software/msgs_ws/install\local_setup.ps1"
 
+=======
+>>>>>>> Work in progress
 # source this prefix
 $env:COLCON_CURRENT_PREFIX=(Split-Path $PSCommandPath -Parent)
 _colcon_prefix_chain_powershell_source_script "$env:COLCON_CURRENT_PREFIX\local_setup.ps1"

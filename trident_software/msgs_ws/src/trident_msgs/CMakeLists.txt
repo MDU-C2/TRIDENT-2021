@@ -50,6 +50,7 @@ set(msg_files
   "msg/WaypointAction.msg"
   "msg/Mission.msg"
   "srv/LoadMission.srv"
+  "action/StartMission.action"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
