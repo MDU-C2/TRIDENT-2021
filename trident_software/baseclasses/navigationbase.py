@@ -3,6 +3,7 @@ from rclpy.node import Node
 
 #from trident_msgs.srv import LoadMissionPlan
 from example_interfaces.srv import AddTwoInts
+import std_msgs.msg
 
 class NavigationBase(Node):
     def __init__(self, node_name):
