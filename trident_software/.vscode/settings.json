@@ -9,4 +9,6 @@
   "/opt/ros"
 ],
 "ros.distro": "foxy",
+"python.linting.pylintEnabled": true,
+"python.linting.enabled": true,
 }
