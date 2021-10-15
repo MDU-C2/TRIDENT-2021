@@ -9,12 +9,18 @@ class MissionControlState(IntEnum):
     MISSION_FINISHED = 3
 
 class GotoWaypointStatus(IntFlag):
-    """Combinable enum for the GotoWaypoint action.
+    """Combinable enum for status in the the GotoWaypoint action.
     """
-    COMPUTING_PATH = 1,
-    MOVING = 2,
+    COMPUTING_PATH = 1
+    MOVING = 2
     COMPUTING_PATH_AND_MOVING = 3
     WAITING = 4
     HOLDING_POSITION = 8
     FINISHED = 16
-    
+
+class MissionStatus(IntEnum):
+    """Enum for the mission status messages in the StartMission action.
+    """
+    EXECUTING = 0
+    WAITING = 1
+    FINISHED = 2
