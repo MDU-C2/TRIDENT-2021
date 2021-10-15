@@ -1,20 +1,5 @@
-import sys
-import os
-
-# from setuptools import find_namespace_packages
-# baseclasses_package_path = os.path.join( os.path.abspath(__file__).split('trident_software')[0],('trident_software/'))
-# test = find_namespace_packages( where=baseclasses_package_path, include='*base')
-# print(test)
-
-# sys.path.append(os.path.join( os.path.abspath(__file__).split('trident_software')[0],('trident_software/')))
-# sys.path.append(os.path.join( os.path.abspath(__file__).split('trident_software')[0],('trident_software/')))
-
-# sys.path.append("/home/johannes/TRIDENT-2021/trident_software/baseclasses")
-# print(sys.path.dir(__file__))
-# print(sys.path)
 import rclpy
 from baseclasses.missioncontrolbase import MissionControlBase
-
 
 class MissionControlNode(MissionControlBase):
     """The main node for the Mission Control module. 
