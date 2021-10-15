@@ -77,7 +77,7 @@ class MainNode(Node):
     
     # The state transition function (predicting the next step)
     # This is only a placeholder, and should be changed in every implementation!
-    def state_trans(self, prev, control_vec):
+    def state_trans(self, prev, control_vec, dt):
         return np.transpose(np.array([[prev[0,0]*prev[6,0], 
                                        prev[1,0]*prev[7,0], 
                                        prev[2,0]*prev[8,0], 
@@ -117,8 +117,8 @@ class MainNode(Node):
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
     # Jacobian through complex step differentiation
     # Source: https://se.mathworks.com/matlabcentral/fileexchange/18189-learning-the-extended-kalman-filter?s_tid=mwa_osa_a
-    def jacobian_csd(self, func, state, control):
-        new_state = func(state, control) 
+    def jacobian_csd(self, func, state, control, dt):
+        new_state = func(state, control, dt) 
         n = state.shape[0]
         m = new_state.shape[0]
         A = np.zeros((m,n))
@@ -126,14 +126,14 @@ class MainNode(Node):
         for k in range(n):
             state1 = state.astype('complex64')
             state1[k, 0] = complex(state1[k, 0], h)
-            A[:, k] = np.transpose((func(state1, control)).imag/h) 
+            A[:, k] = np.transpose((func(state1, control, dt)).imag/h) 
         return (new_state, A)
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
     def timer_callback(self):
         # Predict new state (and get the state transition matrix thru Jacobian)
         # TODO: add control vector
-        pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0)
+        pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0, 1)
         # Add noise
         pred_state += np.matmul(self.proc_noise, np.random.randn(self.state.shape[1], 1))
         # Predict covariance of new state
