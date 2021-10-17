@@ -3,7 +3,7 @@ from baseclasses.missioncontrolbase import MissionControlBase
 
 class MissionControlNode(MissionControlBase):
     """The main node for the Mission Control module. 
-    """    
+    """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created mission control node.")

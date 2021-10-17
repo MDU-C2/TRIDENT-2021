@@ -1,5 +1,11 @@
+"""Module containing the base class definition for the Mission contorl nodes.
+
+Author: Johannes Deivard
+
+Last edited: 2021-10-17 by Johannes Deivard
+"""
 import rclpy
-from tridentstates import MissionControlState, GotoWaypointStatus, MissionStatus
+from tridentstates import MissionControlState, GotoWaypointStatus, StartMissionStatus
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
 
@@ -19,54 +25,31 @@ class MissionControlBase(Node):
         self.state = MissionControlState.NO_MISSION
         self.mission = None
 
-        self._goto_waypoint_feedback
-
         # Create the servers
         # ------------------
         # Server for the mission control's load mission service
         self._server_load_mission = self.create_service(LoadMission, 'mission_control/mission/load', self.server_load_mission_callback)
         self._action_server_start_mission = ActionServer(
             self,
-            StartMission, 
+            StartMission,
             'mission_control/mission/start',
             execute_callback=self._action_server_start_mission_execute_callback,
         )
         
         # Create the clients
         # ------------------
-        # Client for the navigation node's empty waypoint queue service
-        # self.client_request_empty_wp_queue = self.create_client(Trigger, 'nav/wp_queue/empty')
-        # Client for the navigtaion node's fill waypoint queue service
-        # self.client_fill_wp_queue = self.create_client(Trigger, 'nav/wp_queue/fill')
+        self._action_client_goto_waypoint = self.ActionClient(self, Trigger, 'navigation/waypoint/go')
 
-        self._action_client_goto_waypoint = self.ActionClient(self, Trigger, 'nav/waypoint/go')
-
-
-        # TODO: Discuss whether it is better to let the mission control handle the progress of the mission and instead
-        #       only send a single waypoint to the navigtaion module.
-        #       The benefits of this are that:
-        #           - we don't get nested actions,
-        #           - if the navigation node eventually are supposed to be more intelligent, the node can focus on getting to
-        #             the goal without crashing into something, which means that it would plan and create a path to the goal, which 
-        #             in essence means that the navigation node would create it's own "mission" to get to the waypoint.
-        #           - it is easier to track the progress of a mission
-        #       So, the mission control tracks the state of the mission and sends feedback to ground control.
-        #       Each waypoint in the mission gets sent to the navigation node one at a time, which internally would
-        #       create a path (a list of poses essentially) that would allow the agent to reach the waypoint. The 
-        #       navigation node would send the poses one at a time to the motor controler and eventually reach the 
-        #       mission goal. The navigation node would continuosly send feedback to mission control in the form of 
-        #       distance from goal. Once the goal (a waypoint) is reached, the mission control would send the next 
-        #       waypoint in the mission list to the navigation module and the process is repeated.   
 
     #                   Callbacks
     # -----------------------------------------
-    # Goto waypoint callbacks
+    # Goto waypoint action client callbacks
     # -----------------------
     def _goto_waypoint_feedback_callback(self, feedback):
         self.get_logger().info(f"Goto waypoint feedback: Distance to goal: {feedback.feedback.distance_to_goal}" /
                                f"status: {feedback.feedback.status}, Message: {feedback.feedback.message}")
 
-    def _goto_waypoint_response_callback(self, future):
+    def _goto_waypoint_goal_response_callback(self, future):
         goal_handle = future.result()
         # Check if the goal was rejected and return early if it was
         if not goal_handle.accepted:
@@ -104,10 +87,17 @@ class MissionControlBase(Node):
         goal_msg.waypoint = waypoint
         self._action_client_goto_waypoint.wait_for_server()
 
-        return self._action_client_goto_waypoint.send_goal_async(goal_msg, feedback_callback=self._goto_waypoint_feedback_callback)
+        self._action_client_goto_waypoint.send_goal_async(
+            goal_msg,
+            feedback_callback=self._goto_waypoint_feedback_callback
+        )
 
-    # Start mission action callbacks
-    # -----------------------
+        self._action_client_goto_waypoint.add_done_callback(self._goto_waypoint_goal_response_callback)
+
+        return self._action_client_goto_waypoint
+
+    # Start mission action server callbacks
+    # ------------------------------
     async def _action_server_start_mission_execute_callback(self, goal_handle):
         """Executes the given goal by telling the navigation module to start the mission.
         """
@@ -115,17 +105,16 @@ class MissionControlBase(Node):
         waypoints_succeeded = 0
         waypoints_failed = 0
 
-        # Update mission control state 
+        # Update mission control state
         self.state = MissionControlState.EXECUTING_MISSION
         self.get_logget().info(f"Starting to execute mission with {total_waypoints} waypoints.")
 
         for i, waypoint in enumerate(self.mission):
-            goal_future = await self._goto_waypoint_send_goal(waypoint)
-            result = goal_future.result()
-            if GotoWaypointStatus(result.status) in GotoWaypointStatus.FINISHED:
+            goto_waypoint_goal_future = await self._goto_waypoint_send_goal(waypoint)
+            goto_waypoint_result = goto_waypoint_goal_future.result()
+            if GotoWaypointStatus(goto_waypoint_result.status) in GotoWaypointStatus.FINISHED:
                 waypoints_succeeded += 1
                 # Create the feedback message
-                feedback_msg = StartMission.Feedback()
                 informational = f"Completed waypoint {i+1}. Progress: {i+1}/{total_waypoints}."
             else:
                 waypoints_failed += 1
@@ -133,11 +122,12 @@ class MissionControlBase(Node):
 
             # Log the informational message
             self.get_logger().info(informational)
+            feedback_msg = StartMission.Feedback()
             # Check if this was the last waypoint and set the mission status in the feedback msg accordingly
             if i == len(self.mission):
-                feedback_msg.status = MissionStatus.FINISHED
+                feedback_msg.status = StartMissionStatus.FINISHED
             else:
-                feedback_msg.status = MissionStatus.EXECUTING
+                feedback_msg.status = StartMissionStatus.EXECUTING
 
             feedback_msg.waypoints_completed = i+1
             feedback_msg.message = informational
@@ -147,7 +137,11 @@ class MissionControlBase(Node):
         self.state = MissionControlState.MISSION_FINISHED
         goal_handle.succeed()
         
+        result = StartMission.Result()
+        result.status = StartMissionStatus.FINISHED
+        result.message = f"Mission with {total_waypoints} waypoints finished."
 
+        return result
 
 
     def server_load_mission_callback(self, request, response):
