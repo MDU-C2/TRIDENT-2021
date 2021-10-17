@@ -1,0 +1,10 @@
+Pose pose       # Pose to hold
+int64 duration  # Holding duration in seconds. 0=Infinite
+---
+int64 duration              # Duration position was held
+string message              # Informational message about the status
+Pose mean_pose_deviation    # Some kind of measurement of how well the position is held over time
+---
+int16 status                # Status of the action. 1 = moving to pose, 2 = holding
+string message              # Informational message about the status
+Pose mean_pose_deviation    # Some kind of measurement of how well the position is held over time
