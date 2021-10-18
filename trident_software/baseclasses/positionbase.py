@@ -45,7 +45,7 @@ class MainNode(Node):
             cli = self.create_client(KalmanSensorService, service_name)
             while not cli.wait_for_service(timeout_sec=1.0):
                 print(service_name,"is taking a while...")
-            sensor_handles.append(cli)
+            self.sensor_handles.append(cli)
         
         #----------------------------------------------------------------#
         # Following are some examples of inputs for the kalman variables #
@@ -79,18 +79,7 @@ class MainNode(Node):
     # The state transition function (predicting the next step)
     # This is only a placeholder, and should be changed in every implementation!
     def state_trans(self, prev, control_vec, dt):
-        return np.transpose(np.array([[prev[0,0]*prev[6,0], 
-                                       prev[1,0]*prev[7,0], 
-                                       prev[2,0]*prev[8,0], 
-                                       prev[3,0]*prev[9,0],  
-                                       prev[4,0]*prev[10,0], 
-                                       prev[5,0]*prev[11,0], 
-                                       prev[6,0], 
-                                       prev[7,0], 
-                                       prev[8,0], 
-                                       prev[9,0], 
-                                       prev[10,0], 
-                                       prev[11,0]]]))
+        return prev
     
     # The topic publisher function
     # This too should be changed to an appropriate message!
@@ -136,7 +125,7 @@ class MainNode(Node):
         # TODO: add control vector
         pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0, 1)
         # Add noise
-        pred_state += np.matmul(self.proc_noise, np.random.randn(self.state.shape[1], 1))
+        pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
         # Predict covariance of new state
         pred_covar = np.matmul(np.matmul(
                         state_trans_mat,
@@ -149,7 +138,7 @@ class MainNode(Node):
         for sensor in self.sensor_handles:
             try:
                 # Get the values from the sensors
-                gain, resid, obs_mat = service_call(sensor, pred_state, pred_covar)
+                gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
                 # Update the state estimate
                 pred_state = pred_state + np.matmul(gain, resid)
                 # Update the covariance estimate
@@ -158,8 +147,8 @@ class MainNode(Node):
                                     gain,
                                     observe_matrix),
                                 pred_covar)
-            except:
-                print("Skipping sensor due to failure!")
+            except Exception as e:
+                print("Skipping sensor due to failure!",e)
         
         # Finally, set the state and covariance to the new ones!
         self.state = pred_state
