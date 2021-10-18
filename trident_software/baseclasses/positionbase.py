@@ -102,8 +102,8 @@ class MainNode(Node):
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
 		req = KalmanSensorService.Request()
-		req.state = pred_state
-		req.covar = pred_covar
+		req.state = pred_state.flatten()
+		req.covar = pred_covar.flatten()
         try:
             resp = sensor_handle.call(req)
             x_size = len(pred_state)
