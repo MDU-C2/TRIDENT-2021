@@ -100,18 +100,18 @@ class PID():
 
         self.matrix = np.zeros((6,6))
         self.pidmatrix = np.zeros((3,6))
-                                   #x     y     z    roll   pitch    yaw
-        self.xPIDconfig = self.pidmatrix = [(10.0, 10.0, 10.0, 20.0 , 20.0   , 20.0),  #P
-                                  (0.0 ,  0.0,  0.0,  0.0 ,  0.0   ,  0.0),  #I
-                                  (40.0, 40.0, 40.0, 20.0 , 20.0   , 20.0)]  #D
+                                            #x    y    z    roll pitch yaw
+        self.xPIDconfig = self.pidmatrix = [(2.0, 2.0, 5.0, 0.1, 0.5, 1.0),  #P
+                                            (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),  #I
+                                            (0.5, 0.5, 2.0, 0.1, 0.5, 0.1)]  #D
 
-                                    #x          y    z    roll    pitch    yaw
-        self.xThrusterConfig = self.matrix = [(0.866025 , 0.5, 0.0, 0.0   , 0.0   , -0.28),  #motor1
-                                    (0.0      , 1.0, 0.0, 0.0   , 0.0   , -0.22), #motor2
-                                    (0.866025 ,-0.5, 0.0, 0.0   , 0.0   ,  0.28), #motor3
-                                    (0.0      , 0.0, 1.0, 0.355 , 0.230 ,  0.0),  #motor4
-                                    (0.0      , 0.0, 1.0,-0.355 , 0.230 ,  0.0),  #motor5
-                                    (0.0      , 0.0, 1.0, 0.0   , 0.355 ,  0.0)]  #motor6
+                                              #x          y    z    roll    pitch    yaw
+        self.xThrusterConfig = self.matrix = [(0.866025 , 0.5, 0.0, 0.0   , 0.0   ,  0.28),  #motor1
+                                              (0.0      , 1.0, 0.0, 0.0   , 0.0   ,  0.22),  #motor2
+                                              (0.866025 ,-0.5, 0.0, 0.0   , 0.0   , -0.28),  #motor3
+                                              (0.0      , 0.0, 1.0,-0.355 ,-0.230 ,  0.0),   #motor4
+                                              (0.0      , 0.0, 1.0, 0.355 ,-0.230 ,  0.0),   #motor5
+                                              (0.0      , 0.0, 1.0, 0.0   , 0.455 ,  0.0)]   #motor6
 
 
 
@@ -225,97 +225,75 @@ class PID():
       elif self.thruster[self.motorNumber] > 255.0:
          self.thruster[self.motorNumber] = 255.0
 
-    '''
-   procedure Update_Errors is
-   begin
+   
+    def Update_Errors(self):
 
-      errorYaw   := currentYaw - desiredYaw;
-      if abs(errorYaw) < zeroLimit then
-         errorYaw := 0.0;
-      end if;
+      self.errorYaw = self.currentYaw - self.desiredYaw
+      if abs(self.errorYaw) < self.zeroLimit:
+         self.errorYaw = 0.0
 
-      errorPitch := currentPitch - desiredPitch;
-      if abs(errorPitch) < zeroLimit then
-         errorPitch := 0.0;
-      end if;
+      self.errorPitch = self.currentPitch - self.desiredPitch
+      if abs(self.errorPitch) < self.zeroLimit:
+         self.errorPitch = 0.0
 
-      errorRoll  := currentRoll  - desiredRoll;
-      if abs(errorRoll) < zeroLimit then
-         errorRoll := 0.0;
-      end if;
+      self.errorRoll = self.currentRoll  - self.desiredRoll
+      if abs(self.errorRoll) < self.zeroLimit:
+         self.errorRoll = 0.0
 
-      errorPosX  := currentPosX - desiredPosX;
-      errorPosY  := currentPosY - desiredPosY;
-      errorPosZ  := currentPosZ - desiredPosZ;
-
-   end Update_Errors;
+      self.errorPosX  = self.currentPosX - self.desiredPosX
+      self.errorPosY  = self.currentPosY - self.desiredPosY
+      self.errorPosZ  = self.currentPosZ - self.desiredPosZ
 
 
+    def Update_Last_Errors(self):
+      #Update last errors
+      self.lastErrorYaw   = self.errorYaw
+      self.lastErrorPitch = self.errorPitch
+      self.lastErrorRoll  = self.errorRoll
 
-   procedure Update_Last_Errors is
+      self.lastErrorPosX  = self.errorPosX
+      self.lastErrorPosY  = self.errorPosY
+      self.lastErrorPosZ  = self.errorPosZ
 
-   begin
+    def Update_PID_orientation(self):
+      #P for all ORIENTATION
+      self.pitch_P_Value = self.errorPitch
+      self.roll_P_Value  = self.errorRoll
+      self.yaw_P_Value   = self.errorYaw
 
-      --Update last errors
-      lastErrorYaw   := errorYaw;
-      lastErrorPitch := errorPitch;
-      lastErrorRoll  := errorRoll;
+      #I for all ORIENTATION
+      self.pitch_I_Value = self.pitch_I_Value  + self.errorPitch * self.deltaTime
+      self.roll_I_Value  = self.roll_I_Value   + self.errorRoll  * self.deltaTime
+      self.yaw_I_Value   = self.yaw_I_Value    + self.errorYaw   * self.deltaTime
 
-      lastErrorPosX  := errorPosX;
-      lastErrorPosY  := errorPosY;
-      lastErrorPosZ  := errorPosZ;
-   end Update_Last_Errors;
-
-   procedure Update_PID_orientation is
-   begin
-      --P for all ORIENTATION
-      Pitch_P_Value := errorPitch;
-      roll_P_Value  := errorRoll;
-      yaw_P_Value   := errorYaw;
-
-      --I for all ORIENTATION
-      Pitch_I_Value := pitch_I_Value  + errorPitch*deltaTime;
-      roll_I_Value  := roll_I_Value   + errorRoll *deltaTime;
-      yaw_I_Value   := yaw_I_Value    + erroryaw  *deltaTime;
-
-      --D for all ORIENTATION
-      Pitch_D_Value := (errorPitch-lastErrorPitch)/deltaTime;
-      roll_D_Value  := (errorRoll-lastErrorRoll)  /deltaTime;
-      yaw_D_Value   := (errorYaw-lastErrorYaw)    /deltaTime;
-   end Update_PID_orientation;
+      #D for all ORIENTATION
+      self.pitch_D_Value = (self.errorPitch - self.lastErrorPitch) /self.deltaTime
+      self.roll_D_Value  = (self.errorRoll  - self.lastErrorRoll)  /self.deltaTime
+      self.yaw_D_Value   = (self.errorYaw   - self.lastErrorYaw)   /self.deltaTime
 
 
-   procedure Update_PID_position is
+    def Update_PID_position(self):
+      #P for all POSITIONS
+      self.posX_P_Value  =  self.errorPosX
+      self.posY_P_Value  =  self.errorPosY
+      self.posZ_P_Value  =  self.errorPosZ
 
-   begin
-      --P for all POSITIONS
-      posX_P_Value  :=  errorPosX;
-      posY_P_Value  :=  errorPosY;
-      posZ_P_Value  :=  errorPosZ;
+      #I for all POSITIONS
+      self.posX_I_Value  = self.posX_I_Value + self.errorPosX * self.deltaTime
+      self.posY_I_Value  = self.posY_I_Value + self.errorPosY * self.deltaTime
+      self.posZ_I_Value  = self.posZ_I_Value + self.errorPosZ * self.deltaTime
+      
+      #D for all POSITIONS
+      self.posX_D_Value  = (self.errorPosX - self.lastErrorPosX) / self.deltaTime
+      self.posY_D_Value  = (self.errorPosY - self.lastErrorPosY) / self.deltaTime
+      self.posZ_D_Value  = (self.errorPosZ - self.lastErrorPosZ) / self.deltaTime
 
-      --I for all POSITIONS
-      posX_I_Value  := posX_I_Value + errorPosX*deltaTime;
-      posY_I_Value  := posY_I_Value + errorPosY*deltaTime;
-      posZ_I_Value  := posZ_I_Value + errorPosZ*deltaTime;
-      --D for all POSITIONS
-
-      posX_D_Value  := (errorPosX-lastErrorPosX)/deltaTime;
-      posY_D_Value  := (errorPosY-lastErrorPosY)/deltaTime;
-      posZ_D_Value  := (errorPosZ-lastErrorPosZ)/deltaTime;
-
-   end Update_PID_position;
-
-
-   procedure Go_To_Desired_Position_And_Orientation is
-   begin
-      --add positionx/y integration if using position.
-      Update_Errors;
-      Update_PID_position;
-      Update_PID_orientation;
-      Update_Last_Errors;
-      for i in 1..6 loop
-         update_thruster_value(i);
-      end loop;
-
-   end Go_To_Desired_Position_And_Orientation;
-    '''
+    def Go_To_Desired_Position_And_Orientation(self):
+      #add positionx/y integration if using position.
+      self.Update_Errors()
+      self.Update_PID_position
+      self.Update_PID_orientation
+      self.Update_Last_Errors
+      for i in range(6):
+         self.update_thruster_value(i)
+   
