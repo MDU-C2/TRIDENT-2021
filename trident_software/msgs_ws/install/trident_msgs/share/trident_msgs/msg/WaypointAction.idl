@@ -6,6 +6,8 @@
 module trident_msgs {
   module msg {
     struct WaypointAction {
+      @verbatim (language="comment", text=
+        " 0=No action, 1=hold")
       @default (value=0)
       int16 action_type;
 

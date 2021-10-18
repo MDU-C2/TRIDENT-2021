@@ -1,13 +1,13 @@
 """Module containing the base class definition for the navigation nodes.
 
-Author: Johannes Deivard
+Author: Johannes Deivard 2021-10
 
 Last edited: 2021-10-17 by Johannes Deivard
 """
 from typing import List # For typehints
 from math import sqrt   # For Pythagorean theorem do calculate distance
 import rclpy
-from tridentstates import GotoWaypointStatus, NavigationState, HoldPoseStatus, GotoPoseStatus, WaypointAction
+from baseclasses.tridentstates import GotoWaypointStatus, NavigationState, HoldPoseStatus, GotoPoseStatus, WaypointActionType
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
 
@@ -37,14 +37,16 @@ class NavigationBase(Node):
             self,
             GotoWaypoint,
             'navigation/waypoint/go',
-            execute_callback=self._action_server_goto_waypoint_callback
+            execute_callback=self._action_server_goto_waypoint_execute_callback
         )
 
         
         # Create the clients
         # ------------------
         self._action_client_goto_pose = ActionClient(self, GotoPose, 'motor/pose/go') # TODO: Implement server in motor
+        self._goto_pose_get_result_future = None
         self._action_client_hold_pose = ActionClient(self, HoldPose, 'motor/pose/hold') # TODO: Implement server in motor
+        self._hold_pose_get_result_future = None
 
 
     def compute_path(self, waypoint) -> List[Pose]:
@@ -82,8 +84,8 @@ class NavigationBase(Node):
             float: Distance (in meters??)
         """
         # Unpack the positions
-        x1, y1, z1 = current
-        x2, y2, z2 = goal
+        x1, y1, z1 = (current.x, current.y, current.z)
+        x2, y2, z2 = (goal.x, goal.y, goal.z)
 
         # Pythagorean theorem
         return sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
@@ -95,7 +97,7 @@ class NavigationBase(Node):
     # Hold pose action client callbacks
     # ---------------------------------
     def _hold_pose_send_goal(self, pose: Pose, duration: int):
-        """Packs the pose and duration into a goal message and sends the goal to the 
+        """Packs the pose and duration into a goal message and sends the goal to the
         hold pose action server that is served by the motor controller node.
 
         Args:
@@ -110,17 +112,17 @@ class NavigationBase(Node):
         # Wait for the server availability
         self._action_client_hold_pose.wait_for_server()
 
-        self._action_client_hold_pose.send_goal_async(
+        send_goal_future = self._action_client_hold_pose.send_goal_async(
             goal_msg,
             feedback_callback=self._hold_pose_feedback_callback
         )
-        self._action_client_hold_pose.add_done_callback(self._hold_pose_goal_response_callback)
+        send_goal_future.add_done_callback(self._hold_pose_goal_response_callback)
 
-        return self._action_client_hold_pose
+        return send_goal_future
 
     
     def _hold_pose_feedback_callback(self, feedback):
-        self.get_logger().info(f"Hold pose feedback: Status: {feedback.feedback.status}" /
+        self.get_logger().info(f"Hold pose feedback: Status: {feedback.feedback.status} " /
                                f"Message: {feedback.feedback.message}")
                                # TODO: Log mean pose deviation (computed in motor controller)
 
@@ -154,42 +156,13 @@ class NavigationBase(Node):
         Args:
             future (Future): Result future that is finished.
         """
-        message = future.result().message
-        duration = future.result().duration
+        message = future.result().result.message
+        duration = future.result().result.duration
         self.get_logger().info(f"HoldPose finished. Held position for {duration} seconds. Message: {message}")
 
 
     # Goto pose action client callbacks
     # -----------------------
-    def _goto_pose_goal_response_callback(self, future):
-        goal_handle = future.result()
-        # Check if the goal was rejected and return early if it was
-        if not goal_handle.accepted:
-            self.get_logger().info('Waypoint goal rejected.')
-            return
-
-        self.get_logger().info('Waypoint goal accepted.')
-        # Create the future that gets completed when the action is finished
-        self._goto_waypoint_get_result_future = goal_handle.get_result_async()
-        # Add the callback for when the future is completed
-        self._goto_waypoint_get_result_future.add_done_callback(self._goto_waypoint_get_result_callback)
-
-        return self._goto_waypoint_get_result_future
-
-    def _goto_pose_get_result_callback(self, future):
-        """Callback for the result future of the GotoPose action.
-
-        Args:
-            future (Future): Result future that is finished.
-        """
-        status = future.result().status
-        distance_to_goal = future.result().distance_to_goal
-        message = future.result().message
-        if status == GotoPoseStatus.FINISHED:
-            self.get_logger().info(f"GotoPose finished {distance_to_goal}m from the goal. Message: {message}")
-        elif status == GotoPoseStatus.FAILED:
-            self.get_logger().info(f"GotoPose failed {distance_to_goal}m from the goal. Message: {message}")
-
     def _goto_pose_send_goal(self, pose):
         """Packs the pose into a goal message and sends the goal to the goto pose action server
         that is served by the motor controller node.
@@ -204,17 +177,16 @@ class NavigationBase(Node):
         # Wait for the server availability
         self._action_client_goto_pose.wait_for_server()
 
-        self._action_client_goto_pose.send_goal_async(
+        goto_pose_send_goal_future = self._action_client_goto_pose.send_goal_async(
             goal_msg,
             feedback_callback=self._goto_pose_feedback_callback
         )
-        self._action_client_goto_pose.add_done_callback(self._goto_pose_goal_response_callback)
+        goto_pose_send_goal_future.add_done_callback(self._goto_pose_goal_response_callback)
 
-        return self._action_client_goto_pose
-
+        return goto_pose_send_goal_future
 
     def _goto_pose_feedback_callback(self, feedback):
-        self.get_logger().info(f"Goto pose feedback: Distance to goal: {feedback.feedback.distance_to_goal}" /
+        self.get_logger().info(f"Goto pose feedback: Distance to goal: {feedback.feedback.distance_to_goal}" \
                                f"status: {feedback.feedback.status}, Message: {feedback.feedback.message}")
 
         self.get_logger().info('Propagating feedback to GotoWaypoint client.')
@@ -224,6 +196,36 @@ class NavigationBase(Node):
         goto_waypoint_feedback_msg.status = GotoWaypointStatus.MOVING
         goto_waypoint_feedback_msg.message = "Moving to waypoint."
         self._goto_waypoint_goal_handle.publish_feedback(goto_waypoint_feedback_msg)
+
+    def _goto_pose_goal_response_callback(self, future):
+        goal_handle = future.result()
+        # Check if the goal was rejected and return early if it was
+        if not goal_handle.accepted:
+            self.get_logger().info('Pose goal rejected.')
+            return
+
+        self.get_logger().info('Pose goal accepted.')
+        # Create the future that gets completed when the action is finished
+        self._goto_pose_get_result_future = goal_handle.get_result_async()
+        # Add the callback for when the future is completed
+        self._goto_pose_get_result_future.add_done_callback(self._goto_pose_get_result_callback)
+
+        return self._goto_pose_get_result_future
+
+    def _goto_pose_get_result_callback(self, future):
+        """Callback for the result future of the GotoPose action.
+
+        Args:
+            future (Future): Result future that is finished.
+        """
+        status = future.result().result.status
+        distance_to_goal = future.result().result.distance_to_goal
+        message = future.result().result.message
+        if status == GotoPoseStatus.FINISHED:
+            self.get_logger().info(f"GotoPose finished {distance_to_goal}m from the goal. Message: {message}")
+        elif status == GotoPoseStatus.FAILED:
+            self.get_logger().info(f"GotoPose failed {distance_to_goal}m from the goal. Message: {message}")
+
 
     # Goto waypoint action server callbacks
     # -----------------------
@@ -255,7 +257,8 @@ class NavigationBase(Node):
             goal_handle.publish_feedback(feedback_msg)
             # Send the desired state to the motor controller and await the result
             goto_pose_goal_future = await self._goto_pose_send_goal(pose)
-            goto_pose_result = goto_pose_goal_future.goto_pose_result()
+            goto_pose_result_future = await self._goto_pose_get_result_future
+            goto_pose_result = goto_pose_result_future.result
             # Check goto_pose_result
             if GotoPoseStatus(goto_pose_result.status) == GotoPoseStatus.FINISHED:
                 self.get_logger().info(f'Finished going to pose. Message: {goto_pose_result.message} ')
@@ -263,7 +266,7 @@ class NavigationBase(Node):
                 self.get_logger().info(f'Failed going to pose. Message {goto_pose_result.message}')
 
             # Check if the waypoint action is HOLD
-            if goal_handle.request.waypoint.action == WaypointAction.HOLD:
+            if goal_handle.request.waypoint.action == WaypointActionType.HOLD:
                 # Call the motor controller's HoldPose action service
                 self._hold_pose_send_goal(
                     goal_handle.request.waypoint.pose,
@@ -274,7 +277,7 @@ class NavigationBase(Node):
         result = GotoWaypoint.Result()
         result.status = GotoWaypointStatus.FINISHED
         result.message = "Arrived at the waypoint. Goal finished."
-        result.distance_to_goal = 0 # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
+        result.distance_to_goal = 0.0 # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
         
         self.get_logger().info(f'Returning result: {result}')
 
