@@ -4,6 +4,7 @@ import numpy as np
 from random import gauss
 
 from example_interfaces.msg import String
+from trident_msgs.srv import KalmanSensorService
 
 class MainNode(Node):
     def __init__(self, name, pub_topic_type, pub_topic_name, interval,
@@ -24,7 +25,7 @@ class MainNode(Node):
         
         # Error detection on the different variables #
         #--------------------------------------------#
-        assert(self.state.shape[1] = 1),\
+        assert(self.state.shape[1] == 1),\
                "Given state isn't vertical/isn't a vector!"
         state_size = self.state.shape[0]
         assert(self.covar.shape[0] == state_size and self.covar.shape[1] == state_size),\
@@ -41,10 +42,10 @@ class MainNode(Node):
         #-----------------------------------------------#
         self.sensor_handles = []
         for service_name in sensor_list:
-			cli = self.create_client(KalmanSensorService, service_name)
-			while not cli.wait_for_service(timeout_sec=1.0):
-				print(service_name,"is taking a while...")
-			sensor_handles.append(cli)
+            cli = self.create_client(KalmanSensorService, service_name)
+            while not cli.wait_for_service(timeout_sec=1.0):
+                print(service_name,"is taking a while...")
+            sensor_handles.append(cli)
         
         #----------------------------------------------------------------#
         # Following are some examples of inputs for the kalman variables #
@@ -101,9 +102,9 @@ class MainNode(Node):
     
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
-		req = KalmanSensorService.Request()
-		req.state = pred_state.flatten()
-		req.covar = pred_covar.flatten()
+        req = KalmanSensorService.Request()
+        req.state = pred_state.flatten()
+        req.covar = pred_covar.flatten()
         try:
             resp = sensor_handle.call(req)
             x_size = len(pred_state)

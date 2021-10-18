@@ -35,3 +35,15 @@ class PosNode(posbase.MainNode):
             msg.dtheta = self.state[5, 0]
             self.publisher_.publish(msg)
             self.get_logger().info('Publishing new state')
+
+def main(args=None):
+    rclpy.init(args=args)
+    
+    main_node = PosNode()
+    
+    rclpy.spin(main_node)
+    
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()
