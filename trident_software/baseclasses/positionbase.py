@@ -92,8 +92,8 @@ class MainNode(Node):
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
         req = KalmanSensorService.Request()
-        req.state = pred_state.flatten()
-        req.covar = pred_covar.flatten()
+        req.state = list(pred_state.flatten())
+        req.covar = list(pred_covar.flatten())
         try:
             resp = sensor_handle.call(req)
             x_size = len(pred_state)
@@ -134,7 +134,7 @@ class MainNode(Node):
                      ) + self.proc_noise
         
         # Here we go through all of the different sensors
-        # TODO: none of this is implemented yet, since no sensors!
+        # TODO: none of this truly is implemented yet, since no sensors!
         for sensor in self.sensor_handles:
             try:
                 # Get the values from the sensors
@@ -153,6 +153,9 @@ class MainNode(Node):
         # Finally, set the state and covariance to the new ones!
         self.state = pred_state
         self.covar = pred_covar
+        
+        # AND publish the new state
+        self.state_publish()
             
 '''            observed, observe_matrix = self.jacobian_csd(sensor['obs_func'], pred_state, 0)
             residual = sensor['last_read'] - observed

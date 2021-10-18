@@ -62,11 +62,14 @@ class MainProgNode(Node):
         gain = np.matmul(np.matmul(
                    covar,
                    np.transpose(obs_mat)),
-                   resid_covar**-1)
+                   np.linalg.inv(resid_covar))
+                   
+        #print("IMU covariance:\n",resid_covar,"\nState covariance:\n",covar)
+        #print("IMU residual:\n",resid,"\nIMU gain:\n",gain,"\nIMU obs matrix:\n",obs_mat)
         
-        response.residual = np.flatten(resid)
-        response.gain = np.flatten(gain)
-        response.observationmatrix = np.flatten(obs_mat)
+        response.residual = list(resid.flatten())
+        response.gain = list(gain.flatten())
+        response.observationmatrix = list(obs_mat.flatten())
         return response
     
     def GPSServCallback(self, request, response):
@@ -85,11 +88,11 @@ class MainProgNode(Node):
         gain = np.matmul(np.matmul(
                    covar,
                    np.transpose(obs_mat)),
-                   resid_covar**-1)
+                   np.linalg.inv(resid_covar))
         
-        response.residual = np.flatten(resid)
-        response.gain = np.flatten(gain)
-        response.observationmatrix = np.flatten(obs_mat)
+        response.residual = list(resid.flatten())
+        response.gain = list(gain.flatten())
+        response.observationmatrix = list(obs_mat.flatten())
         return response
     
     def StateEstCallback(self, msg):
@@ -102,12 +105,12 @@ class MainProgNode(Node):
         self.estim_state[5,0] = msg.dtheta
     
     def ControlCallback(self, msg):
-        print("received msg:",msg)
+        #print("received msg:",msg)
         self.motor_thrust = msg.linear.x*40
         self.motor_spin   = msg.angular.z
         self.recv_time = pygame.time.get_ticks()/1000.0
         
-    def DrawUnit(self, surf, x, y, yaw):
+    def DrawUnit(self, surf, x, y, yaw, color):
         lpoints = [[n[0]*cos(yaw)+n[1]*sin(yaw)+x+240,
                     -n[0]*sin(yaw)+n[1]*cos(yaw)-y+240] for n in [
             [ 20,  0],
@@ -115,7 +118,7 @@ class MainProgNode(Node):
             [-5,  0],
             [-10,-10]
         ]]
-        pygame.draw.aalines(surf, (255, 0, 0), True, lpoints)
+        pygame.draw.aalines(surf, color, True, lpoints)
 
     def TimerCalledLoop(self):
         for event in pygame.event.get():
@@ -147,7 +150,8 @@ class MainProgNode(Node):
         
         self.surf.fill((0,0,0))
         
-        self.DrawUnit(self.surf, self.true_state[0,0], self.true_state[1,0], self.true_state[2,0])
+        self.DrawUnit(self.surf, self.true_state[0,0], self.true_state[1,0], self.true_state[2,0], (127, 127, 127))
+        self.DrawUnit(self.surf, self.estim_state[0,0], self.estim_state[1,0], self.estim_state[2,0], (255, 0, 0))
         
         pygame.display.flip()
 
