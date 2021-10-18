@@ -1,0 +1,13 @@
+Waypoint waypoint   # Waypoint to go to
+---
+int16 status                # Status that indicates the current state of the mission
+                            # Enum IntFlag, combinable flags so that the status can be several statuses
+                            # 1=Computing path, 2=Moving, 3=Computing path and moving, 4=Waiting, 8=Holding position, 16=Finished
+string message              # Informational message about the status
+float64 distance_to_goal    # Distance to the goal waypoint
+---
+int16 status                # Status that indicates the current state of the mission
+                            # Enum IntFlag, combinable flags so that the status can be several statuses
+                            # 1=Computing path, 2=Moving, 3=Computing path and moving, 4=Waiting, 8=Holding position, 16=Finished
+string message              # Informational message about the status
+float64 distance_to_goal    # Distance to the goal waypoint

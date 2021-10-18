@@ -51,6 +51,9 @@ set(msg_files
   "msg/Mission.msg"
   "srv/LoadMission.srv"
   "action/StartMission.action"
+  "action/GotoWaypoint.action"
+  "action/GotoPose.action"
+  "action/HoldPose.action"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

@@ -1,3 +1,11 @@
+action/GotoPose.action
+action/GotoPose.idl
+action/GotoWaypoint.action
+action/GotoWaypoint.idl
+action/HoldPose.action
+action/HoldPose.idl
+action/StartMission.action
+action/StartMission.idl
 msg/Mission.idl
 msg/Mission.msg
 msg/Waypoint.idl

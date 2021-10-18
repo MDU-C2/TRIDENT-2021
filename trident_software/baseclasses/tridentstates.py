@@ -63,11 +63,20 @@ class HoldPoseStatus(IntEnum):
     def __str__(self):
         return self.name
 
-class WaypointAction(IntEnum):
+class WaypointActionType(IntEnum):
     """Enum for different waypoint actions. Only support no action and hold for now.
     """
     NO_ACTION = 0
     HOLD = 1
+
+    def __str__(self):
+        return self.name
+
+class MotorControlState(IntEnum):
+    """Enum for different waypoint actions. Only support no action and hold for now.
+    """
+    IDLE = 0
+    EXECUTING = 1
 
     def __str__(self):
         return self.name
