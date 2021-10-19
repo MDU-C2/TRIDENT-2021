@@ -95,12 +95,19 @@ class MainNode(Node):
         req.state = list(pred_state.flatten())
         req.covar = list(pred_covar.flatten())
         try:
-            resp = sensor_handle.call(req)
-            x_size = len(pred_state)
-            y_size = len(resp.residual)
-            return(np.reshape(resp.gain,               (y_size, x_size)),
-                   np.reshape(resp.residual,           (-1,1)          ),
-                   np.reshape(resp.observationmatrix), (x_size, y_size))
+            future = sensor_handle.call_async(req)
+            #rclpy.spin_until_future_complete(self, future)
+            while rclpy.ok():
+                print("pre-spin")
+                rclpy.spin_once(self)
+                print("post-spin")
+                if future.done():
+                    resp = future.result()
+                    x_size = len(pred_state)
+                    y_size = len(resp.residual)
+                    return(np.reshape(resp.gain,               (y_size, x_size)),
+                           np.reshape(resp.residual,           (-1,1)          ),
+                           np.reshape(resp.observationmatrix), (x_size, y_size))
         except Exception as e:
                 print("Couldn't get values from a service:",e)
     

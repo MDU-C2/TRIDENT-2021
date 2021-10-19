@@ -47,6 +47,7 @@ class MainProgNode(Node):
         self.surf = pygame.display.set_mode((480,480))
         
     def IMUServCallback(self, request, response):
+        print("IMU callback")
         state = np.reshape(request.state, (-1,1))
         covar = np.reshape(request.covar, (-1,len(request.state)))
         # Fake measure, ofc. Just the true state with some noise added.
@@ -73,6 +74,7 @@ class MainProgNode(Node):
         return response
     
     def GPSServCallback(self, request, response):
+        print("GPS callback")
         state = np.reshape(request.state, (-1,1))
         covar = np.reshape(request.covar, (-1,len(request.state)))
         # Another fake measure. This one only has the absolute vals tho

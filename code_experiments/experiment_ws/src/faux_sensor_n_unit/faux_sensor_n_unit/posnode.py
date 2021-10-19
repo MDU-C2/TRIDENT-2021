@@ -26,7 +26,6 @@ class PosNode(posbase.MainNode):
         return np.copy(prev)
     
     def state_publish(self):
-        print("test")
         msg = FauxState()
         msg.x      = self.state[0, 0]
         msg.y      = self.state[1, 0]
