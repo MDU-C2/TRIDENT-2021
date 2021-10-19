@@ -6,7 +6,6 @@ import time
 #       PID CLASS
 #///////////////////////////////
 class PID:
-   
    timeStart = time.time()
    timeSpan = 0.0
    timeStop = 0.0
