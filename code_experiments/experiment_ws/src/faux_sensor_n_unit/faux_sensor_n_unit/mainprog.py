@@ -51,7 +51,7 @@ class MainProgNode(Node):
         state = np.reshape(request.state, (-1,1))
         covar = np.reshape(request.covar, (-1,len(request.state)))
         # Fake measure, ofc. Just the true state with some noise added.
-        noise = np.transpose(np.array([[50., 50., .2, 20., 20., .1]]))
+        noise = np.transpose(np.array([[50., 50., .2, 5., 5., .1]]))
         measure = noise * np.random.randn(6,1) + self.true_state
         # Fake measure = super simple observation matrix (no Jacobians)
         obs_mat = np.identity(6)

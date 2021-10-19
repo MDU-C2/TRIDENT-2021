@@ -11,7 +11,7 @@ class PosNode(posbase.MainNode):
         super().__init__('faux_pos_node', FauxState, '/faux_state', 0.5,
                          np.transpose(np.array([[0., 0., 0., 0., 0., 0.,]])),
                          np.array([[0., 0., 0., 0., 0., 0.]])*np.identity(6),
-                         np.array([[.1, .1, .1, .1, .1, .1]])*np.identity(6),
+                         np.array([[3, 3, 3, 3, 3, 3]])*np.identity(6),
                          ['/sensor/imu', '/sensor/gps'])
         
     def state_trans(self, prev, control_vec, dt):
@@ -41,7 +41,8 @@ def main(args=None):
     
     main_node = PosNode()
     
-    rclpy.spin(main_node)
+    #rclpy.spin(main_node)
+    main_node.spin()
     
     rclpy.shutdown()
 

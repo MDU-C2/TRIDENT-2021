@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from random import gauss
+from time import sleep
 
 from example_interfaces.msg import String
 from trident_msgs.srv import KalmanSensorService
@@ -14,8 +15,8 @@ class MainNode(Node):
         #----------------------------------------------------------#
         super().__init__(name)
         self.publisher_ = self.create_publisher(pub_topic_type, pub_topic_name, 10)
-        timer_period = interval
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        #timer_period = interval
+        #self.timer = self.create_timer(timer_period, self.timer_callback)
         
         # Inits for all the Kalman-related variables #
         #-------------------------------------------#
@@ -98,16 +99,14 @@ class MainNode(Node):
             future = sensor_handle.call_async(req)
             #rclpy.spin_until_future_complete(self, future)
             while rclpy.ok():
-                print("pre-spin")
                 rclpy.spin_once(self)
-                print("post-spin")
                 if future.done():
                     resp = future.result()
                     x_size = len(pred_state)
                     y_size = len(resp.residual)
-                    return(np.reshape(resp.gain,               (y_size, x_size)),
+                    return(np.reshape(resp.gain,               (x_size, y_size)),
                            np.reshape(resp.residual,           (-1,1)          ),
-                           np.reshape(resp.observationmatrix), (x_size, y_size))
+                           np.reshape(resp.observationmatrix,  (y_size, x_size)))
         except Exception as e:
                 print("Couldn't get values from a service:",e)
     
@@ -127,63 +126,54 @@ class MainNode(Node):
         return (new_state, A)
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
-    def timer_callback(self):
-        # Predict new state (and get the state transition matrix thru Jacobian)
-        # TODO: add control vector
-        pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0, 1)
-        # Add noise
-        pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
-        # Predict covariance of new state
-        pred_covar = np.matmul(np.matmul(
-                        state_trans_mat,
-                        self.covar),
-                        np.transpose(state_trans_mat)
-                     ) + self.proc_noise
-        
-        # Here we go through all of the different sensors
-        # TODO: none of this truly is implemented yet, since no sensors!
-        for sensor in self.sensor_handles:
-            try:
-                # Get the values from the sensors
-                gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
-                # Update the state estimate
-                pred_state = pred_state + np.matmul(gain, resid)
-                # Update the covariance estimate
-                pred_covar = np.matmul(
-                                np.identity(pred_state.shape[0]) - np.matmul(
-                                    gain,
-                                    observe_matrix),
-                                pred_covar)
-            except Exception as e:
-                print("Skipping sensor due to failure!",e)
-        
-        # Finally, set the state and covariance to the new ones!
-        self.state = pred_state
-        self.covar = pred_covar
-        
-        # AND publish the new state
-        self.state_publish()
+    def spin(self):
+        while True:
+            # Predict new state (and get the state transition matrix thru Jacobian)
+            # TODO: add control vector
+            pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0, 1)
+            # Add noise
+            pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
+            # Predict covariance of new state
+            pred_covar = np.matmul(np.matmul(
+                            state_trans_mat,
+                            self.covar),
+                            np.transpose(state_trans_mat)
+                         ) + self.proc_noise
             
-'''            observed, observe_matrix = self.jacobian_csd(sensor['obs_func'], pred_state, 0)
-            residual = sensor['last_read'] - observed
-            resid_covar = np.matmul(np.matmul(
-                             observe_matrix,
-                             pred_covar),
-                             np.transpose(observe_matrix)
-                          ) + sensor['obs_noise']
-            gain = np.matmul(np.matmul(
-                       pred_covar,
-                       np.transpose(observe_matrix)),
-                       resid_covar**-1)
-            pred_state = pred_state + np.matmul(gain, residual)
-            pred_covar = np.matmul(np.identity(pred_state.shape[0]) - np.matmul(gain, observe_matrix), pred_covar)'''
+            # Here we go through all of the different sensors
+            # TODO: none of this truly is implemented yet, since no sensors!
+            for sensor in self.sensor_handles:
+                try:
+                    # Get the values from the sensors
+                    gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
+                    # Update the state estimate
+                    #print(gain, resid)
+                    pred_state = pred_state + np.matmul(gain, resid)
+                    # Update the covariance estimate
+                    pred_covar = np.matmul(
+                                    np.identity(pred_state.shape[0]) - np.matmul(
+                                        gain,
+                                        obs_mat),
+                                    pred_covar)
+                except Exception as e:
+                    print("Skipping sensor due to failure!",e)
+            
+            # Finally, set the state and covariance to the new ones!
+            self.state = pred_state
+            self.covar = pred_covar
+            
+            # AND publish the new state
+            self.state_publish()
+            
+            sleep(0.5)
 
 def main(args=None):
     rclpy.init(args=args)
     
     main_node = MainNode("unnamed_position_node", "unnamed_current_state", 1)
     
-    rclpy.spin(main_node)
+    #rclpy.spin(main_node)
+    main_node.spin()
     
     main_node.destroy_node()
     rclpy.shutdown()
