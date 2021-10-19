@@ -1,7 +1,26 @@
-from pid import PID
+from motor_control.pid import PID
+import rclpy
+from rclpy.node import Node
+from test_interfaces.msg import FauxPosition as FauxState
 
+class MinimalSubscriber(Node):
+
+    def __init__(self):
+        super().__init__('minimal_subscriber')
+        self.subscription = self.create_subscription(
+            FauxState,
+            '/faux_state',
+            self.listener_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+
+    def listener_callback(self, msg):
+        self.get_logger().info('I heard: "%s"' % msg.data)
+        PIDUtils.updatePIDData()
+        PID.goToDesiredPositionAndOrientation()
 
 class PIDUtils():
+
    relRoll = 0.0
    relPitch = 0.0
    relYaw = 0.0
@@ -84,7 +103,6 @@ class PIDUtils():
 
       if (sender == "sns"): # sensor
          if (PID.firstRun):
-            #--PID.fDesiredYaw := PID.fCurrentYaw;
             counterForSend = 0
             PID.rollIValue = 0.0
             PID.pitchIValue = 0.0
@@ -93,10 +111,10 @@ class PIDUtils():
             PID.posYIValue = 0.0
             PID.posZIValue = 0.0
             PID.firstRun = False
-            PID.startYaw = 0 #receivedMsg.Get("yaw")
+            PID.startYaw = PIDUtils.receivedMsg["yaw"] #receivedMsg.Get("yaw")
             PID.currentYaw = PID.startYaw
             PID.startPosZ = depth
-            PID.currentPosZ = 0.0 #--depth - PID.fStartPosZ;
+            PID.currentPosZ = 0.0
             PID.surfacePosZ = PID.currentPosZ
             PID.setDesiredState(0.0,0.0,PID.currentPosZ,0.0,0.0,0.0)
             if PID.debugText:
@@ -144,7 +162,7 @@ class PIDUtils():
 
             #relPitch := 0.0; --commented out by ludde 160816
             #relRoll := 0.0; --commented out by ludde 160816
-            PID.Set_Desired_Relative_State(relX,relY,relDepth,relRoll,relPitch,relYaw);
+            PID.Set_Desired_Relative_State(relX,relY,relDepth,relRoll,relPitch,relYaw)
          elif (ethid == 3):
             PID.goToSurface()
       elif (sender == "usr"):
