@@ -3,11 +3,12 @@ from rclpy.node import Node
 import numpy as np
 from random import gauss
 from time import sleep
+from abc import ABC, abstractmethod
 
 from example_interfaces.msg import String
 from trident_msgs.srv import KalmanSensorService
 
-class MainNode(Node):
+class MainNode(Node, ABC):
     def __init__(self, name, pub_topic_type, pub_topic_name, interval,
                  start_state, start_covar, proc_noise, sensor_list):
                  
@@ -79,11 +80,13 @@ class MainNode(Node):
     
     # The state transition function (predicting the next step)
     # This is only a placeholder, and should be changed in every implementation!
+    @abstractmethod
     def state_trans(self, prev, control_vec, dt):
         return prev
     
     # The topic publisher function
     # This too should be changed to an appropriate message!
+    @abstractmethod
     def state_publish(self):
         msg = String()
         msg.data = "Change to a good message type, then put state here!"
