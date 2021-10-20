@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title>Ground control</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/bootstrap-icons.css">
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+        
+    </head>
+    <div class="">
+        <div class="row py-2" style="background: darkslategray;">
+            <div class="d-flex justify-content-left">
+                <div class="dropdown mx-2">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                      <span>Athena: </span> <span style="color:rgb(201, 76, 76); font-weight: bold;">offline</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                      <li><button class="dropdown-item" href="#">Connect</button></li>
+                      <hr class="my-0">
+                      <li><button class="dropdown-item" href="#" disabled>Disconnect</button></li>
+                      <hr class="my-0">
+                      <li><button class="dropdown-item" href="#" disabled>Reconnect</button></li>
+                    </ul>
+                </div>
+
+                <div class="dropdown mr-2">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                      <span>Naiad: </span> <span style="color:4CAF50; font-weight: bold;">online</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                      <li><button class="dropdown-item" href="#" disabled>Connect</button></li>
+                      <hr class="my-0">
+                      <li><button class="dropdown-item" href="#">Disconnect</button></li>
+                      <hr class="my-0">
+                      <li><button class="dropdown-item" href="#">Reconnect</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row mx-0">
+            <div class="col-md-8 p-2" style="background: rgb(103, 226, 226);">
+                <div id="map1"></div>
+            </div>
+            <div class="col-md-4 py-2" style="background: aquamarine;">
+                <!--
+                <div class="row">
+                    <div class="col-md-6 text-center">
+                        <button class="btn btn-primary">hej</button>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <button>hej</button>
+                    </div>
+                </div>
+                -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                              Waypoints
+                            </div>
+                            <ul class="list-group list-group-flush" id="waypointList" style="height: 40vh; overflow-y: scroll;">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+
+</html>
