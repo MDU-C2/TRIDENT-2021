@@ -2,6 +2,7 @@ from setuptools import setup
 import os
 
 package_name = 'motor_control'
+submodules = 'motor_control/pid'
 
 class_path = os.path.join(
     os.path.abspath(__file__).split('TRIDENT-2021')[0],
@@ -11,8 +12,7 @@ class_path = os.path.join(
 setup(
     name=package_name,
     version='0.0.0',
-    package_dir = {'classes': class_path},
-    packages=[package_name, 'classes'],
+    packages=[package_name, submodules],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

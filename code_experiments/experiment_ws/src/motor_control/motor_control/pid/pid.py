@@ -6,9 +6,18 @@ import time
 #       PID CLASS
 #///////////////////////////////
 class PID:
+
+   earthRadius = 6371.0 #in kilometers
+   piOver180 = 0.017453292519943295769236907684886127
+
    timeStart = time.time()
    timeSpan = 0.0
    timeStop = 0.0
+
+   currentLat = 0.0
+   currentLong = 0.0
+   desiredLat = 0.0
+   desiredLong = 0.0
 
    currentYaw = 0.0
    currentPitch = 0.0
@@ -29,6 +38,10 @@ class PID:
    currentGyroX = 0.0
    currentGyroY = 0.0
    currentGyroZ = 0.0
+
+   currentMagX = 0.0
+   currentMagY = 0.0
+   currentMagZ = 0.0
 
    desiredYaw = 0.0
    desiredPitch = 0.0
@@ -100,32 +113,51 @@ class PID:
    yawIValue = 0.0
    yawDValue = 0.0
 
+   gpsLat = gpsLong = "0.0"
+   desiredGpsLat = desiredGpsLong = "0.0"
+   savedLat = savedLong = "0.0"
+   distanceFromGPSPosition = 2.0
+   gpsNS = "N"
+   gpsWE = "E"
+   gpsTime = 0.0
+   goToLastGps = 0
+   setDesiredGpsCurrent = 0
+
    firstRun = True
    firstRunDerivativePart = True
 
    zeroLimit = 0.01
 
    startYaw = 0.0
+   offsetYaw = 0.0
    startPosZ = 0.0
+   startPitch = 0.0
 
    thruster = np.zeros(6)
+                 #x    y    z    roll pitch yaw
+   xPIDconfig = [(2.0, 2.0, 5.0, 0.1, 0.5, 1.0),  #P
+                 (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),  #I
+                 (0.5, 0.5, 2.0, 0.1, 0.5, 0.1)]  #D
 
-   matrix = np.zeros((6,6))
-   pidmatrix = np.zeros((3,6))
-                                          #x    y    z    roll pitch yaw
-   xPIDconfig = pidmatrix = [(2.0, 2.0, 5.0, 0.1, 0.5, 1.0),  #P
-                                          (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),  #I
-                                          (0.5, 0.5, 2.0, 0.1, 0.5, 0.1)]  #D
+                      #x          y    z    roll    pitch    yaw
+   xThrusterConfig = [(0.866025 , 0.5, 0.0, 0.0   , 0.0   ,  0.28),  #motor1
+                      (0.0      , 1.0, 0.0, 0.0   , 0.0   ,  0.22),  #motor2
+                      (0.866025 ,-0.5, 0.0, 0.0   , 0.0   , -0.28),  #motor3
+                      (0.0      , 0.0, 1.0,-0.355 ,-0.230 ,  0.0),   #motor4
+                      (0.0      , 0.0, 1.0, 0.355 ,-0.230 ,  0.0),   #motor5
+                      (0.0      , 0.0, 1.0, 0.0   , 0.455 ,  0.0)]   #motor6
 
-                                              #x          y    z    roll    pitch    yaw
-   xThrusterConfig = matrix = [(0.866025 , 0.5, 0.0, 0.0   , 0.0   ,  0.28),  #motor1
-                                            (0.0      , 1.0, 0.0, 0.0   , 0.0   ,  0.22),  #motor2
-                                            (0.866025 ,-0.5, 0.0, 0.0   , 0.0   , -0.28),  #motor3
-                                            (0.0      , 0.0, 1.0,-0.355 ,-0.230 ,  0.0),   #motor4
-                                            (0.0      , 0.0, 1.0, 0.355 ,-0.230 ,  0.0),   #motor5
-                                            (0.0      , 0.0, 1.0, 0.0   , 0.455 ,  0.0)]   #motor6
+   THRUSTER_BOOST = 6000.0          #Scaling the old values to fit the expected values for the mini maestro servo controller
+   THRUSTER_SCALING = 15.7          #From the old range of 0-255 with 128 being neutral, to 4000-8000 with 6000 being neutral
+   THRUSTER_MAX_FORWARD = 6800.0    #The thrusters are strong. We are not utilizing the maximum. Max possible = 8000
+   THRUSTER_MAX_BACKWARD = 5200.0   # Minimum possible = 4000 (Full thrust backwards)
 
-
+   THRUSTER_MAX_SPEED = 50.0
+   
+   thrusterMinStep = -50.0
+   thrusterMaxStep = 50.0
+   thrusterLowCalib = -150.0
+   thrusterHighCalib = 100.0
 
    posXPValue = 0.0
    posXIValue = 0.0
@@ -142,20 +174,20 @@ class PID:
    lastAccX = 0.0
    lastAccY = 0.0
 
-      #Set bSimulation TRUE if using the simulator to get a synchronous time step
-      #hence the bSimulation time is the same in the simulator.
+   #Set Simulation TRUE if using the simulator to get a synchronous time step
+   #hence the Simulation time is the same in the simulator.
    simulation = False
    simulationTime = 0.01
    debugText = False #if true then printing debug text
    getFilteredPosition = False
 
    def setDesiredState( x, y, z, roll, pitch, yaw):
-      PID.desiredYaw   = PID.startYaw + yaw
+      PID.desiredYaw   = yaw
       PID.desiredPitch = pitch
       PID.desiredRoll  = roll
 
-      PID.desiredPosX  = x * math.cos(-PID.startYaw*math.pi/180.0) + y * math.sin(-PID.startYaw*math.pi/180.0)
-      PID.desiredPosY  = y * math.sin(-PID.startYaw*math.pi/180.0) + y * math.cos(-PID.startYaw*math.pi/180.0)
+      PID.desiredPosX  = x
+      PID.desiredPosY  = y
       PID.desiredPosZ  = z
 
    def setDesiredRelativeState( x, y, z, roll, pitch, yaw):
@@ -188,6 +220,8 @@ class PID:
       PID.desiredPosX = 0.0
       PID.desiredPosY = 0.0
       PID.desiredPosZ = PID.surfacePosZ
+      PID.desiredGpsLat = "0.0"
+      PID.desiredGpsLong = "0.0"
 
    def desiredToLocalSpace():
       x = PID.desiredPosX - PID.currentPosX
@@ -200,34 +234,114 @@ class PID:
       PID.currentXVelocity = PID.currentXVelocity + (PID.currentAccX) * PID.deltaTime
       PID.currentYVelocity = PID.currentYVelocity + (PID.currentAccY) * PID.deltaTime
 
-      PID.currentXVelocity = PID.currentXVelocity * 1.0 #0.99
-      PID.currentYVelocity = PID.currentYVelocity * 1.0; #0.99
+      PID.currentXVelocity = PID.currentXVelocity * 1.0
+      PID.currentYVelocity = PID.currentYVelocity * 1.0;
 
    def posIntegration():
       PID.currentPosX = PID.currentPosX + PID.currentXVelocity * PID.deltaTime
       PID.currentPosY = PID.currentPosY + PID.currentYVelocity * PID.deltaTime
 
    def updateThrusterValue( motorNumber):
-      # thruster =   - - - - - - x-axis
-      #              - - - - - - y-axis
-      #              - - - - - - z-axis
-      #              - - - - - - x rotation
-      #              - - - - - - y rotation
-      #              - - - - - - z rotation
-      PID.thruster[motorNumber] = 128.0 + ((PID.posXPValue  * PID.xPIDconfig[0][0] + PID.posXIValue  * PID.xPIDconfig[1][0]  + PID.posXDValue  * PID.xPIDconfig[2][0] )    *PID.xThrusterConfig[motorNumber][0]) + \
-                                           ((PID.posYPValue  * PID.xPIDconfig[0][1] + PID.posYIValue  * PID.xPIDconfig[1][1]  + PID.posYDValue  * PID.xPIDconfig[2][1] )    *PID.xThrusterConfig[motorNumber][1]) + \
-                                           ((PID.posZPValue  * PID.xPIDconfig[0][2] + PID.posZIValue  * PID.xPIDconfig[1][2]  + PID.posZDValue  * PID.xPIDconfig[2][2] )    *PID.xThrusterConfig[motorNumber][2]) + \
-                                           ((PID.rollPValue  * PID.xPIDconfig[0][3] + PID.rollIValue  * PID.xPIDconfig[1][3]  + PID.rollDValue  * PID.xPIDconfig[2][3] )    *PID.xThrusterConfig[motorNumber][3]) + \
-                                           ((PID.pitchPValue * PID.xPIDconfig[0][4] + PID.pitchIValue * PID.xPIDconfig[1][4]  + PID.pitchDValue * PID.xPIDconfig[2][4] )    *PID.xThrusterConfig[motorNumber][4]) + \
-                                           ((PID.yawPValue   * PID.xPIDconfig[0][5] + PID.yawIValue   * PID.xPIDconfig[1][5]  + PID.yawDValue   * PID.xPIDconfig[2][5] )    *PID.xThrusterConfig[motorNumber][5])  
+      thrusterX = 0.0
+      thrusterZ = 0.0
+     
+      PID.thruster[motorNumber] = 0.0
+      #To limit the velocity
+      thrusterX = ((PID.posXPValue * PID.xPIDconfig[0][0] + PID.posXIValue * PID.xPIDconfig[1][0] + PID.posXDValue * PID.xPIDconfig[2][0]) * PID.xThrusterConfig[motorNumber][0])
+      thrusterZ = ((PID.posZPValue * PID.xPIDconfig[0][2] + PID.posZIValue * PID.xPIDconfig[1][2] + PID.posZDValue * PID.xPIDconfig[2][2]) * PID.xThrusterConfig[motorNumber][2])
+      
+      #Check x values
+      if thrusterX >= PID.THRUSTER_MAX_SPEED:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + PID.THRUSTER_MAX_SPEED
+      elif thrusterX <= -PID.THRUSTER_MAX_SPEED:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] - PID.THRUSTER_MAX_SPEED
+      else:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + thrusterX; 
 
-      if PID.thruster[motorNumber] < 0.0:
-         PID.thruster[motorNumber] = 0.0
-      elif PID.thruster[motorNumber] > 255.0:
-         PID.thruster[motorNumber] = 255.0
+      #Check z values
+      if thrusterZ >= PID.THRUSTER_MAX_SPEED:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + PID.THRUSTER_MAX_SPEED
+      elif thrusterZ	<= -PID.THRUSTER_MAX_SPEED:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] - PID.THRUSTER_MAX_SPEED
+      else:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + thrusterZ
+      
+      #Sum remaining values
+      # y axis
+      # x rotation
+      # y rotation
+      # z rotation
+      PID.thruster[motorNumber] = PID.thruster[motorNumber] + \
+      ((PID.posYPValue  * PID.xPIDconfig[0][1] + PID.posYIValue  * PID.xPIDconfig[1][1] + PID.posYDValue  * PID.xPIDconfig[2][1]) * PID.xThrusterConfig[motorNumber][1]) + \
+      ((PID.rollPValue  * PID.xPIDconfig[0][3] + PID.rollIValue  * PID.xPIDconfig[1][3] + PID.rollDValue  * PID.xPIDconfig[2][3]) * PID.xThrusterConfig[motorNumber][3]) + \
+      ((PID.pitchPValue * PID.xPIDconfig[0][4] + PID.pitchIValue * PID.xPIDconfig[1][4] + PID.pitchDValue * PID.xPIDconfig[2][4]) * PID.xThrusterConfig[motorNumber][4]) + \
+      ((PID.yawPValue   * PID.xPIDconfig[0][5] + PID.yawIValue   * PID.xPIDconfig[1][5] + PID.yawDValue   * PID.xPIDconfig[2][5]) * PID.xThrusterConfig[motorNumber][5])
+
+      #Rescale motor values
+      PID.thruster[motorNumber] = PID.thruster[motorNumber] * PID.THRUSTER_SCALING
+
+      #Add offset to value
+      if PID.thruster[motorNumber] < PID.thrusterMinStep:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + PID.thrusterLowCalib
+      elif PID.thruster[motorNumber] > PID.thrusterMaxStep:
+         PID.thruster[motorNumber] = PID.thruster[motorNumber] + PID.thrusterHighCalib
+
+      PID.thruster[motorNumber] = PID.thruster[motorNumber] + PID.THRUSTER_BOOST
+
+      if PID.thruster[motorNumber] < PID.THRUSTER_MAX_BACKWARD:
+         PID.thruster[motorNumber] = PID.THRUSTER_MAX_BACKWARD
+      elif PID.thruster[motorNumber] > PID.THRUSTER_MAX_FORWARD:
+         PID.thruster[motorNumber] = PID.THRUSTER_MAX_FORWARD
+
+      #thrusterDir (Thruster_Dir) seems to be always 1 in old code,
+      #Hence this code below is unnecessary
+      #if not PID.thrusterDir[motorNumber] (MotorNumber):
+      #   PID.thruster[motorNumber] = (PID.THRUSTER_BOOST - (PID.thruster[motorNumber]) - PID.THRUSTER_BOOST)
+
+   def bearing(lat1, long1, lat2, long2):
+      dx = long2 - long1
+      Y = math.sin(dx) * math.cos(lat2)
+      X = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dx)
+      X = (math.atan(Y, X) / PID.piOver180)
+      if X < 0.0:
+         return 360.0 + X
+      else:
+         return X
+
+   def greatCircleDistance(lat1, long1, lat2, long2):
+      a = math.sin(0.5 * (lat2 - lat1))
+      b = math.sin(0.5 * (long2 - long1))
+      return 2.0 * PID.earthRadius * math.asin(math.sqrt(a * a + math.cos(lat1) * math.cos(lat2) * b * b))
+
+   def ddToRadians(dd):
+      return dd * PID.piOver180
+
+   def updateHeadingAndDistance():
+      currentLat  = float(PID.gpsLat)
+      currentLong = float(PID.gpsLong)
+      desiredLat  = float(PID.desiredGpsLat)
+      desiredLong = float(PID.desiredGpsLong)
+		
+      radCLat  = ddToRadians(currentLat)
+      radCLong = ddToRadians(currentLong)
+      radDLat  = ddToRadians(desiredLat)
+      radDLong = ddToRadians(desiredLong)
+
+      PID.desiredPosX = float(greatCircleDistance(radCLat, radCLong, radDLat, radDLong))
+		
+		# dont do anything if within 2 meters
+      if PID.desiredPosX < PID.distanceFromGPSPosition:
+         PID.desiredPosX = 0.0
+      else:
+         PID.desiredYaw = float(bearing(radCLat, radCLong, radDLat, radDLong))
 
    
+   
    def updateErrors():
+
+      emptyString = "0.0"
+      if (PID.gpsLat != emptyString and PID.gpsLong != emptyString):
+         PID.updateHeadingAndDistance()
 
       PID.errorYaw = PID.currentYaw - PID.desiredYaw
 
@@ -263,7 +377,7 @@ class PID:
       PID.lastErrorPosY  = PID.errorPosY
       PID.lastErrorPosZ  = PID.errorPosZ
 
-   def updatePIDOrientation():
+   def updatePIDPose():
       #P for all ORIENTATION
       PID.pitchPValue = PID.errorPitch
       PID.rollPValue  = PID.errorRoll
@@ -279,8 +393,6 @@ class PID:
       PID.rollDValue  = (PID.errorRoll  - PID.lastErrorRoll)  /PID.deltaTime
       PID.yawDValue   = (PID.errorYaw   - PID.lastErrorYaw)   /PID.deltaTime
 
-
-   def updatePIDPosition():
       #P for all POSITIONS
       PID.posXPValue  =  PID.errorPosX
       PID.posYPValue  =  PID.errorPosY
@@ -298,14 +410,14 @@ class PID:
 
    def setDerivativesToZero():
       #D for all POSITIONS
-      PID.fPosXDValue  = 0.0
-      PID.fPosYDValue  = 0.0
-      PID.fPosZDValue  = 0.0
+      PID.posXDValue  = 0.0
+      PID.posYDValue  = 0.0
+      PID.posZDValue  = 0.0
 
       #D for all ORIENTATION
-      PID.fPitchDValue = 0.0
-      PID.fRollDValue  = 0.0
-      PID.fYawDValue   = 0.0
+      PID.pitchDValue = 0.0
+      PID.rollDValue  = 0.0
+      PID.yawDValue   = 0.0
 
    def goToDesiredPositionAndOrientation():
       PID.timeStop = time.time()
@@ -318,8 +430,7 @@ class PID:
 
       #add positionx/y integration if using position.
       PID.updateErrors()
-      PID.updatePIDPosition()
-      PID.updatePIDOrientation()
+      PID.updatePIDPose()
 
       if (PID.firstRunDerivativePart):
          PID.setDerivativesToZero()

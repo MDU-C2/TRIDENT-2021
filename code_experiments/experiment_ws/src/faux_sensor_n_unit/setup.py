@@ -7,17 +7,12 @@ baseclasses_package_path = os.path.join(
     os.path.abspath(__file__).split('TRIDENT-2021')[0],
     ('TRIDENT-2021/trident_software/baseclasses')
 )
-messages_package_path = os.path.join(
-    os.path.abspath(__file__).split('TRIDENT-2021')[0],
-    ('TRIDENT-2021/trident_software/msgs_ws/build/trident_msgs/rosidl_generator_py/trident_msgs/srv')
-)
 
 setup(
     name=package_name,
     version='0.0.0',
-    package_dir={'baseclasses': baseclasses_package_path,
-                 'trident_msgs.srv': messages_package_path},
-    packages=[package_name, 'baseclasses', 'trident_msgs.srv'],
+    package_dir={'baseclasses': baseclasses_package_path},
+    packages=[package_name, 'baseclasses'],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
