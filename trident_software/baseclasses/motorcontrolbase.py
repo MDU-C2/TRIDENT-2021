@@ -24,16 +24,20 @@ class MotorControlBase(Node):
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         # Parameters
-        self.declare_parameter('update_frequency', 5.0) # Hz
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('motor_update_frequency', 5.0) # Hz
+            ])
 
         self.motor_control_state = MotorControlState.IDLE
 
         # The last known state of the agent.
         self.agent_state: Pose = None
         # Motor control update frequency
-        self._update_frequency = self.get_parameter('update_frequency').get_parameter_value().double_value # Hz
+        self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
         # Rate object with relative sleeping periood
-        self._goto_pose_rate = self.create_rate(self._update_frequency)
+        self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Threshold for when to compute orientation internally instead of using goal orientation.
         self.point_and_shoot_threshold: float = 0.0
         # The accepted slack for considering the GotoPose goal finished
@@ -179,8 +183,7 @@ class MotorControlBase(Node):
 
             self.get_logger().info(f'{feedback_msg.message}')
             # Relative sleep according to the goto_pose_rate.
-            # BUG: https://answers.ros.org/question/322831/ros2-wait-for-action-using-rclpy/
-            self._goto_pose_rate.sleep()
+            self._motor_update_rate.sleep()
 
         goal_handle.succeed()
         result = GotoPose.Result()
