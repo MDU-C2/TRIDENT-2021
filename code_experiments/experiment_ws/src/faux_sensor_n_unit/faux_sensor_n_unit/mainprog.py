@@ -17,6 +17,9 @@ class MainProgNode(Node):
         #                                         X   Y   Yaw dX  dY  dYaw
         self.true_state = np.transpose(np.array([[0., 0., 0., 0., 0., 0.,]]))
         self.estim_state = np.copy(self.true_state)
+        
+        self.imu_guess = np.copy(self.true_state)
+        self.gps_guess = np.copy(self.true_state)
 
         self.motor_thrust = 0.
         self.motor_spin = 0.
@@ -53,6 +56,7 @@ class MainProgNode(Node):
         # Fake measure, ofc. Just the true state with some noise added.
         noise = np.transpose(np.array([[50., 50., .2, 5., 5., .1]]))
         measure = noise * np.random.randn(6,1) + self.true_state
+        self.imu_guess = measure
         # Fake measure = super simple observation matrix (no Jacobians)
         obs_mat = np.identity(6)
         resid = measure - np.matmul(obs_mat, state)
@@ -80,6 +84,7 @@ class MainProgNode(Node):
         # Another fake measure. This one only has the absolute vals tho
         noise = np.transpose(np.array([[20., 20., .5]]))
         measure = noise * np.random.randn(3,1) + self.true_state[:3]
+        self.gps_guess = np.concatenate((measure, self.gps_guess[3:]))
         # Matrix reducesthe state to just the absolutes
         obs_mat = np.eye(3,6)
         resid = measure - np.matmul(obs_mat, state)
@@ -138,7 +143,6 @@ class MainProgNode(Node):
         self.true_state[4,0] += dt*5*sin(t)
         self.true_state[5,0] += 0.1*dt*sin(t)
         
-        # TODO: Read and apply motors
         if(self.recv_time+1.0 > t):
             self.true_state[3,0] += dt*self.motor_thrust
             self.true_state[5,0] += dt*self.motor_spin
@@ -153,6 +157,8 @@ class MainProgNode(Node):
         self.surf.fill((0,0,0))
         
         self.DrawUnit(self.surf, self.true_state[0,0], self.true_state[1,0], self.true_state[2,0], (127, 127, 127))
+        self.DrawUnit(self.surf, self.imu_guess[0,0], self.imu_guess[1,0], self.imu_guess[2,0], (63, 63, 255))
+        self.DrawUnit(self.surf, self.gps_guess[0,0], self.gps_guess[1,0], self.gps_guess[2,0], (63, 255, 63))
         self.DrawUnit(self.surf, self.estim_state[0,0], self.estim_state[1,0], self.estim_state[2,0], (255, 0, 0))
         
         pygame.display.flip()
