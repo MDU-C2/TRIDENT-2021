@@ -1,5 +1,7 @@
 import rclpy
+from rclpy.executors import MultiThreadedExecutor
 from baseclasses.missioncontrolbase import MissionControlBase
+
 
 class MissionControlNode(MissionControlBase):
     """The main node for the Mission Control module. 
@@ -12,7 +14,8 @@ class MissionControlNode(MissionControlBase):
 def main(args=None):
     rclpy.init(args=args)
     mission_control_node = MissionControlNode("mission_control")
-    rclpy.spin(mission_control_node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(mission_control_node, executor)
     rclpy.shutdown()
 
 

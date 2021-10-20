@@ -1,8 +1,6 @@
-"""Module containing the base class definition for the Mission contorl nodes.
+"""Module containing the base class definition for the Mission control nodes.
 
-Author: Johannes Deivard
-
-Last edited: 2021-10-17 by Johannes Deivard
+Author: Johannes Deivard 2021-10
 """
 import rclpy
 from baseclasses.tridentstates import MissionControlState, GotoWaypointStatus, StartMissionStatus, WaypointActionType

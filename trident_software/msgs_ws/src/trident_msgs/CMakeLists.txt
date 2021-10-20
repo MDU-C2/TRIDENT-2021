@@ -43,6 +43,7 @@ set(msg_files
   "msg/Waypoint.msg"
   "msg/WaypointAction.msg"
   "msg/Mission.msg"
+  "msg/MotorOutput.msg"
   "srv/LoadMission.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"

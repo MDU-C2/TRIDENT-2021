@@ -1,0 +1,51 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from trident_msgs/action/GotoPose.action
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Pose.idl"
+
+module trident_msgs {
+  module action {
+    struct GotoPose_Goal {
+      @verbatim (language="comment", text=
+        " Desired state")
+      geometry_msgs::msg::Pose pose;
+    };
+    struct GotoPose_Result {
+      @verbatim (language="comment", text=
+        " Status that indicates the current state of the mission" "\n"
+        " 1=Moving to pose, 2=Waiting, 3=Finished, 4=Failed")
+      int16 status;
+
+      @verbatim (language="comment", text=
+        " Informational message about the status")
+      string message;
+
+      @verbatim (language="comment", text=
+        " Difference between the desired pose and the current pose")
+      geometry_msgs::msg::Pose delta_pose;
+
+      @verbatim (language="comment", text=
+        " Distance to the goal position")
+      double distance_to_goal;
+    };
+    struct GotoPose_Feedback {
+      @verbatim (language="comment", text=
+        " Status that indicates the current state of the mission" "\n"
+        " 1=Moving to pose, 2=Waiting, 3=Finished, 4=Failed")
+      int16 status;
+
+      @verbatim (language="comment", text=
+        " Informational message about the status")
+      string message;
+
+      @verbatim (language="comment", text=
+        " Difference between the desired pose and the current pose")
+      geometry_msgs::msg::Pose delta_pose;
+
+      @verbatim (language="comment", text=
+        " Distance to the goal position")
+      double distance_to_goal;
+    };
+  };
+};
