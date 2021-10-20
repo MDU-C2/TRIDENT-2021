@@ -1,0 +1,16 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from trident_msgs/msg/MotorOutput.msg
+// generated code does not contain a copyright notice
+
+
+module trident_msgs {
+  module msg {
+    struct MotorOutput {
+      @verbatim (language="comment", text=
+        " Index k-1 is motor output for motor k," "\n"
+        " k in [1,n] nwhere n is the number of motors on the agent" "\n"
+        " and in turn the numeber of elements in the motor_outputs list.")
+      sequence<int64> motor_outputs;
+    };
+  };
+};

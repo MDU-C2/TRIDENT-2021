@@ -1,0 +1,17 @@
+athena:
+  motor_control:
+    ros__parameters:
+      motor_update_frequency: 1.0
+  navigation:
+    ros__parameters:
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  mission_control:
+    ros__parameters:
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  position:
+    ros__parameters:
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  motor_driver:
+    ros__parameters:
+      motor_output_silence_period: 100 # Allowed time period in milliseconds that the motor driver
+                                       # will operate without receiving a command from motor contorl.

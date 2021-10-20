@@ -1,8 +1,6 @@
 """Module containing the base class definition for the navigation nodes.
 
 Author: Johannes Deivard 2021-10
-
-Last edited: 2021-10-17 by Johannes Deivard
 """
 from typing import List # For typehints
 from math import sqrt   # For Pythagorean theorem do calculate distance
@@ -62,7 +60,7 @@ class NavigationBase(Node):
             waypoint (Waypoint): The desired end state.
 
         Returns:
-            List[Pose]: A list of poses that will be sent to the motor controller to reach the 
+            List[Pose]: A list of poses that will be sent to the motor controller to reach the
                         Waypoint state intelligently.
         """
 

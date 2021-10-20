@@ -13,9 +13,7 @@ class MotorControlNode(MotorControlBase):
 def main(args=None):
     rclpy.init(args=args)
     motor_control_node = MotorControlNode("motor_control")
-
     executor = MultiThreadedExecutor()
-    # while(rclpy.ok()):
     rclpy.spin(motor_control_node, executor)
     rclpy.shutdown()
 

@@ -1,5 +1,7 @@
 import rclpy
+from rclpy.executors import MultiThreadedExecutor
 from baseclasses.navigationbase import NavigationBase
+
 
 class NavigationNode(NavigationBase):
     """The main node for the navigation module. 
@@ -12,7 +14,8 @@ class NavigationNode(NavigationBase):
 def main(args=None):
     rclpy.init(args=args)
     navigation_node = NavigationNode("navigation")
-    rclpy.spin(navigation_node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(navigation_node, executor)
     rclpy.shutdown()
 
 

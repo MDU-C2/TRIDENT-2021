@@ -73,10 +73,21 @@ class WaypointActionType(IntEnum):
         return self.name
 
 class MotorControlState(IntEnum):
-    """Enum for different waypoint actions. Only support no action and hold for now.
+    """Enum for different motor control states.
     """
     IDLE = 0
     EXECUTING = 1
+
+    def __str__(self):
+        return self.name
+
+class MotorDriverState(IntEnum):
+    """Enum for different Motor driver state.
+    """
+    IDLE = 0
+    KILLED = 1
+    MOTOR_OUTPUT_SILENCE = 2
+    ACTIVE = 3
 
     def __str__(self):
         return self.name

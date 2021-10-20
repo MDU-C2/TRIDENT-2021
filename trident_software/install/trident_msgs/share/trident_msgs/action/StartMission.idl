@@ -1,0 +1,35 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from trident_msgs/action/StartMission.action
+// generated code does not contain a copyright notice
+
+
+module trident_msgs {
+  module action {
+    struct StartMission_Goal {
+      uint8 structure_needs_at_least_one_member;
+    };
+    struct StartMission_Result {
+      @verbatim (language="comment", text=
+        " Indicates the status of the request")
+      boolean success;
+
+      @verbatim (language="comment", text=
+        " Informational message")
+      string message;
+    };
+    struct StartMission_Feedback {
+      @verbatim (language="comment", text=
+        " Status that indicates the current state of the mission" "\n"
+        " 0=Executing, 1=waiting, 2=Finished")
+      int16 status;
+
+      @verbatim (language="comment", text=
+        " Informational message about the status")
+      string message;
+
+      @verbatim (language="comment", text=
+        " Number of mission waypoints completed")
+      int16 waypoints_completed;
+    };
+  };
+};

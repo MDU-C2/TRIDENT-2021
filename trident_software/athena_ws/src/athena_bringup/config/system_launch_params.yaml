@@ -11,3 +11,8 @@ athena:
   position:
     ros__parameters:
       placeholder: 0 # Placeholder since there are no params for this node atm.
+  motor_driver:
+    ros__parameters:
+      motor_output_silence_period: 100 # Allowed time period in milliseconds that the motor driver
+                                       # will operate without receiving a command from motor contorl.
+      point_and_shoot_threshold: 0.0
