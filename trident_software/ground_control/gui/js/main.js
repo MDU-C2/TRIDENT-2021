@@ -96,3 +96,19 @@ function remapPolyLines()
 		waypointMap.polyLines.push(polyline);
 	}
 }
+
+//TEMP
+
+var xhr = new XMLHttpRequest();
+xhr.open("POST", "http://localhost:8080/api/users", true);
+xhr.setRequestHeader('Content-Type', 'application/json');
+xhr.send(JSON.stringify({
+    id: 0
+}));
+xhr.onload = function() {
+	if (xhr.status != 200) { // analyze HTTP status of the response
+	  console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+	} else { // show the result
+	  console.log(`Done, got ${xhr.response}`); // response is the server response
+	}
+  };
