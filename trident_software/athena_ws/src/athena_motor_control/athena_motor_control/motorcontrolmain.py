@@ -9,6 +9,8 @@ class MotorControlNode(MotorControlBase):
         super().__init__(node_name)
         self.get_logger().info("Created motor control node.")
 
+    def pid(self, current: Pose, goal: Pose) -> List[int]:
+        return super().pid(current, goal)
 
 def main(args=None):
     rclpy.init(args=args)

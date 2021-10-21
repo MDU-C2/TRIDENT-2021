@@ -2,7 +2,8 @@
 
 Author: Johannes Deivard 2021-10
 """
-from typing import List # For typehints
+from abc import ABCMeta, abstractmethod
+from typing import List
 from math import sqrt   # For Pythagorean theorem to calculate distance
 import rclpy
 from rclpy.node import Node
@@ -14,33 +15,42 @@ from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorContr
 
 from rclpy.callback_groups import ReentrantCallbackGroup
 
-class MotorControlBase(Node):
+class MotorControlBase(Node, metaclass=ABCMeta):
     """A base class for the motor control nodes used in Athena and NAIAD designed with
     generalization in mind.
     """
 
-    def __init__(self, node_name, num_motors = 2, motor_config = None, pid_config = None):
+    def __init__(self, node_name, num_motors):
         super().__init__(node_name)
         # Parameters
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('motor_update_frequency', 5.0), # Hz
-                ('point_and_shoot_threshold', 0.0) # Meter
+                ('motor_update_frequency', 50.0), # Hz
+                ('pas_orientation_update_freq', 0.5), # Hz
+                ('pas_threshold', 0.0), # Meters
+                ('goal_distance_slack', 0.2), # Meters
+                ('goal_orientation_slack', 0.1), # Percent
             ])
 
         self.motor_control_state = MotorControlState.IDLE
 
         self._num_motors = num_motors # TODO: Get this value from the motor_config
         # The last known state of the agent.
-        self.agent_state: Pose = Pose()
+        self._agent_state: Pose = Pose()
+        # The current goal pose received from either GotoPose action or HoldPose action.
+        self._goal_pose = None
+        # The latest computation of the point and shoot orientation.
+        # (This is updated by a timer callback set to the pas_orientation_update_freq)
+        self._pas_orientation = None
+        self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
         # SET HARDCODED STATE FOR TESTING PURPOSES
         p = Point()
         p.x, p.y, p.z = (1.0, 2.0, 3.0)
         q = Quaternion()
         q.x ,q.y, q.z, q.w = (0.0, 0.0, 0.0, 1.0)
-        self.agent_state.position = p
-        self.agent_state.orientation = q
+        self._agent_state.position = p
+        self._agent_state.orientation = q
         ##########################################
 
         # Motor control update frequency
@@ -48,10 +58,10 @@ class MotorControlBase(Node):
         # Rate object with relative sleeping periood
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Threshold for when to compute orientation internally instead of using goal orientation.
-        self.point_and_shoot_threshold: float = self.get_parameter('point_and_shoot_threshold').get_parameter_value().double_value # Hz
+        self._pas_threshold: float = self.get_parameter('pas_threshold').get_parameter_value().double_value # Hz
         # The accepted slack for considering the GotoPose goal finished
-        self.goto_pose_goal_distance_slack = 0.2 # meter
-        self.goto_pose_goal_orientation_slack = 0.1 # 10 percent
+        self._goto_pose_goal_distance_slack = self.get_parameter('goal_distance_slack').get_parameter_value().double_value # Hz
+        self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
 
 
         # Subscriptions
@@ -77,6 +87,18 @@ class MotorControlBase(Node):
             'motor/pose/go',
             execute_callback=self._action_server_goto_pose_execute_callback,
         )
+    @abstractmethod
+    def pid(self, current: Pose, goal: Pose) -> List[(int,int)]:
+        """This abstract method should be implemented individually by the deriving class in Athena and NAIAD since
+        the PID and configs
+
+        Args:
+            current (Pose): Current pose (position and orientation)
+            goal (Pose): Goal pose (position and orientation)
+
+        Returns:
+            List[(int,int)]: List of values to send to each motor (motor number, value)
+        """
 
     def distance_to_goal(self, current: Point, goal: Point) -> float:
         """Calculates the distance between the goal and the current state.
@@ -95,19 +117,6 @@ class MotorControlBase(Node):
         # Pythagorean theorem
         return sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
 
-    def compute_point_and_shoot_orientation(self, current: Point, goal: Point) -> Quaternion: 
-        """Computes the orientation needed to go straight from the current position to
-         the goal position.
-
-        Args:
-            current (Point): Current position.
-            goal (Point): Goal position.
-
-        Returns:
-            Quaternion: Orientation needed to "shoot".
-        """
-        # TODO: Implement this function.
-        return Quaternion()
     
     def _goto_pose_goal_reached(self, goal: Pose) -> bool:
         """Checks wheter the GotoPose goal is reached or not. The accepted state allows for some
@@ -157,13 +166,27 @@ class MotorControlBase(Node):
 
     #                   Callbacks
     # -----------------------------------------
+    def _update_pas_orientation(self):
+        """Computes and updates the point and shoot orientation needed to go straight from the current position to
+         the goal position. Uses the object properties _agent_state and _goal_pose to get current and goal position.
+
+        Returns:
+            Quaternion: Orientation needed to "shoot".
+        """
+        current = self._agent_state.position
+        goal = self._goal_pose.position
+        pas_q = Quaternion()
+        # TODO: Implement this function.
+        self.get_logger().info(f"Updating point and shoot orientation: {pas_q}")
+        self._pas_orientation = pas_q
+
     # State listener callback
     def _state_listener_callback(self, msg: Pose):
         """Callback for the subscribtion to the position/state topic that contains state messages with the msg type Pose.
         The callback reads the state and updates the agent_state property.
         """
         self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
-        self.agent_state = msg
+        self._agent_state = msg
 
 
     # GotoPose callbacks
@@ -178,29 +201,41 @@ class MotorControlBase(Node):
         the position in the PID regulation. This will in turn lead to behavior mimicking the point and
         shoot approach.
         """
-        self.get_logger().info(f'Received goal.')
+        self.get_logger().info(f'Received goal: {goal_handle.request}')
         self.motor_control_state = MotorControlState.EXECUTING
+        # Update object properties
+        self._goal_pose = goal_handle.request
+        # Compute and update initial PaS orientation
+        self._update_pas_orientation()
+        # Create timer that continuously updates the PaS orientation
+        pas_orientation_timer = self.create_timer(self._pas_orientation_update_freq, self.update_pas_orientation)
+        # Infered number of motors, currently only used to send 0 to all motors to stop the agent once the goal is reached.
+        infered_motor_nums = 0
+
         # Loop as long as the goal isn't reached.
         i = 0 # For testing
         while(i < 50):
             i+=1
         # while(not self._goto_pose_goal_reached(goal_handle.request)):
-            current_pos = self.agent_state.position
+            current_pos = self._agent_state.position
             desired_pos = goal_handle.request.pose.position
-            current_orientation = self.agent_state.orientation
+            current_orientation = self._agent_state.orientation
             desired_orientation = goal_handle.request.pose.orientation
             # Calculate distance between desired position and current position.
             distance_to_goal = self.distance_to_goal(current_pos, desired_pos)
             # Check if the distance is within the point_and_shoot_threshold.
-            if distance_to_goal < self.point_and_shoot_threshold:
-                # Compute an orientation that conforms with the "point" in point and shoot.
-                desired_orientation = self.compute_point_and_shoot_orientation(current_pos, desired_pos)
+            if distance_to_goal < self.pas_threshold:
+                # Set the desired orientation to the point and shoot orientation.
+                desired_orientation = self._pas_orientation
 
-            # TODO: PID here
-
+            desired_pose = Pose()
+            desired_pose.position = desired_pos
+            desired_pose.orientation = desired_orientation
+            
             # TODO: Send REAL values to motor driver
             motor_output_msg = MotorOutput()
-            motor_output_msg.motor_outputs = [42, 42]
+            motor_output_msg.motor_outputs = self.pid(self._agent_state, desired_pose)
+            infered_num_motors = len(motor_output_msg.motor_outputs)
             self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_output_msg.motor_outputs}')
             self._motor_output_publisher.publish(motor_output_msg)
 
@@ -209,14 +244,17 @@ class MotorControlBase(Node):
             feedback_msg.status = GotoPoseStatus.MOVING_TO_POSE
             feedback_msg.message = "Moving to pose."
             feedback_msg.distance_to_goal = distance_to_goal
-            # TODO: Calculate delta pose.
-            #feedback_msg.delta_pose = self.calculate_delta_pose(current_state, goal_handle.request.pose)
+            feedback_msg.delta_pose = self.calculate_delta_pose(self.agent_state, goal_handle.request.pose)
             goal_handle.publish_feedback(feedback_msg)
 
             self.get_logger().info(f'{feedback_msg.message}')
             # Relative sleep according to the goto_pose_rate.
             self._motor_update_rate.sleep()
 
+        # GOAL FINISHED
+        # -------------
+        # Stop the PaS orientation timer
+        pas_orientation_timer.destroy()
         # Send 0 as the final motor output values so the agent stops acting since the goal is finished.
         motor_output_msg = MotorOutput()
         motor_output_msg.motor_outputs = [0] * self._num_motors
