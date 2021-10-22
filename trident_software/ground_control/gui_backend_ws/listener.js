@@ -10,7 +10,7 @@ rclnodejs
 
     node.createSubscription(
       'trident_msgs/msg/Num',
-      'topic',
+      'topic2',
       (state) => {
         console.log(`Received message No. ${++count}: `, state);
       }
