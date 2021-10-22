@@ -1,5 +1,7 @@
 import rclpy
+from typing import List
 from rclpy.executors import MultiThreadedExecutor
+from geometry_msgs.msg import Pose
 from baseclasses.motorcontrolbase import MotorControlBase
 
 class MotorControlNode(MotorControlBase):
