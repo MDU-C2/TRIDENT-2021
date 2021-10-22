@@ -8,7 +8,31 @@ class WaypointMap {
 	}
 }
 
+class InterfaceHandler {
+	constructor() {
+		this.xhr = new XMLHttpRequest();
+	}
+
+	sendReq(data, callback)
+	{
+		var tempMsg = JSON.parse(data);
+		this.xhr.open("POST", tempMsg.url, true);
+		this.xhr.setRequestHeader('Content-Type', 'application/json');
+		this.xhr.send(JSON.stringify({id:0}));
+		this.xhr.onload = function(resp) {
+			if (resp.originalTarget.status != 200) { // analyze HTTP status of the response
+				//console.log(`Error ${this.xhr.status}: ${this.xhr.statusText}`); // e.g. 404: Not Found
+				callback(JSON.stringify(0));
+			} else { // show the result
+				//console.log(`Done, got ${resp.originalTarget.response}`); // response is the server response
+				callback(JSON.stringify(resp.originalTarget.response));
+			}
+		};
+	}
+}
+
 waypointMap = new WaypointMap();
+interfaceHandler = new InterfaceHandler();
 console.log(waypointMap);
 
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
@@ -97,18 +121,14 @@ function remapPolyLines()
 	}
 }
 
-//TEMP
-
-var xhr = new XMLHttpRequest();
-xhr.open("POST", "http://localhost:8080/api/users", true);
-xhr.setRequestHeader('Content-Type', 'application/json');
-xhr.send(JSON.stringify({
-    id: 0
-}));
-xhr.onload = function() {
-	if (xhr.status != 200) { // analyze HTTP status of the response
-	  console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
-	} else { // show the result
-	  console.log(`Done, got ${xhr.response}`); // response is the server response
-	}
-  };
+function heartbeat()
+{
+	var data = JSON.stringify({url: "http://localhost:8082/api/users1",id: 0})
+	//var timeout = setTimeout(function(){},)
+	interfaceHandler.sendReq(data, function(resp){
+		console.log(JSON.parse(resp));
+	});
+}
+setInterval(function(){
+	heartbeat();
+},1000);
