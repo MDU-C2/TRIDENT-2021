@@ -1,7 +1,8 @@
 const express = require('express');
+const rclnodejs = require('rclnodejs');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8082;
 
 // routes will go here
 app.use(express.static('../gui'))
@@ -17,5 +18,17 @@ app.post('/api/users', function(req, res) {
   });
 });
 
+rclnodejs.init().then(() => {
+  const node = new rclnodejs.Node('publisher_example_node');
+  const publisher = node.createPublisher('trident_msgs/msg/Num', 'topic');
+  let counter = 0;
+  setInterval(() => {
+    console.log(`Publishing message: Hello ROS ${counter++}`);
+    publisher.publish({a:counter});
+  }, 1000);
+  node.spin();
+});
+
 app.listen(port);
 console.log('Server started at http://localhost:' + port);
+
