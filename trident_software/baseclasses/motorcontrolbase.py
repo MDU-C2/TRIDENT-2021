@@ -3,11 +3,13 @@
 Author: Johannes Deivard 2021-10
 """
 from abc import ABCMeta, abstractmethod
-from typing import List
-from math import sqrt   # For Pythagorean theorem to calculate distance
+from typing import List, Tuple
+from math import sqrt   # For Pythagorean theorem to calculate distance 
+import json
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
+from std_msgs.msg import String
 from geometry_msgs.msg import Pose, Point, Quaternion
 from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutput
@@ -20,7 +22,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
     generalization in mind.
     """
 
-    def __init__(self, node_name, num_motors):
+    def __init__(self, node_name):
         super().__init__(node_name)
         # Parameters
         self.declare_parameters(
@@ -31,11 +33,16 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 ('pas_threshold', 0.0), # Meters
                 ('goal_distance_slack', 0.2), # Meters
                 ('goal_orientation_slack', 0.1), # Percent
+                ('motor_config', ""),
+                # ('motor_config.thruster_configs.x', []),
+                # ('motor_config.thruster_configs.y', []),
+                # ('motor_config.descriptive_names', []),
+                # ('motor_config.power_scalings', []),
+                # ('pid_config', []),
             ])
 
         self.motor_control_state = MotorControlState.IDLE
 
-        self._num_motors = num_motors # TODO: Get this value from the motor_config
         # The last known state of the agent.
         self._agent_state: Pose = Pose()
         # The current goal pose received from either GotoPose action or HoldPose action.
@@ -44,6 +51,10 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # (This is updated by a timer callback set to the pas_orientation_update_freq)
         self._pas_orientation = None
         self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
+        json_test = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value) # Hz
+        # test = self.get_parameter('motor_config.thruster_configs.x').get_parameter_value().double_array_value
+        # test2 = self.get_parameter('motor_config.thruster_configs.y').get_parameter_value().double_array_value
+        self.get_logger().info(f"{json_test[0]['pose_effect']['yaw']}")
         # SET HARDCODED STATE FOR TESTING PURPOSES
         p = Point()
         p.x, p.y, p.z = (1.0, 2.0, 3.0)
@@ -65,6 +76,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
 
         # Subscriptions
+        # -------------
         self._state_subscribtion = self.create_subscription(
             Pose,
             'position/state',
@@ -72,10 +84,16 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             1 # History depth, only keep the last received message
         )
         # Publishers
+        # ----------
         self._motor_output_publisher = self.create_publisher(
             MotorOutput,
             'motor_control/motor_output',
             1 # History depth, only keep the last received message
+        )
+        self._motor_control_state_publisher = self.create_publisher(
+            String,
+            'motor_control/state',
+            10
         )
 
         # Create the servers
@@ -87,8 +105,20 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             'motor/pose/go',
             execute_callback=self._action_server_goto_pose_execute_callback,
         )
+
+
+    def _update_node_state(self, new_state):
+        """Updates the node's state and publish the new state to the state topic.
+        """
+        self.motor_control_state = MotorControlState(new_state)
+        msg = String()
+        msg.data = str(self.motor_control_state)
+        self.get_logger().info(f"Publishing new state: {msg.data}")
+        self._motor_control_state_publiser.publish(msg)
+
+
     @abstractmethod
-    def pid(self, current: Pose, goal: Pose) -> List[(int,int)]:
+    def pid(self, current: Pose, goal: Pose) -> List[Tuple[int,int]]:
         """This abstract method should be implemented individually by the deriving class in Athena and NAIAD since
         the PID and configs
 
@@ -97,7 +127,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             goal (Pose): Goal pose (position and orientation)
 
         Returns:
-            List[(int,int)]: List of values to send to each motor (motor number, value)
+            List[Tuple[int,int]]: List of values to send to each motor (motor number, value)
         """
 
     def distance_to_goal(self, current: Point, goal: Point) -> float:
@@ -202,7 +232,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         shoot approach.
         """
         self.get_logger().info(f'Received goal: {goal_handle.request}')
-        self.motor_control_state = MotorControlState.EXECUTING
+        self._update_node_state(MotorControlState.EXECUTING)
         # Update object properties
         self._goal_pose = goal_handle.request
         # Compute and update initial PaS orientation
@@ -268,6 +298,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result.distance_to_goal = 0.0 # TODO: self.distance_to_goal(self.agent_state.position, goal_handle.request.pose.position) # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
 
         self.get_logger().info(f'Returning result: {result}')
+
+        self._update_node_state(MotorControlState.IDLE)
 
         return result
 
