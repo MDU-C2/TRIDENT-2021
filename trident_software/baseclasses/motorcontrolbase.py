@@ -10,6 +10,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
 from std_msgs.msg import String
+from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion
 from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutput
@@ -34,15 +35,26 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 ('goal_distance_slack', 0.2), # Meters
                 ('goal_orientation_slack', 0.1), # Percent
                 ('motor_config', ""),
-                # ('motor_config.thruster_configs.x', []),
-                # ('motor_config.thruster_configs.y', []),
-                # ('motor_config.descriptive_names', []),
-                # ('motor_config.power_scalings', []),
-                # ('pid_config', []),
             ])
 
-        self.motor_control_state = MotorControlState.IDLE
+        # LOAD PARAMETERS
+        # ---------------
+        # PAS computation update frequency parameter
+        self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
+        # Motor config parameters, see config file for information about structure
+        self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value) # Hz
+        # Motor control update frequency
+        self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
+        # Threshold for when to compute orientation internally instead of using goal orientation.
+        self._pas_threshold: float = self.get_parameter('pas_threshold').get_parameter_value().double_value # Hz
+        # The accepted slack for considering the GotoPose goal finished
+        self._goto_pose_goal_distance_slack = self.get_parameter('goal_distance_slack').get_parameter_value().double_value # Hz
+        self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
 
+        # Set initial motor control state to IDLE
+        self.motor_control_state = MotorControlState.IDLE
+        # Boolean that controls the manual override, if manual override is True, the motor control will not send any output values to the motor driver.
+        self._manual_override = False
         # The last known state of the agent.
         self._agent_state: Pose = Pose()
         # The current goal pose received from either GotoPose action or HoldPose action.
@@ -50,11 +62,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # The latest computation of the point and shoot orientation.
         # (This is updated by a timer callback set to the pas_orientation_update_freq)
         self._pas_orientation = None
-        self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
-        json_test = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value) # Hz
-        # test = self.get_parameter('motor_config.thruster_configs.x').get_parameter_value().double_array_value
-        # test2 = self.get_parameter('motor_config.thruster_configs.y').get_parameter_value().double_array_value
-        self.get_logger().info(f"{json_test[0]['pose_effect']['yaw']}")
+
         # SET HARDCODED STATE FOR TESTING PURPOSES
         p = Point()
         p.x, p.y, p.z = (1.0, 2.0, 3.0)
@@ -64,16 +72,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._agent_state.orientation = q
         ##########################################
 
-        # Motor control update frequency
-        self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
-        # Rate object with relative sleeping periood
+        # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
-        # Threshold for when to compute orientation internally instead of using goal orientation.
-        self._pas_threshold: float = self.get_parameter('pas_threshold').get_parameter_value().double_value # Hz
-        # The accepted slack for considering the GotoPose goal finished
-        self._goto_pose_goal_distance_slack = self.get_parameter('goal_distance_slack').get_parameter_value().double_value # Hz
-        self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
-
 
         # Subscriptions
         # -------------
@@ -104,6 +104,12 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             GotoPose,
             'motor/pose/go',
             execute_callback=self._action_server_goto_pose_execute_callback,
+        )
+        # Manual override service
+        self._server_manual_override = self.create_server(
+            SetBool,
+            'motor/manual_override',
+            self._server_manual_override_callback
         )
 
 
@@ -196,6 +202,23 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
     #                   Callbacks
     # -----------------------------------------
+
+    def _server_manual_override_callback(self, request, response):
+        """Tries to set the manual override property.
+        """
+        try:
+            self._manual_override = request.data
+            response.success = True
+            response.message = f"Successfully set manual override to {request.data}."
+        except Exception as e:
+            response.success = False
+            response.message = f"Something went wrong when setting manual override property. The manual override is currently set to: {self._manual_override}" \
+                               f"Error message: {e}."
+
+        return response
+
+
+
     def _update_pas_orientation(self):
         """Computes and updates the point and shoot orientation needed to go straight from the current position to
          the goal position. Uses the object properties _agent_state and _goal_pose to get current and goal position.
@@ -261,20 +284,26 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             desired_pose = Pose()
             desired_pose.position = desired_pos
             desired_pose.orientation = desired_orientation
-            
-            # TODO: Send REAL values to motor driver
-            motor_output_msg = MotorOutput()
-            motor_output_msg.motor_outputs = self.pid(self._agent_state, desired_pose)
-            infered_num_motors = len(motor_output_msg.motor_outputs)
-            self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_output_msg.motor_outputs}')
-            self._motor_output_publisher.publish(motor_output_msg)
 
-            # Create and send feedback
+            # Create feedback message
             feedback_msg = GotoPose.Feedback()
-            feedback_msg.status = GotoPoseStatus.MOVING_TO_POSE
-            feedback_msg.message = "Moving to pose."
+            if self._manual_override:
+                self.get_logger().info(f'Manual override is active. Not sending motor values to motor driver this iteration.')
+                feedback_msg.status = GotoPoseStatus.WAITING
+                feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
+
+            else:
+                # TODO: Send REAL values to motor driver
+                motor_output_msg = MotorOutput()
+                motor_output_msg.motor_outputs = self.pid(self._agent_state, desired_pose)
+                self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_output_msg.motor_outputs}')
+                self._motor_output_publisher.publish(motor_output_msg)
+                feedback_msg.status = GotoPoseStatus.MOVING_TO_POSE
+                feedback_msg.message = "Moving to pose."
+
             feedback_msg.distance_to_goal = distance_to_goal
             feedback_msg.delta_pose = self.calculate_delta_pose(self.agent_state, goal_handle.request.pose)
+            # Publish the feedback message
             goal_handle.publish_feedback(feedback_msg)
 
             self.get_logger().info(f'{feedback_msg.message}')

@@ -77,6 +77,7 @@ class MotorControlState(IntEnum):
     """
     IDLE = 0
     EXECUTING = 1
+    MANUAL_OVERRIDE = 2
 
     def __str__(self):
         return self.name
