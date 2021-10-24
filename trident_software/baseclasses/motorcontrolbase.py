@@ -13,7 +13,7 @@ from std_msgs.msg import String
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion
 from trident_msgs.action import GotoPose, HoldPose
-from trident_msgs.msg import MotorOutput
+from trident_msgs.msg import MotorOutputs, MotorOutput
 from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorControlState
 
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -124,7 +124,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
 
     @abstractmethod
-    def pid(self, current: Pose, goal: Pose) -> List[Tuple[int,int]]:
+    def pid(self, current: Pose, goal: Pose) -> List[MotorOutput]:
         """This abstract method should be implemented individually by the deriving class in Athena and NAIAD since
         the PID and configs
 
@@ -133,7 +133,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             goal (Pose): Goal pose (position and orientation)
 
         Returns:
-            List[Tuple[int,int]]: List of values to send to each motor (motor number, value)
+            List[MotorOutput]: List of values to send to each motor (motor number, value)
         """
 
     def distance_to_goal(self, current: Point, goal: Point) -> float:
@@ -165,8 +165,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         Returns:
             bool: Boolean that indicates whether the goal is reached or not.
         """
-        # TODO: Read current state 
-        current = Pose()
+        current = self._agent_state
         dist = self.distance_to_goal(current.position, goal.position)
         orientation_errors = ((goal.orientation.x - current.orientation.x) / goal.orientation.x, 
                               (goal.orientation.y - current.orientation.y) / goal.orientation.y,
@@ -262,8 +261,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._update_pas_orientation()
         # Create timer that continuously updates the PaS orientation
         pas_orientation_timer = self.create_timer(self._pas_orientation_update_freq, self.update_pas_orientation)
-        # Infered number of motors, currently only used to send 0 to all motors to stop the agent once the goal is reached.
-        infered_motor_nums = 0
 
         # Loop as long as the goal isn't reached.
         i = 0 # For testing
@@ -293,7 +290,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
             else:
-                # TODO: Send REAL values to motor driver
                 motor_output_msg = MotorOutput()
                 motor_output_msg.motor_outputs = self.pid(self._agent_state, desired_pose)
                 self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_output_msg.motor_outputs}')
@@ -315,8 +311,14 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Stop the PaS orientation timer
         pas_orientation_timer.destroy()
         # Send 0 as the final motor output values so the agent stops acting since the goal is finished.
-        motor_output_msg = MotorOutput()
-        motor_output_msg.motor_outputs = [0] * self._num_motors
+        motor_output_msg = MotorOutputs()
+        outputs = []
+        for i in range(len(self._motor_config)):
+            output = MotorOutput()
+            output.id = self._motor_config[i]["id"]
+            output.output = 0
+            outputs.append(output)
+        motor_output_msg.motor_outputs = outputs
         self.get_logger().info(f'Goal reached. Stopping motors by publishing {motor_output_msg.motor_outputs} to the motor driver.')
         self._motor_output_publisher.publish(motor_output_msg)
 
