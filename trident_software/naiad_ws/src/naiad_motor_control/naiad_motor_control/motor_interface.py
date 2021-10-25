@@ -31,3 +31,20 @@ class MotorInterface(Node):
             motor_target = int(Clamp(4000, 6000+2000*msg[motor_idx].power, 8000))
             mm_query[2:]= IntegerToMaestroBytes(motor_target)
             self.ser.write(mm_query)
+            
+def main(args=None):
+    rclpy.init(args=args)
+
+    motor_interface = MotorInterface()
+
+    rclpy.spin(motor_interface)
+
+    # Destroy the node explicitly
+    # (optional - otherwise it will be done automatically
+    # when the garbage collector destroys the node object)
+    motor_interface.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
