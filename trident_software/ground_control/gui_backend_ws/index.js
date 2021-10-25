@@ -6,7 +6,7 @@ class Server
     this.express = require('express');
     //Setup express node and port
     this.app = this.express();
-    this.port = process.env.PORT || 8082;
+    this.port = process.env.PORT || 8081;
   }
 
   init()
@@ -22,22 +22,20 @@ class Server
   {
     this.app.listen(this.port);
     console.log('Server started at http://localhost:' + this.port);
+
+    process.on('SIGINT', function() {
+      console.log('Shutting down server.');
+      process.exit();
+    });
   }
 
-  handleReq()
+  handleReq(ROS2handle)
   {
-    this.app.post('/api/users1', function(req,res) {
-      const uid = req.body.id;
-      res.send({
-        'user_id':1
-      });
-    });
-
-    this.app.post('/api/users2', function(req,res) {
-      const uid = req.body.id;
-      res.send({
-        'user_id':2
-      });
+    this.app.post('/heartbeat', function(req,res) {
+      res.send({'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
+        //Reset Athena and Naiad active status
+        ROS2handle.heartbeatAthena.active = false;
+        ROS2handle.heartbeatNaiad.active = false;
     });
   }
 }
@@ -48,8 +46,8 @@ class ROS2
   {
     this.rclnodejs = require('rclnodejs');
     this.node = null;
-    this.publisher1 = null;
-    this.publisher2 = null;
+    this.heartbeatAthena = {handle:null,active:false};
+    this.heartbeatNaiad  = {handle:null,active:false};
   }
 
   init()
@@ -59,31 +57,15 @@ class ROS2
     this.node = new this.rclnodejs.Node('publisher_example_node');
   }
 
-  setupInterface()
-  {
-    //Setup publisher1
-    this.publisher1 = this.node.createPublisher('trident_msgs/msg/Num', 'topic1');
-    //Setup publisher2
-    this.publisher2 = this.node.createPublisher('trident_msgs/msg/Num', 'topic2');
-    
-  }
-
   startInterfaces()
   {
-    //Start publisher1
-    setInterval(() => {
-      this.publisher1.publish({a:1});
-    }, 1000);
-
-    //Start publisher2
-    setInterval(() => {
-      this.publisher2.publish({a:2});
-    }, 1000);
+    //Start heartbeat Athena
+    this.heartbeatAthena.handle = this.node.createSubscription('trident_msgs/msg/Num','hearbeat/athena', (msg) => {
+      this.heartbeatAthena.active = true;
+    });
 
     this.node.spin();
   }
-
-  
 }
 
 function main()
@@ -94,11 +76,10 @@ function main()
   //Setup server and start it
   server.init();
   server.start();
-  server.handleReq();
+  server.handleReq(ros2);
 
   //Setup ros2 and serve messages/services/actions
   ros2.init();
-  ros2.setupInterface();
   ros2.startInterfaces();
   
 }

@@ -17,7 +17,7 @@
         <div class="d-flex bd-highlight py-2 px-2" style="background: darkslategray;">
             <div class="dropdown mx-2 bd-highlight">
                 <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span>Athena: </span> <span style="color:rgb(201, 76, 76); font-weight: bold;">offline</span>
+                  <span>Athena: </span> <span id="connStatusAthena" style="font-weight: bold;">...</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><button class="dropdown-item" href="#">Connect</button></li>
@@ -30,7 +30,7 @@
 
             <div class="dropdown mr-2 bd-highlight">
                 <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span>Naiad: </span> <span style="color:4CAF50; font-weight: bold;">online</span>
+                  <span>Naiad: </span> <span id="connStatusNaiad" style="font-weight: bold;">...</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><button class="dropdown-item" href="#" disabled>Connect</button></li>
@@ -41,7 +41,7 @@
                 </ul>
             </div>
             <div class="ms-auto bd-highlight">
-                <button class="btn btn-danger mr-2 pr-2" type="button">
+                <button class="btn btn-danger mr-2 pr-2 fw-bold" type="button">
                     Abort
                 </button>
             </div>
@@ -49,43 +49,39 @@
         <div class="row mx-1">
             <div class="col-md-8 py-2" style="position: relative;">
                 <div id="map1" style="z-index: 1;"></div>
+
+                <!--Waypoint list-->
                 <div style="position: absolute; z-index: 2; top: 1rem; right: 1rem; width: 16rem;">
                     <div class="card">
                         <div class="card-header" id="headingOne" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
                             <div class="d-flex justify-content-between">
-                                <span>Waypoints </span>
-                                <span class="badge rounded-pill bg-primary" id="waypointNumCounter">0</span>
+                                <span>Waypoints: <span id="waypointTypeTarget">Athena</span></span>
+                                <span class="badge rounded-pill bg-primary" id="waypointNumCounter" style="font-size: 1rem;">0</span>
                             </div>
                           
                         </div>
                         <div class="collapse" id="collapseExample">
-                            <ul class="list-group list-group-flush" id="waypointList" style="height: 52vh; overflow-y: scroll;"></ul>
+                            <ul class="list-group list-group-flush" id="waypointList-0" style="height: 52vh; overflow-y: scroll;"></ul>
+                            <ul class="list-group list-group-flush" id="waypointList-1" style="display: none; height: 52vh; overflow-y: scroll;"></ul>
                         </div>
-                        <!--
-                        <ul class="list-group list-group-flush" id="waypointList" style="height: 40vh; overflow-y: scroll;">
-                        -->
-                        </ul>
                     </div>
                 </div>
+
+                <!--Naiad/athena waypoint selector-->
+                <div style="position: absolute; z-index: 3; top: 55vh; left: 1rem;">
+                    <div class="d-flex justify-content-left shadow p-2" style="background: white; border-radius: 0.3rem;">
+                        <button id="waypointSelectorAthena" type="button" class="btn btn-primary mx-2" style="width: 6rem;" onclick="selectWaypointType(0)">Athena</button>
+                        <button id="waypointSelectorNaiad" type="button" class="btn btn-outline-primary mx-2" style="width: 6rem;" onclick="selectWaypointType(1)">Naiad</button>
+                    </div>
+                </div>
+
                 <div class="mt-2">
                     <div class="p-2" style="background: white;height: 32vh;">
                         <div>
                             <h5 class="px-2">Logger</h5>
                             <hr class="my-0">
                         </div>
-                        <div class="logger-window" style="height: 26vh; overflow-y: scroll; background: none;">
-                            <p class="font-monospace my-0">15:30:30 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:31 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:32 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:33 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:34 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:35 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:36 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:37 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:38 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:39 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:40 - Received START response from ATHENA</p>
-                            <p class="font-monospace my-0">15:30:41 - Received START response from ATHENA</p>
+                        <div id="loggerMainWindow" class="logger-window" style="height: 26vh; overflow-y: scroll; background: none;">
                         </div>
                     </div>
                 </div>
