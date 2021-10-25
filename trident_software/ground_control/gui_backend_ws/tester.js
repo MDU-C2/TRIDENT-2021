@@ -16,6 +16,13 @@ rclnodejs
       }
     );
 
+    const publisher = node.createPublisher('trident_msgs/msg/Num','hearbeat/athena');
+
+    let counter = 0;
+    setInterval(() => {
+      publisher.publish({a:counter++});
+    }, 500);
+
     rclnodejs.spin(node);
   })
   .catch((e) => {
