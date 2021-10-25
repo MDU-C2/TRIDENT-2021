@@ -27,11 +27,11 @@ inline const char * name<trident_msgs::msg::MotorOutput>()
 
 template<>
 struct has_fixed_size<trident_msgs::msg::MotorOutput>
-  : std::integral_constant<bool, false> {};
+  : std::integral_constant<bool, true> {};
 
 template<>
 struct has_bounded_size<trident_msgs::msg::MotorOutput>
-  : std::integral_constant<bool, false> {};
+  : std::integral_constant<bool, true> {};
 
 template<>
 struct is_message<trident_msgs::msg::MotorOutput>

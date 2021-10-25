@@ -17,14 +17,11 @@ extern "C"
 
 // Constants defined in the message
 
-// Include directives for member types
-// Member 'motor_outputs'
-#include "rosidl_runtime_c/primitives_sequence.h"
-
 // Struct defined in msg/MotorOutput in the package trident_msgs.
 typedef struct trident_msgs__msg__MotorOutput
 {
-  rosidl_runtime_c__int64__Sequence motor_outputs;
+  int64_t id;
+  double value;
 } trident_msgs__msg__MotorOutput;
 
 // Struct for a sequence of trident_msgs__msg__MotorOutput.

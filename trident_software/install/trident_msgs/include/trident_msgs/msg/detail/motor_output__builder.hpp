@@ -20,16 +20,32 @@ namespace msg
 namespace builder
 {
 
-class Init_MotorOutput_motor_outputs
+class Init_MotorOutput_value
 {
 public:
-  Init_MotorOutput_motor_outputs()
+  explicit Init_MotorOutput_value(::trident_msgs::msg::MotorOutput & msg)
+  : msg_(msg)
+  {}
+  ::trident_msgs::msg::MotorOutput value(::trident_msgs::msg::MotorOutput::_value_type arg)
+  {
+    msg_.value = std::move(arg);
+    return std::move(msg_);
+  }
+
+private:
+  ::trident_msgs::msg::MotorOutput msg_;
+};
+
+class Init_MotorOutput_id
+{
+public:
+  Init_MotorOutput_id()
   : msg_(::rosidl_runtime_cpp::MessageInitialization::SKIP)
   {}
-  ::trident_msgs::msg::MotorOutput motor_outputs(::trident_msgs::msg::MotorOutput::_motor_outputs_type arg)
+  Init_MotorOutput_value id(::trident_msgs::msg::MotorOutput::_id_type arg)
   {
-    msg_.motor_outputs = std::move(arg);
-    return std::move(msg_);
+    msg_.id = std::move(arg);
+    return Init_MotorOutput_value(msg_);
   }
 
 private:
@@ -47,7 +63,7 @@ template<>
 inline
 auto build<::trident_msgs::msg::MotorOutput>()
 {
-  return trident_msgs::msg::builder::Init_MotorOutput_motor_outputs();
+  return trident_msgs::msg::builder::Init_MotorOutput_id();
 }
 
 }  // namespace trident_msgs

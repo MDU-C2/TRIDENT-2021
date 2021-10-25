@@ -34,25 +34,44 @@ struct MotorOutput_
 
   explicit MotorOutput_(rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
   {
-    (void)_init;
+    if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
+      rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
+    {
+      this->id = 0ll;
+      this->value = 0.0;
+    }
   }
 
   explicit MotorOutput_(const ContainerAllocator & _alloc, rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
   {
-    (void)_init;
     (void)_alloc;
+    if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
+      rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
+    {
+      this->id = 0ll;
+      this->value = 0.0;
+    }
   }
 
   // field types and members
-  using _motor_outputs_type =
-    std::vector<int64_t, typename ContainerAllocator::template rebind<int64_t>::other>;
-  _motor_outputs_type motor_outputs;
+  using _id_type =
+    int64_t;
+  _id_type id;
+  using _value_type =
+    double;
+  _value_type value;
 
   // setters for named parameter idiom
-  Type & set__motor_outputs(
-    const std::vector<int64_t, typename ContainerAllocator::template rebind<int64_t>::other> & _arg)
+  Type & set__id(
+    const int64_t & _arg)
   {
-    this->motor_outputs = _arg;
+    this->id = _arg;
+    return *this;
+  }
+  Type & set__value(
+    const double & _arg)
+  {
+    this->value = _arg;
     return *this;
   }
 
@@ -98,7 +117,10 @@ struct MotorOutput_
   // comparison operators
   bool operator==(const MotorOutput_ & other) const
   {
-    if (this->motor_outputs != other.motor_outputs) {
+    if (this->id != other.id) {
+      return false;
+    }
+    if (this->value != other.value) {
       return false;
     }
     return true;

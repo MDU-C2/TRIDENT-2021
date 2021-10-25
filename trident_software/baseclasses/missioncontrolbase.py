@@ -113,6 +113,8 @@ class MissionControlBase(Node):
 
         # Update mission control state
         self.state = MissionControlState.EXECUTING_MISSION
+        # Set the goal state
+        goal_handle.succeed()
         self.get_logger().info(f"Starting to execute mission with {total_waypoints} waypoints.")
 
         for i, waypoint in enumerate(self.mission.waypoints):
@@ -144,7 +146,7 @@ class MissionControlBase(Node):
 
         # Update mission control state, since the mission is finished.
         self.state = MissionControlState.MISSION_FINISHED
-        goal_handle.succeed()
+        # goal_handle.succeed()
         
         result = StartMission.Result()
         result.success = True if StartMissionStatus.FINISHED else False
@@ -169,9 +171,9 @@ class MissionControlBase(Node):
             wp_action.action_type = WaypointActionType.NO_ACTION
             wp_action.action_param = 0
             pose = Pose()
-            pose.position.x = 3.0
-            pose.position.y = 3.0
-            pose.position.z = 3.0
+            pose.position.x = 42.0
+            pose.position.y = 42.0
+            pose.position.z = 42.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0

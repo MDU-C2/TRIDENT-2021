@@ -9,21 +9,14 @@
 #include <string.h>
 
 
-// Include directives for member types
-// Member `motor_outputs`
-#include "rosidl_runtime_c/primitives_sequence_functions.h"
-
 bool
 trident_msgs__msg__MotorOutput__init(trident_msgs__msg__MotorOutput * msg)
 {
   if (!msg) {
     return false;
   }
-  // motor_outputs
-  if (!rosidl_runtime_c__int64__Sequence__init(&msg->motor_outputs, 0)) {
-    trident_msgs__msg__MotorOutput__fini(msg);
-    return false;
-  }
+  // id
+  // value
   return true;
 }
 
@@ -33,8 +26,8 @@ trident_msgs__msg__MotorOutput__fini(trident_msgs__msg__MotorOutput * msg)
   if (!msg) {
     return;
   }
-  // motor_outputs
-  rosidl_runtime_c__int64__Sequence__fini(&msg->motor_outputs);
+  // id
+  // value
 }
 
 trident_msgs__msg__MotorOutput *
