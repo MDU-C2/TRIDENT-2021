@@ -9,14 +9,16 @@ class GPSNode(sensbase):
         '''The IMU measurement vector will look like this
            accel_x accel_y heading delta_head
            Since accel will have to always be updated, it will start as 0.
-           heading and delta_heading can be copied over directly'''
+           heading and delta_heading can be copied over directly (after conversion)'''
         init_obs_mat = np.zeros((4,6))
-        init_obs_mat[2, 2] = 1.
+        init_obs_mat[2, 2] = 180/3.14 # IMU gives abs heading in degrees, so convert!
         init_obs_mat[3, 5] = 1.
         
+        # TODO: couldn't find any real noise values, but these should be fine?
+        (np.array([[0.1, 0.1, 3, 3]])*np.identity(4))**2
+        
         super().__init__('imu', 'athena', 0.25
-                         init_obs_mat, 4, np.identity(2)*0.1**2)
-        # Replace noise with real noise values! (probably in data sheet)
+                         init_obs_mat, 4, np.identity(4)*0.1**2)
         
         self.prev_state = np.transpose(np.zeros((6,1)))
         self.prev_state_time = time()
