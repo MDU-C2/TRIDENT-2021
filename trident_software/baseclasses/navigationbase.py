@@ -41,9 +41,9 @@ class NavigationBase(Node):
         
         # Create the clients
         # ------------------
-        self._action_client_goto_pose = ActionClient(self, GotoPose, 'motor/pose/go') # TODO: Implement server in motor
+        self._action_client_goto_pose = ActionClient(self, GotoPose, 'motor_control/pose/go')
         self._goto_pose_get_result_future = None
-        self._action_client_hold_pose = ActionClient(self, HoldPose, 'motor/pose/hold') # TODO: Implement server in motor
+        self._action_client_hold_pose = ActionClient(self, HoldPose, 'motor_control/pose/hold') # TODO: Implement server in motor
         self._hold_pose_get_result_future = None
 
 
@@ -233,6 +233,7 @@ class NavigationBase(Node):
         """
 
         self.get_logger().info('Received GotoWaypoint request.')
+        goal_handle.succeed()
         # Validity checks:
         # None for now.
 
@@ -271,7 +272,6 @@ class NavigationBase(Node):
                     goal_handle.request.waypoint.action.action_param
                 )
         
-        goal_handle.succeed()
         result = GotoWaypoint.Result()
         result.status = GotoWaypointStatus.FINISHED
         result.message = "Arrived at the waypoint. Goal finished."

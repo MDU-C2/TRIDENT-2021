@@ -12,10 +12,6 @@
 #include "trident_msgs/msg/detail/motor_output__struct.h"
 
 
-// Include directives for member types
-// Member `motor_outputs`
-#include "rosidl_runtime_c/primitives_sequence_functions.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -35,16 +31,31 @@ void MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_fini_function(
   trident_msgs__msg__MotorOutput__fini(message_memory);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_message_member_array[1] = {
+static rosidl_typesupport_introspection_c__MessageMember MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_message_member_array[2] = {
   {
-    "motor_outputs",  // name
+    "id",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_INT64,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
-    true,  // is array
+    false,  // is array
     0,  // array size
     false,  // is upper bound
-    offsetof(trident_msgs__msg__MotorOutput, motor_outputs),  // bytes offset in struct
+    offsetof(trident_msgs__msg__MotorOutput, id),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "value",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(trident_msgs__msg__MotorOutput, value),  // bytes offset in struct
     NULL,  // default value
     NULL,  // size() function pointer
     NULL,  // get_const(index) function pointer
@@ -56,7 +67,7 @@ static rosidl_typesupport_introspection_c__MessageMember MotorOutput__rosidl_typ
 static const rosidl_typesupport_introspection_c__MessageMembers MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_message_members = {
   "trident_msgs__msg",  // message namespace
   "MotorOutput",  // message name
-  1,  // number of fields
+  2,  // number of fields
   sizeof(trident_msgs__msg__MotorOutput),
   MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_message_member_array,  // message members
   MotorOutput__rosidl_typesupport_introspection_c__MotorOutput_init_function,  // function to initialize message memory (memory has to be allocated)

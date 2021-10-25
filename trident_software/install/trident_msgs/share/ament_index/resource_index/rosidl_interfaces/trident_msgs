@@ -10,6 +10,8 @@ msg/Mission.idl
 msg/Mission.msg
 msg/MotorOutput.idl
 msg/MotorOutput.msg
+msg/MotorOutputs.idl
+msg/MotorOutputs.msg
 msg/Waypoint.idl
 msg/Waypoint.msg
 msg/WaypointAction.idl

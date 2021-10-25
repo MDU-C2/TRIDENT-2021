@@ -7,10 +7,12 @@ module trident_msgs {
   module msg {
     struct MotorOutput {
       @verbatim (language="comment", text=
-        " Index k-1 is motor output for motor k," "\n"
-        " k in [1,n] nwhere n is the number of motors on the agent" "\n"
-        " and in turn the numeber of elements in the motor_outputs list.")
-      sequence<int64> motor_outputs;
+        " ID of the motor")
+      int64 id;
+
+      @verbatim (language="comment", text=
+        " Output value")
+      double value;
     };
   };
 };
