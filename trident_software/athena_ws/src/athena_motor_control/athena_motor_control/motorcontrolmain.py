@@ -8,7 +8,7 @@ from baseclasses.motorcontrolbase import MotorControlBase
 class MotorControlNode(MotorControlBase):
     """The main node for the motor control module. 
     """
-    def __init__(self, node_name) -> None:
+    def __init__(self, node_name):
         super().__init__(node_name)
         self.get_logger().info("Created motor control node.")
 

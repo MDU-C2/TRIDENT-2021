@@ -16,6 +16,14 @@ msg/Waypoint.idl
 msg/Waypoint.msg
 msg/WaypointAction.idl
 msg/WaypointAction.msg
+srv/GetGoalPose.idl
+srv/GetGoalPose.srv
+srv/GetGoalPose_Request.msg
+srv/GetGoalPose_Response.msg
+srv/GuidanceRequest.idl
+srv/GuidanceRequest.srv
+srv/GuidanceRequest_Request.msg
+srv/GuidanceRequest_Response.msg
 srv/LoadMission.idl
 srv/LoadMission.srv
 srv/LoadMission_Request.msg

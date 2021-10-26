@@ -3,7 +3,7 @@
 Author: Johannes Deivard 2021-10
 """
 from typing import List # For typehints
-from math import sqrt   # For Pythagorean theorem do calculate distance
+from math import sqrt
 import rclpy
 from baseclasses.tridentstates import GotoWaypointStatus, NavigationState, HoldPoseStatus, GotoPoseStatus, WaypointActionType
 from rclpy.node import Node
@@ -11,19 +11,24 @@ from rclpy.action import ActionClient, ActionServer
 
 from geometry_msgs.msg import Pose, Point      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
-from trident_msgs.srv import LoadMission
+from std_msgs.msg import String
+from trident_msgs.srv import GetGoalPose
 from trident_msgs.action import GotoWaypoint, GotoPose, HoldPose
 
 
 class NavigationBase(Node):
-    """A base class for the navigation nodes used in Athena and NAIAD designed with 
+    """A base class for the navigation nodes used in Athena and NAIAD designed with
     generalization in mind.
     """
 
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
-        self.goto_waypoint_status = NavigationState.IDLE
+        # Keeps track of the status of the GotoWaypoint action
+        self._goto_waypoint_status = None
         self.path_to_waypoint: List[Pose] = []
+        # Parameter to keep track of the current goal pose, so that it can be used in the GoalPose getter service
+        self._current_goal_pose = None
+        self._navigation_state = NavigationState.IDLE
 
         # Keep reference to GotoWaypoint goal handle here so that feedback can be propagated
         self._goto_waypoint_goal_handle = None
@@ -35,17 +40,51 @@ class NavigationBase(Node):
             self,
             GotoWaypoint,
             'navigation/waypoint/go',
-            execute_callback=self._action_server_goto_waypoint_execute_callback
+            execute_callback=self._action_server_goto_waypoint_execute_callback,
+        )
+        # Service to communicate the current goal pose to those who wants to know (e.g., guidance system)
+        self._get_goal_pose_server = self.create_service(
+            GetGoalPose,
+            'navigation/waypoint/get/goal_pose',
+            self._get_goal_pose_callback
         )
 
         
         # Create the clients
         # ------------------
-        self._action_client_goto_pose = ActionClient(self, GotoPose, 'motor_control/pose/go')
+        self._action_client_goto_pose = ActionClient(
+            self,
+            GotoPose,
+            'motor_control/pose/go'
+        )
         self._goto_pose_get_result_future = None
-        self._action_client_hold_pose = ActionClient(self, HoldPose, 'motor_control/pose/hold') # TODO: Implement server in motor
+        self._action_client_hold_pose = ActionClient(
+            self,
+            HoldPose,
+            'motor_control/pose/hold'
+        ) # TODO: Implement server in motor
         self._hold_pose_get_result_future = None
 
+        # Subscriptions
+        # -------------
+
+        # Publishers
+        # ----------
+        self._goto_waypoint_status_publisher = self.create_publisher(
+            String,
+            'navigation/waypoint/go/status',
+            1 # Only keep the latest status update
+        )
+
+    def _update_goto_waypoint_status(self, new_status):
+        """Updates the goto waypoint status and publish the new status to the status topic
+        that is subscribed to by the guidance system, among others.
+        """
+        self._goto_waypoint_status = GotoWaypointStatus(new_status)
+        msg = String()
+        msg.data = str(self._goto_waypoint_status)
+        self.get_logger().info(f"Publishing new status for GotoWaypoint action: {msg.data}")
+        self._goto_waypoint_status_publisher.publish(msg)
 
     def compute_path(self, waypoint) -> List[Pose]:
         """Computes a path to reach the desired state at the waypoint.
@@ -92,6 +131,21 @@ class NavigationBase(Node):
 
     #                   Callbacks
     # --------------------------------------------
+
+    def _get_goal_pose_callback(self, _, response):
+        """Simple getter for the current goal pose.
+        """
+        if self._current_goal_pose is not None:
+            response.goal_pose = self._current_goal_pose
+            response.success = True
+            response.message = f"Successfully retrieved goal pose: {self._current_goal_pose}"
+        else:
+            response.success = False
+            response.message = "Failed to retrieve goal pose: No goal is set."
+
+        return response
+
+
     # Hold pose action client callbacks
     # ---------------------------------
     def _hold_pose_send_goal(self, pose: Pose, duration: int):
@@ -107,6 +161,9 @@ class NavigationBase(Node):
         goal_msg = HoldPose.Goal()
         goal_msg.pose = pose
         goal_msg.duration = duration
+        # Update the current goal pose paramter
+        self._current_goal_pose = pose
+
         # Wait for the server availability
         self._action_client_hold_pose.wait_for_server()
 
@@ -132,6 +189,7 @@ class NavigationBase(Node):
         goto_waypoint_feedback_msg.message = f"Performing waypoint action: {str(GotoWaypointStatus(goto_waypoint_feedback_msg.status))}." \
                                              f"HoldPose status: {str(HoldPoseStatus(feedback.feedback.status))}"
         self._goto_waypoint_goal_handle.publish_feedback(goto_waypoint_feedback_msg)
+        self._update_goto_waypoint_status(GotoWaypointStatus.HOLDING_POSITION)
 
     def _hold_pose_goal_response_callback(self, future):
         goal_handle = future.result()
@@ -172,6 +230,8 @@ class NavigationBase(Node):
         """
         goal_msg = GotoPose.Goal()
         goal_msg.pose = pose
+        # Update the current goal pose paramter
+        self._current_goal_pose = pose
         # Wait for the server availability
         self._action_client_goto_pose.wait_for_server()
 
@@ -194,6 +254,7 @@ class NavigationBase(Node):
         goto_waypoint_feedback_msg.status = GotoWaypointStatus.MOVING
         goto_waypoint_feedback_msg.message = "Moving to waypoint."
         self._goto_waypoint_goal_handle.publish_feedback(goto_waypoint_feedback_msg)
+        self._update_goto_waypoint_status(GotoWaypointStatus.MOVING)
 
     def _goto_pose_goal_response_callback(self, future):
         goal_handle = future.result()
@@ -233,9 +294,9 @@ class NavigationBase(Node):
         """
 
         self.get_logger().info('Received GotoWaypoint request.')
-        goal_handle.succeed()
         # Validity checks:
         # None for now.
+        # goal_handle.execute()
 
         self.get_logger().info('Computing path to waypoint.')
         # Calculate the initial path
@@ -254,6 +315,7 @@ class NavigationBase(Node):
             feedback_msg.status = GotoWaypointStatus.MOVING
             feedback_msg.message = "Moving to waypoint."
             goal_handle.publish_feedback(feedback_msg)
+            self._update_goto_waypoint_status(GotoWaypointStatus.MOVING)
             # Send the desired state to the motor controller and await the result
             goto_pose_goal_future = await self._goto_pose_send_goal(pose)
             goto_pose_result_future = await self._goto_pose_get_result_future
@@ -264,14 +326,16 @@ class NavigationBase(Node):
             elif GotoPoseStatus(goto_pose_result.status) == GotoPoseStatus.FAILED:
                 self.get_logger().info(f'Failed going to pose. Message {goto_pose_result.message}')
 
-            # Check if the waypoint action is HOLD
-            if goal_handle.request.waypoint.action == WaypointActionType.HOLD:
-                # Call the motor controller's HoldPose action service
-                self._hold_pose_send_goal(
-                    goal_handle.request.waypoint.pose,
-                    goal_handle.request.waypoint.action.action_param
-                )
+        # Check if the waypoint action is HOLD
+        if goal_handle.request.waypoint.action == WaypointActionType.HOLD:
+            self.get_logger().info(f'Waypoint goal reached. Now performing HOLD action for {goal_handle.request.waypoint.action.action_param} seconds.')
+            # Call the motor controller's HoldPose action service
+            self._hold_pose_send_goal(
+                goal_handle.request.waypoint.pose,
+                goal_handle.request.waypoint.action.action_param
+            )
         
+        goal_handle.succeed()
         result = GotoWaypoint.Result()
         result.status = GotoWaypointStatus.FINISHED
         result.message = "Arrived at the waypoint. Goal finished."

@@ -84,7 +84,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
 
     #                   Callbacks
     # -----------------------------------------
-    def _kill_motors_service_callback(self, request, response):
+    def _kill_motors_service_callback(self, _, response):
         """Callback function for the kill_motors service.
         The motors are killed by setting the motor output to 0 and the motors_killed boolean to True,
         which will hinder any motor values from getting to the motors.
@@ -101,7 +101,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
 
         return response
 
-    def _activate_motors_service_callback(self, request, response):
+    def _activate_motors_service_callback(self, _, response):
         """Callback function for the activate_motors service.
         """
         try:

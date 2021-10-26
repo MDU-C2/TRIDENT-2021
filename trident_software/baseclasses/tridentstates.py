@@ -11,6 +11,18 @@ class MissionControlState(IntEnum):
     def __str__(self):
         return self.name
 
+
+
+class GuidanceSystemState(IntEnum):
+    """Enum for the Guidance system states.
+    """
+    IDLE = 1
+    PREPARING_GUIDANCE = 2
+    GUIDING = 3 # Pinging
+
+    def __str__(self):
+        return self.name
+
 class StartMissionStatus(IntEnum):
     """Enum for the mission status messages in the StartMission action.
     """
@@ -32,6 +44,7 @@ class NavigationState(IntEnum):
 
 class GotoWaypointStatus(IntFlag):
     """Combinable enum for status in the the GotoWaypoint action.
+    This status enum is, among other things, used by the GuidanceSystem node.
     """
     COMPUTING_PATH = 1
     MOVING = 2

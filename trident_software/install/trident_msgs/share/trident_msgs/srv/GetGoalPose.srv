@@ -1,0 +1,7 @@
+# This service is a basically a GET request for when a node needs to know the current goal pose 
+# (used in GotoWaypoint.action, GotoPose.action or HoldPose.action) 
+
+---
+bool success 
+string message
+geometry_msgs/Pose goal_pose # Goal pose used in GotoWaypoint
