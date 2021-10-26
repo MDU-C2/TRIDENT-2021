@@ -89,26 +89,26 @@
             <div class="col-md-4 py-2">
                 <div class="row p-2" style="background: white;">
                     <span class="pb-1 px-0 fw-bold">Payload type:</span>
-                    <select class="form-select" size="6" aria-label="size 3 select example">
-                        <option value="0">Load mission plan</option>
-                        <option value="1">Start mission plan</option>
-                        <option value="2">Teleop</option>
-                        <option value="3">Togle manual control</option>
-                        <option value="3">Togle automatic control</option>
-                        <option value="3">Abort</option>
+                    <select id="payloadSelectBox" class="form-select" size="6">
+                        <option value="load_mission_plan" selected>Load mission plan</option>
+                        <option value="start_mission_plan">Start mission plan</option>
+                        <option value="teleop">Teleop</option>
+                        <option value="toggle_manual_control">Toggle manual control</option>
+                        <option value="toggle_automatic_control">Toggle automatic control</option>
+                        <option value="abort">Abort</option>
                     </select>
 
                     <span class="pt-3 pb-1 px-0 fw-bold">Target:</span>
                     <div class="d-flex justify-content-between px-0">
                         <div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                <input class="form-check-input" type="checkbox" value="" id="checkboxTargetAthena">
                                 <label class="form-check-label" for="flexCheckDefault">
                                   Athena
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
+                                <input class="form-check-input" type="checkbox" value="" id="checkboxTargetNaiad">
                                 <label class="form-check-label" for="flexCheckChecked">
                                   Naiad
                                 </label>
@@ -118,77 +118,115 @@
                         
     
                         <div class="px-0 py-2">
-                            <button class="btn btn-primary">Send</button>
+                            <button class="btn btn-primary" onclick="sendPayload()">Send</button>
                         </div>
                         <div></div>
                     </div>
                     <hr class="my-2">
-                    <div class="row">
-                        <div class="col-md-6 text-center" style="border-right: 1px solid rgb(173, 173, 173);">
+                    <div class="row mx-0 px-0">
+                        <div class="col-md-6 text-center px-0">
                             <div class="card">
                                 <div class="card-header">
-                                    <span>Athena: <span class="badge bg-primary">Ready</span></span>
+                                    <h5 class="my-0">Athena</h5>
                                 </div>
                                 <div class="card-body">
-                                    <ul class="list-group pt-2">
+                                    <ul class="list-group shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Mode</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Mission ctrl: </span>
-                                                <span class="badge bg-success">Executing</span>
+                                            <div class="d-flex justify-content-center">
+                                                <span id="systemAthenaMode" class="badge bg-info">manual</span>
                                             </div>
                                         </li>
+                                    </ul>
+                                    <ul class="list-group pt-2 shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">State</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Navigation: </span>
-                                                <span class="badge bg-primary">Ready</span>
+                                            <div class="d-flex justify-content-center">
+                                                <span id="systemAthenaState" class="badge bg-secondary">idle</span>
                                             </div>
                                         </li>
+                                    </ul>
+                                    <ul class="list-group pt-2  shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Substates</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Motor ctrl: </span>
-                                                <span class="badge bg-secondary">Idle</span>
-                                            </div>
+                                            <span>Mission ctrl: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMissionCtrl" class="badge bg-secondary">idle</span>
                                         </li>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Position: </span>
-                                                <span class="badge bg-danger">Faulty</span>
-                                            </div>
+                                            <span>Navigation: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateNavigation" class="badge bg-secondary">idle</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor ctrl: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMotorCtrl" class="badge bg-secondary">idle</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Position: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstatePosition" class="badge bg-secondary">idle</span>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 text-center">
+                        <div class="col-md-6 text-center px-0">
                             <div class="card">
                                 <div class="card-header">
-                                    <span>Naiad: <span class="badge bg-primary">Ready</span></span>
+                                    <h5 class="my-0">Naiad</h5>
                                 </div>
                                 <div class="card-body">
-                                    <ul class="list-group pt-2">
+                                    <ul class="list-group shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Mode</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Mission ctrl: </span>
-                                                <span class="badge bg-success">Executing</span>
+                                            <div class="d-flex justify-content-center">
+                                                <span id="systemNaiadMode" class="badge bg-info">manual</span>
                                             </div>
                                         </li>
+                                    </ul>
+                                    <ul class="list-group pt-2 shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">State</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Navigation: </span>
-                                                <span class="badge bg-primary">Ready</span>
+                                            <div class="d-flex justify-content-center">
+                                                <span id="systemNaiadState" class="badge bg-secondary">idle</span>
                                             </div>
                                         </li>
+                                    </ul>
+                                    <ul class="list-group pt-2  shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Substates</h6>
+                                        </div>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Motor ctrl: </span>
-                                                <span class="badge bg-secondary">Idle</span>
-                                            </div>
+                                            <span>Mission ctrl: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMissionCtrl" class="badge bg-secondary">idle</span>
                                         </li>
                                         <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span>Position: </span>
-                                                <span class="badge bg-danger">Faulty</span>
-                                            </div>
+                                            <span>Navigation: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateNavigation" class="badge bg-secondary">idle</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor ctrl: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMotorCtrl" class="badge bg-secondary">idle</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Position: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstatePosition" class="badge bg-secondary">idle</span>
                                         </li>
                                     </ul>
                                 </div>

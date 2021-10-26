@@ -9,8 +9,9 @@ class WaypointMap {
 	}
 }
 
-class InterfaceHandler {
+class Server {
 	constructor() {
+		this.port = 8080;
 		this.xhr = new XMLHttpRequest();
 	}
 
@@ -30,10 +31,108 @@ class InterfaceHandler {
 	}
 }
 
+class Athena {
+	constructor() {
+		this.connected = false;
+		this.mode = 'manual';
+		this.state = 'idle';
+		this.substate = {
+			mission_ctrl: 'idle',
+			navigation: 'idle',
+			motor_ctrl: 'idle',
+			position: 'idle',
+		};
+	}
+	
+	setMode(mode)
+	{
+		this.mode = mode;
+		document.getElementById("systemAthenaMode").innerHTML = mode;
+	}
+
+	setState(state)
+	{
+		this.state = state;
+		document.getElementById("systemAthenaState").innerHTML = state;
+	}
+
+	setSubState(module,state)
+	{
+		switch(module)
+		{
+			case 'mission_ctrl':
+				this.substate.mission_ctrl = state;
+				document.getElementById("systemAthenaSubstateMissionCtrl").innerHTML = state;
+				break;
+			case 'navigation':
+				this.substate.navigation = state;
+				document.getElementById("systemAthenaSubstateNavigation").innerHTML = state;
+				break;
+			case 'motor_ctrl':
+				this.substate.motor_ctrl = state;
+				document.getElementById("systemAthenaSubstateMotorCtrl").innerHTML = state;
+				break;
+			case 'position':
+				this.substate.position = state;
+				document.getElementById("systemAthenaSubstatePosition").innerHTML = state;
+				break;
+		}
+	}
+}
+
+class Naiad {
+	constructor() {
+		this.connected = false;
+		this.mode = 'manual';
+		this.state = 'idle';
+		this.substate = {
+			mission_ctrl: 'idle',
+			navigation: 'idle',
+			motor_ctrl: 'idle',
+			position: 'idle',
+		};
+	}
+	
+	setMode(mode)
+	{
+		this.mode = mode;
+		document.getElementById("systemNaiadMode").innerHTML = mode;
+	}
+
+	setState(state)
+	{
+		this.state = state;
+		document.getElementById("systemNaiadState").innerHTML = state;
+	}
+
+	setSubState(module,state)
+	{
+		switch(module)
+		{
+			case 'mission_ctrl':
+				this.substate.mission_ctrl = state;
+				document.getElementById("systemNaiadSubstateMissionCtrl").innerHTML = state;
+				break;
+			case 'navigation':
+				this.substate.navigation = state;
+				document.getElementById("systemNaiadSubstateNavigation").innerHTML = state;
+				break;
+			case 'motor_ctrl':
+				this.substate.motor_ctrl = state;
+				document.getElementById("systemNaiadSubstateMotorCtrl").innerHTML = state;
+				break;
+			case 'position':
+				this.substate.position = state;
+				document.getElementById("systemNaiadSubstatePosition").innerHTML = state;
+				break;
+		}
+	}
+}
+
 //Setup class handlers
 var waypointMap = new WaypointMap();
-var interfaceHandler = new InterfaceHandler();
-
+var athena = new Athena();
+var naiad = new Naiad();
 
 /*
 	Map
@@ -186,49 +285,173 @@ function selectWaypointType(target)
 	Heartbeat
 	- request heartbeat status from server node.
 */
-var heartbeatStatus = [null,null];
 function heartbeat()
 {
-	var data = JSON.stringify({url: "http://localhost:8081/heartbeat"});
-	interfaceHandler.sendReq(data, function(resp){
-		resp = JSON.parse(resp);
-		if (resp.athena == true && resp.athena != heartbeatStatus[0])
-		{
-			heartbeatStatus[0] = true;
-			document.getElementById("connStatusAthena").innerHTML = "online";
-			document.getElementById("connStatusAthena").style.color = "#4CAF50";
-			printLoggerMain("Connection established with Athena");
-		}
-		else if (resp.athena == false && resp.athena != heartbeatStatus[0])
-		{
-			heartbeatStatus[0] = false;
-			document.getElementById("connStatusAthena").innerHTML = "offline";
-			document.getElementById("connStatusAthena").style.color = "rgb(201, 76, 76)";
-			printLoggerMain("Connection lost with Athena");
-		}
-		if (resp.naiad == true && resp.naiad != heartbeatStatus[1])
-		{
-			heartbeatStatus[1] = true;
-			document.getElementById("connStatusNaiad").innerHTML = "online";
-			document.getElementById("connStatusNaiad").style.color = "#4CAF50";
-			printLoggerMain("Connection established with Naiad");
-		}
-		else if (resp.naiad == false && resp.naiad != heartbeatStatus[1])
-		{
-			heartbeatStatus[1] = false;
-			document.getElementById("connStatusNaiad").innerHTML = "offline";
-			document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
-			printLoggerMain("Connection lost with Naiad");
-		}
-	});
+	var server = new Server();
+	var heartbeatStatus = [null,null];
+	setInterval(function(){
+		var data = JSON.stringify({url:"http://localhost:"+server.port+"/heartbeat"});
+		server.sendReq(data, function(resp){
+			resp = JSON.parse(resp);
+			if (resp.athena == true && resp.athena != heartbeatStatus[0])
+			{
+				athena.connected = true;
+				heartbeatStatus[0] = true;
+				document.getElementById("connStatusAthena").innerHTML = "online";
+				document.getElementById("connStatusAthena").style.color = "#4CAF50";
+				printLoggerMain("Connection established with Athena", "green");
+			}
+			else if (resp.athena == false && resp.athena != heartbeatStatus[0])
+			{
+				athena.connected = false;
+				heartbeatStatus[0] = false;
+				document.getElementById("connStatusAthena").innerHTML = "offline";
+				document.getElementById("connStatusAthena").style.color = "rgb(201, 76, 76)";
+				printLoggerMain("Connection lost with Athena", "red");
+			}
+			if (resp.naiad == true && resp.naiad != heartbeatStatus[1])
+			{
+				naiad.connected = true;
+				heartbeatStatus[1] = true;
+				document.getElementById("connStatusNaiad").innerHTML = "online";
+				document.getElementById("connStatusNaiad").style.color = "#4CAF50";
+				printLoggerMain("Connection established with Naiad", "green");
+			}
+			else if (resp.naiad == false && resp.naiad != heartbeatStatus[1])
+			{
+				naiad.connected = false;
+				heartbeatStatus[1] = false;
+				document.getElementById("connStatusNaiad").innerHTML = "offline";
+				document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
+				printLoggerMain("Connection lost with Naiad", "red");
+			}
+		});
+	},1000);
+	
 }
-setInterval(function(){
-	heartbeat();
-},1000);
 
-function printLoggerMain(msg)
+function printLoggerMain(msg,color)
 {
 	var today = new Date();
 	var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-	document.getElementById("loggerMainWindow").innerHTML += "<p class='font-monospace my-0'>"+time+" - "+msg+"</p>";
+	document.getElementById("loggerMainWindow").innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+	var objDiv = document.getElementById("loggerMainWindow");
+	objDiv.scrollTop = objDiv.scrollHeight;
 }
+
+/*
+	Send payload functionality
+*/
+function sendPayload()
+{
+	var payload = document.getElementById("payloadSelectBox").value;
+	// [athena,naiad]
+	var target = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked];
+	var tmpArr = [];
+	if (target[0] && !athena.connected)
+	{
+		printLoggerMain("Can't send payload, not connected to Athena.","red");
+		return;
+	}
+	else
+	{
+		if (target[0])
+		{
+			tmpArr.push('athena');
+		}
+	}
+
+	if (target[1] && !naiad.connected)
+	{
+		printLoggerMain("Can't send payload, not connected to Naiad.","red");
+		return;
+	}
+	else
+	{
+		if (target[1])
+		{
+			tmpArr.push('naiad');
+		}
+	}
+
+	switch(payload) {
+		case 'toggle_manual_control':
+			tmpArr.forEach(function(tar){
+				var server = new Server();
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/toggleControl",target:tar,mode:'manual'});
+				printLoggerMain("Sending toggle_manual_control to: " + tar);
+				server.sendReq(data, function(resp){	
+					resp = JSON.parse(resp);
+					console.log(resp.target);
+					if (resp.success == true)
+					{
+						if (resp.target == 'athena')
+						{
+							athena.setMode('manual');
+						}
+						if (resp.target == 'naiad')
+						{
+							naiad.setMode('manual');
+						}
+						printLoggerMain("Toggling MANUAL control on "+resp.target+" successful", "green");
+					}
+					else
+					{
+						printLoggerMain("Toggling MANUAL control on "+resp.target+" unsuccessful", "red");
+					}
+				});
+			});
+			
+			break;
+		case 'toggle_automatic_control':
+			tmpArr.forEach(function(tar){
+				var server = new Server();
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/toggleControl",target:tar,mode:'automatic'});
+				printLoggerMain("Sending toggle_manual_control to: " + tar);
+				server.sendReq(data, function(resp){
+					resp = JSON.parse(resp);
+					if (resp.success == true)
+					{
+						if (resp.target == 'athena')
+						{
+							athena.setMode('automatic');
+						}
+						if (resp.target == 'naiad')
+						{
+							naiad.setMode('automatic');
+						}
+						printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" successful", "green");
+					}
+					else
+					{
+						printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" unsuccessful", "red");
+					}
+				});
+			});
+			break;
+		
+		case 'abort':
+			tmpArr.forEach(function(tar){
+				var server = new Server();
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/abort",target:tar});
+				printLoggerMain("Sending toggle_manual_control to: " + tar);
+				server.sendReq(data, function(resp){	
+					resp = JSON.parse(resp);
+					console.log(resp.target);
+					if (resp.success == true)
+					{
+						printLoggerMain(""+resp.target+" aborted", "green");
+					}
+					else
+					{
+						printLoggerMain("Couldn' abort "+resp.target+"", "red");
+					}
+				});
+			});
+		break;
+	}
+}
+
+$(document).ready(function(){
+	heartbeat();
+});

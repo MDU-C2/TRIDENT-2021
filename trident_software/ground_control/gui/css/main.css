@@ -12,3 +12,7 @@
     background: rgb(65, 132, 141);
     height: 100%;
 }
+
+span.badge {
+    font-size: 1rem;
+}
