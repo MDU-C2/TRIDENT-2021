@@ -111,6 +111,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             'motor_control/pose/go',
             execute_callback=self._action_server_goto_pose_execute_callback,
         )
+        # Action server for the HoldPose action
+        self._action_server_goto_pose = ActionServer(
+            self,
+            GotoPose,
+            'motor_control/pose/hold',
+            execute_callback=self._action_server_goto_pose_execute_callback,
+        )
         # Manual override service
         self._server_manual_override = self.create_service(
             SetBool,
@@ -297,6 +304,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
         self._agent_state = msg
 
+    # HoldPose callbacks
+    # ------------------
+    # TODO: IMPLEMENT THIS!! Very similar to gotopose?
 
     # GotoPose callbacks
     # -----------------

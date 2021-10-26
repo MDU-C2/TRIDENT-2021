@@ -46,6 +46,8 @@ set(msg_files
   "msg/MotorOutput.msg"
   "msg/MotorOutputs.msg"
   "srv/LoadMission.srv"
+  "srv/GuidanceRequest.srv"
+  "srv/GetGoalPose.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"
   "action/GotoPose.action"
