@@ -25,11 +25,11 @@ class MotorInterface(Node):
     def SetMotorPower(self, msg):
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
-        for motor_idx in range(1, 6+1):
-            mm_query[1] = motor_idx
+        for motor in msg.motors:
+            mm_query[1] = motor.ID
             # TODO: Change this to use the actual motor power message, rather than this junk
-            motor_target = int(Clamp(4000, 6000+2000*msg[motor_idx].power, 8000))
-            mm_query[2:]= IntegerToMaestroBytes(motor_target)
+            motor_target = int(Clamp(4000, 6000+2000*motor.power, 8000))
+            mm_query[2:] = IntegerToMaestroBytes(motor_target)
             self.ser.write(mm_query)
             
 def main(args=None):
