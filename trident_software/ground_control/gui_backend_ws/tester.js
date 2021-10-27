@@ -22,7 +22,7 @@ rclnodejs
     }, 500);
 
 
-    //toggle contrl mode on athena
+    //toggle control mode tester
     node.createService(
       'trident_msgs/srv/ToggleControl',
       'toggle_control_mode',
@@ -31,6 +31,36 @@ rclnodejs
         console.log('Request to toggle on');
         let result = response.template;
         result.success = true;
+        console.log(`Sending response: ${typeof result}`, result, '\n--');
+        response.send(result);
+      }
+    );
+
+    //load mission plan tester (athena)
+    node.createService(
+      'std_srvs/srv/Trigger',
+      'load_mission_plan/athena',
+      (request, response) => {
+        console.log(request);
+        console.log('Request to load mission plan on athena');
+        let result = response.template;
+        result.success = true;
+        result.message = "mission plan loaded on athena";
+        console.log(`Sending response: ${typeof result}`, result, '\n--');
+        response.send(result);
+      }
+    );
+
+    //load mission plan tester (naiad)
+    node.createService(
+      'std_srvs/srv/Trigger',
+      'load_mission_plan/naiad',
+      (request, response) => {
+        console.log(request);
+        console.log('Request to load mission plan on naiad');
+        let result = response.template;
+        result.success = true;
+        result.message = "mission plan loaded on naiad";
         console.log(`Sending response: ${typeof result}`, result, '\n--');
         response.send(result);
       }

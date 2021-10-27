@@ -42,16 +42,61 @@ class Server
     //Handler for service: toggle_manual_control
     this.app.post('/toggleControl', function(req,res) {
       const request = {target:req.body.target, mode:req.body.mode};
-      ROS2handle.toggleControlMode.sendRequest(request, (response) => {
-        res.send({'success':response.success, 'target':req.body.target});
+      ROS2handle.toggleControlMode.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        console.log(`Sending: ${typeof request}`, request);
+        ROS2handle.toggleControlMode.sendRequest(request, (response) => {
+          res.send({'success':response.success, 'target':req.body.target});
+        });
       });
+    });
+
+    //Handler for service: load_mission_plan
+    this.app.post('/load_mission_plan', function(req,res) {
+      const request = {};
+      switch(req.body.target) {
+        case 'athena':
+          ROS2handle.loadMissionPlanAthena.waitForService(1000).then((result) => {
+            if (!result) {
+              console.log('Error: service not available');
+              return;
+            }
+            console.log(`Sending: ${typeof request}`, request);
+            ROS2handle.loadMissionPlanAthena.sendRequest(request, (response) => {
+              res.send({'success':response.success, 'target':req.body.target});
+            });
+          });
+          break;
+        case 'naiad':
+          ROS2handle.loadMissionPlanNaiad.waitForService(1000).then((result) => {
+            if (!result) {
+              console.log('Error: service not available');
+              return;
+            }
+            console.log(`Sending: ${typeof request}`, request);
+            ROS2handle.loadMissionPlanNaiad.sendRequest(request, (response) => {
+              res.send({'success':response.success, 'target':req.body.target});
+            });
+          });
+          break;
+      }
+      
     });
 
     //Handler for service: abort
     this.app.post('/abort', function(req,res) {
       const request = {target:req.body.target};
-      ROS2handle.abort.sendRequest(request, (response) => {
-        res.send({'success':response.success, 'target':req.body.target});
+      ROS2handle.abort.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.abort.sendRequest(request, (response) => {
+          res.send({'success':response.success, 'target':req.body.target});
+        });
       });
     });
   }
@@ -66,6 +111,10 @@ class ROS2
     this.heartbeatAthena = {handle:null,active:false};
     this.heartbeatNaiad  = {handle:null,active:false};
     this.toggleControlMode = null;
+    this.loadMissionPlanAthena = null;
+    this.loadMissionPlanNaiad = null;
+    this.startMissionPlanAthena = null;
+    this.startMissionPlanNaiad = null;
     this.abort = null;
   }
 
@@ -90,6 +139,10 @@ class ROS2
 
     //Create service: toggle_manual_control
     this.toggleControlMode = this.node.createClient('trident_msgs/srv/ToggleControl', 'toggle_control_mode');
+
+    //Create service: load_mission_plan
+    this.loadMissionPlanAthena = this.node.createClient('std_srvs/srv/Trigger', 'load_mission_plan/athena');
+    this.loadMissionPlanNaiad = this.node.createClient('std_srvs/srv/Trigger', 'load_mission_plan/naiad');
 
     //Create service: abort
     this.abort = this.node.createClient('trident_msgs/srv/Abort', 'abort');

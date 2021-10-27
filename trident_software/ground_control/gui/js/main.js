@@ -15,19 +15,22 @@ class Server {
 		this.xhr = new XMLHttpRequest();
 	}
 
-	sendReq(data, callback)
+	sendReq(data)
 	{
-		var tempMsg = JSON.parse(data);
-		this.xhr.open("POST", tempMsg.url, true);
-		this.xhr.setRequestHeader('Content-Type', 'application/json');
-		this.xhr.send(data);
-		this.xhr.onload = function(resp) {
-			if (resp.originalTarget.status != 200) { // analyze HTTP status of the response
-				callback(0);
-			} else { // show the result
-				callback(resp.originalTarget.response);
-			}
-		};
+		return new Promise(resolve => {
+			var tempMsg = JSON.parse(data);
+			this.xhr.open("POST", tempMsg.url, true);
+			this.xhr.setRequestHeader('Content-Type', 'application/json');
+			this.xhr.send(data);
+			this.xhr.onload = function(resp) {
+				if (resp.originalTarget.status != 200) { // analyze HTTP status of the response
+					resolve(0);
+				} else { // show the result
+					resolve(resp.originalTarget.response);
+				}
+			};
+		});
+		
 	}
 }
 
@@ -52,8 +55,13 @@ class Athena {
 
 	setState(state)
 	{
-		this.state = state;
-		document.getElementById("systemAthenaState").innerHTML = state;
+		if (state != this.state)
+		{
+			this.state = state;
+			document.getElementById("systemAthenaState").innerHTML = state;
+			document.getElementById("systemAthenaState").classList.remove('bg-secondary');
+			document.getElementById("systemAthenaState").classList.add('bg-primary');
+		}
 	}
 
 	setSubState(module,state)
@@ -101,8 +109,13 @@ class Naiad {
 
 	setState(state)
 	{
-		this.state = state;
-		document.getElementById("systemNaiadState").innerHTML = state;
+		if (state != this.state)
+		{
+			this.state = state;
+			document.getElementById("systemNaiadState").innerHTML = state;
+			document.getElementById("systemNaiadState").classList.remove('bg-secondary');
+			document.getElementById("systemNaiadState").classList.add('bg-primary');
+		}
 	}
 
 	setSubState(module,state)
@@ -289,43 +302,42 @@ function heartbeat()
 {
 	var server = new Server();
 	var heartbeatStatus = [null,null];
-	setInterval(function(){
+	setInterval(async function(){
 		var data = JSON.stringify({url:"http://localhost:"+server.port+"/heartbeat"});
-		server.sendReq(data, function(resp){
-			resp = JSON.parse(resp);
-			if (resp.athena == true && resp.athena != heartbeatStatus[0])
-			{
-				athena.connected = true;
-				heartbeatStatus[0] = true;
-				document.getElementById("connStatusAthena").innerHTML = "online";
-				document.getElementById("connStatusAthena").style.color = "#4CAF50";
-				printLoggerMain("Connection established with Athena", "green");
-			}
-			else if (resp.athena == false && resp.athena != heartbeatStatus[0])
-			{
-				athena.connected = false;
-				heartbeatStatus[0] = false;
-				document.getElementById("connStatusAthena").innerHTML = "offline";
-				document.getElementById("connStatusAthena").style.color = "rgb(201, 76, 76)";
-				printLoggerMain("Connection lost with Athena", "red");
-			}
-			if (resp.naiad == true && resp.naiad != heartbeatStatus[1])
-			{
-				naiad.connected = true;
-				heartbeatStatus[1] = true;
-				document.getElementById("connStatusNaiad").innerHTML = "online";
-				document.getElementById("connStatusNaiad").style.color = "#4CAF50";
-				printLoggerMain("Connection established with Naiad", "green");
-			}
-			else if (resp.naiad == false && resp.naiad != heartbeatStatus[1])
-			{
-				naiad.connected = false;
-				heartbeatStatus[1] = false;
-				document.getElementById("connStatusNaiad").innerHTML = "offline";
-				document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
-				printLoggerMain("Connection lost with Naiad", "red");
-			}
-		});
+		var resp = await server.sendReq(data);
+		resp = JSON.parse(resp);
+		if (resp.athena == true && resp.athena != heartbeatStatus[0])
+		{
+			athena.connected = true;
+			heartbeatStatus[0] = true;
+			document.getElementById("connStatusAthena").innerHTML = "online";
+			document.getElementById("connStatusAthena").style.color = "#4CAF50";
+			printLoggerMain("Connection established with Athena", "green");
+		}
+		else if (resp.athena == false && resp.athena != heartbeatStatus[0])
+		{
+			athena.connected = false;
+			heartbeatStatus[0] = false;
+			document.getElementById("connStatusAthena").innerHTML = "offline";
+			document.getElementById("connStatusAthena").style.color = "rgb(201, 76, 76)";
+			printLoggerMain("Connection lost with Athena", "red");
+		}
+		if (resp.naiad == true && resp.naiad != heartbeatStatus[1])
+		{
+			naiad.connected = true;
+			heartbeatStatus[1] = true;
+			document.getElementById("connStatusNaiad").innerHTML = "online";
+			document.getElementById("connStatusNaiad").style.color = "#4CAF50";
+			printLoggerMain("Connection established with Naiad", "green");
+		}
+		else if (resp.naiad == false && resp.naiad != heartbeatStatus[1])
+		{
+			naiad.connected = false;
+			heartbeatStatus[1] = false;
+			document.getElementById("connStatusNaiad").innerHTML = "offline";
+			document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
+			printLoggerMain("Connection lost with Naiad", "red");
+		}
 	},1000);
 	
 }
@@ -342,112 +354,168 @@ function printLoggerMain(msg,color)
 /*
 	Send payload functionality
 */
-function sendPayload()
+async function sendPayload()
 {
 	var payload = document.getElementById("payloadSelectBox").value;
 	// [athena,naiad]
-	var target = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked];
-	var tmpArr = [];
-	if (target[0] && !athena.connected)
+	var targets = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked];
+	var tmpTargerArr = [];
+	if (targets[0] && !athena.connected)
 	{
 		printLoggerMain("Can't send payload, not connected to Athena.","red");
 		return;
 	}
 	else
 	{
-		if (target[0])
+		if (targets[0])
 		{
-			tmpArr.push('athena');
+			tmpTargerArr.push('athena');
 		}
 	}
 
-	if (target[1] && !naiad.connected)
+	if (targets[1] && !naiad.connected)
 	{
 		printLoggerMain("Can't send payload, not connected to Naiad.","red");
 		return;
 	}
 	else
 	{
-		if (target[1])
+		if (targets[1])
 		{
-			tmpArr.push('naiad');
+			tmpTargerArr.push('naiad');
 		}
 	}
 
 	switch(payload) {
 		case 'toggle_manual_control':
-			tmpArr.forEach(function(tar){
+			for (tar of tmpTargerArr)
+			{
 				var server = new Server();
 				var data = JSON.stringify({url:"http://localhost:"+server.port+"/toggleControl",target:tar,mode:'manual'});
 				printLoggerMain("Sending toggle_manual_control to: " + tar);
-				server.sendReq(data, function(resp){	
-					resp = JSON.parse(resp);
-					console.log(resp.target);
-					if (resp.success == true)
+				var resp = await server.sendReq(data);
+				resp = JSON.parse(resp);
+				console.log(resp.target);
+				if (resp.success == true)
+				{
+					if (resp.target == 'athena')
 					{
-						if (resp.target == 'athena')
-						{
-							athena.setMode('manual');
-						}
-						if (resp.target == 'naiad')
-						{
-							naiad.setMode('manual');
-						}
-						printLoggerMain("Toggling MANUAL control on "+resp.target+" successful", "green");
+						athena.setMode('manual');
 					}
-					else
+					if (resp.target == 'naiad')
 					{
-						printLoggerMain("Toggling MANUAL control on "+resp.target+" unsuccessful", "red");
+						naiad.setMode('manual');
 					}
-				});
-			});
-			
+					printLoggerMain("Toggling MANUAL control on "+resp.target+" successful", "green");
+				}
+				else
+				{
+					printLoggerMain("Toggling MANUAL control on "+resp.target+" unsuccessful", "red");
+				}
+			}
 			break;
 		case 'toggle_automatic_control':
-			tmpArr.forEach(function(tar){
+			for (tar of tmpTargerArr)
+			{
 				var server = new Server();
 				var data = JSON.stringify({url:"http://localhost:"+server.port+"/toggleControl",target:tar,mode:'automatic'});
-				printLoggerMain("Sending toggle_manual_control to: " + tar);
-				server.sendReq(data, function(resp){
-					resp = JSON.parse(resp);
-					if (resp.success == true)
+				printLoggerMain("Sending toggle_automatic_control to: " + tar);
+				var resp = await server.sendReq(data);
+				resp = JSON.parse(resp);
+				if (resp.success == true)
+				{
+					if (resp.target == 'athena')
 					{
-						if (resp.target == 'athena')
-						{
-							athena.setMode('automatic');
-						}
-						if (resp.target == 'naiad')
-						{
-							naiad.setMode('automatic');
-						}
-						printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" successful", "green");
+						athena.setMode('automatic');
 					}
-					else
+					if (resp.target == 'naiad')
 					{
-						printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" unsuccessful", "red");
+						naiad.setMode('automatic');
 					}
-				});
-			});
+					printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" successful", "green");
+				}
+				else
+				{
+					printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" unsuccessful", "red");
+				}
+			}
 			break;
-		
+		case 'load_mission_plan':
+			for (tar of tmpTargerArr)
+			{
+				if (tar == 'athena' && document.querySelectorAll('.waypoint-item-0').length > 0)
+				{
+					var waypoints = [];
+					console.log(document.querySelectorAll('.waypoint-item-0'));
+				}
+				else if (tar == 'naiad' && document.querySelectorAll('.waypoint-item-0').length > 0)
+				{
+					var waypoints = [];
+					console.log(document.querySelectorAll('.waypoint-item-1'));
+				}
+				else
+				{
+					printLoggerMain("No waypoints added for: " + tar, "red");
+					continue;
+				}
+				var server = new Server();
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/load_mission_plan",target:tar});
+				printLoggerMain("Sending toggle_automatic_control to: " + tar);
+				var resp = await server.sendReq(data);
+				resp = JSON.parse(resp);
+				if (resp.success == true)
+				{
+					if (resp.target == 'athena')
+					{
+						athena.setState('Ready');
+					}
+					if (resp.target == 'naiad')
+					{
+						naiad.setState('Ready');
+					}
+					printLoggerMain("Loading mission plan on "+resp.target+" successful", "green");
+				}
+				else
+				{
+					printLoggerMain("Loading mission plan on "+resp.target+" unsuccessful", "red");
+				}
+			}
+			break;
+		case 'start_mission_plan':
+			for (tar of tmpTargerArr)
+			{
+				var server = new Server();
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/start_mission_plan",target:tar});
+				printLoggerMain("Sending toggle_automatic_control to: " + tar);
+				var resp = await server.sendReq(data);
+				resp = JSON.parse(resp);
+				if (resp.success == true)
+				{
+					printLoggerMain("Starting mission plan on "+resp.target+" successful", "green");
+				}
+				else
+				{
+					printLoggerMain("Starting mission plan on "+resp.target+" unsuccessful", "red");
+				}
+			}
+			break;
 		case 'abort':
-			tmpArr.forEach(function(tar){
+			for (tar of tmpTargerArr)
+			{
 				var server = new Server();
 				var data = JSON.stringify({url:"http://localhost:"+server.port+"/abort",target:tar});
 				printLoggerMain("Sending toggle_manual_control to: " + tar);
-				server.sendReq(data, function(resp){	
-					resp = JSON.parse(resp);
-					console.log(resp.target);
-					if (resp.success == true)
-					{
-						printLoggerMain(""+resp.target+" aborted", "green");
-					}
-					else
-					{
-						printLoggerMain("Couldn' abort "+resp.target+"", "red");
-					}
-				});
-			});
+				var resp = await server.sendReq(data);
+				resp = JSON.parse(resp);
+				if (resp.success == true)
+				{
+					printLoggerMain(""+resp.target+" aborted", "green");
+				}
+				else
+				{
+					printLoggerMain("Couldn't abort "+resp.target+"", "red");
+				}
+			}
 		break;
 	}
 }
