@@ -1,14 +1,17 @@
 import baseclasses.sensorbase as sensbase
+import rclpy
 import serial #package is named "pyserial"!
 import io
 import pynmea2
 
 class GPSNode(sensbase):
     def __init__(self):
-        # NOTE: having an interval of 0 sec may not work!
-        # Fix a cleaner solution!
+        # NOTE: having an interval of 0 sec may not work! Fix a cleaner solution!
+        ''' NOTE: Depending on how the Athena's xyz coordinates are stored,
+            the observation matrix may need to be changed to convert it to long-lat'''
+        # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
-                         np.eye(2,6), 2, np.identity(2)*0.00001**2)
+                         np.eye(2,6), 2, np.identity(2)*0.0001**2)
         # Change as needed
         self.ser = serial.Serial(port="COM7",baudrate=9600,timeout=0.5)
         self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
@@ -38,7 +41,7 @@ class GPSNode(sensbase):
 def main(args=None):
     rclpy.init(args=args)
     node = GPSNode()
-    sclpy.spin(node)
+    rclpy.spin(node)
     rclpy.shutdown()
 
 if __name__ == "__main__":
