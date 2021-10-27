@@ -3,8 +3,10 @@
 Author: Johannes Deivard 2021-10
 """
 from abc import ABCMeta, abstractmethod
+import numpy as np
 from typing import List, Tuple
 from math import sqrt   # For Pythagorean theorem to calculate distance 
+from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
 import json
 import rclpy
 from rclpy.node import Node
@@ -65,7 +67,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # SET HARDCODED STATE FOR TESTING PURPOSES
         p = Point()
-        p.x, p.y, p.z = (1.0, 2.0, 3.0)
+        p.x, p.y, p.z = (1.0, 1.0, 1.0)
         q = Quaternion()
         q.x ,q.y, q.z, q.w = (0.0, 0.0, 0.0, 1.0)
         self._agent_state.position = p
@@ -234,7 +236,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         for motor in self._motor_config:
             output = MotorOutput()
             output.id = motor["id"]
-            # Compute the value for the motor based on the linear and angular.z in the twist message
+            # Compute the value for the motor based on the linear and angular values in the twist message
             output.value = (motor["pose_effect"]["x"] * twist_msg.linear.x +
                             motor["pose_effect"]["y"] * twist_msg.linear.y +
                             motor["pose_effect"]["z"] * twist_msg.linear.z +
@@ -291,8 +293,27 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         current = self._agent_state.position
         goal = self._goal_pose.pose.position
+        # Create vector from the two points
+        pas_vec = (goal.x - current.x, goal.y - current.y, goal.z - current.z)
+        # Convert the vector to the unit vector
+        # pas_vec_norm = (abs(pas_vec[0])* abs(pas_vec[1]) * abs(pas_vec[2]))
+        # pas_vec_unit = (pas_vec[0]/pas_vec_norm, pas_vec[1]/pas_vec_norm, pas_vec[2]/pas_vec_norm)
+        # north_vec_unit = (1,0,0)
+        # # Compute dot product between the two unit vectors
+        # pas_north_dot = sum(x_i*y_i for x_i, y_i in zip(pas_vec_unit, north_vec_unit))
+
+        pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
+        north_vec_unit = (1,0,0) # North vector since heading uses north as reference.
+        pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
+        self.get_logger().info(f"Computed new PaS yaw angle: {pas_yaw_angle}")
+        # TODO: Account for all angles, not only yaw.
+        q_temp = SQuaternion.from_euler(0,0,pas_yaw_angle, degrees=True)
+
         pas_q = Quaternion()
-        # TODO: Implement this function.
+        pas_q.x = q_temp.x
+        pas_q.y = q_temp.y
+        pas_q.z = q_temp.z
+        pas_q.w = q_temp.w
         self.get_logger().info(f"Updating point and shoot orientation: {pas_q}")
         self._pas_orientation = pas_q
 
@@ -322,7 +343,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         self.get_logger().info(f'Received goal: {goal_handle.request}')
         self._update_node_state(MotorControlState.EXECUTING)
-        goal_handle.succeed()
         # Update object properties
         self._goal_pose = goal_handle.request
         # Compute and update initial PaS orientation
@@ -332,7 +352,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Loop as long as the goal isn't reached.
         i = 0 # For testing
-        while(i < 50):
+        while(i < 2):
             i+=1
         # while(not self._goto_pose_goal_reached(goal_handle.request)):
             current_pos = self._agent_state.position
@@ -353,7 +373,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             # Create feedback message
             feedback_msg = GotoPose.Feedback()
             if self._manual_override:
-                self.get_logger().info(f'Manual override is active. Not sending motor values to motor driver this iteration.')
+                self.get_logger().info('Manual override is active. Not sending motor values to motor driver this iteration.')
                 feedback_msg.status = GotoPoseStatus.WAITING
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
@@ -389,7 +409,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self.get_logger().info(f'Goal reached. Stopping motors by publishing {motor_output_msg.motor_outputs} to the motor driver.')
         self._motor_outputs_publisher.publish(motor_output_msg)
 
-        # goal_handle.succeed()
+        goal_handle.succeed()
         result = GotoPose.Result()
         result.status = GotoPoseStatus.FINISHED
         result.message = "Arrived at the goal pose. Goal finished."

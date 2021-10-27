@@ -9,6 +9,13 @@ class MotorDriverNode(MotorDriverBase):
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+        self._simulation = True
+
+        if self._simulation:
+            import 
+        self._sim_motor_publisher = self.create_publisher(
+
+        )
 
     def _send_motor_value(self, motor_number: int, value: int):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -18,6 +25,8 @@ class MotorDriverNode(MotorDriverBase):
             value (int): Value for the motor output
         """
         # TODO: Implement this function
+        if self._simulation:
+            
 
 
 def main(args=None):

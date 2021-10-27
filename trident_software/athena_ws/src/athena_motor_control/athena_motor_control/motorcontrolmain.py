@@ -6,7 +6,7 @@ from trident_msgs.msg import MotorOutputs, MotorOutput
 from baseclasses.motorcontrolbase import MotorControlBase
 
 class MotorControlNode(MotorControlBase):
-    """The main node for the motor control module. 
+    """The main node for the motor control module.
     """
     def __init__(self, node_name):
         super().__init__(node_name)
