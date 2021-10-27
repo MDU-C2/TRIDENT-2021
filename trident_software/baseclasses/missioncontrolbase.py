@@ -3,6 +3,7 @@
 Author: Johannes Deivard 2021-10
 """
 import rclpy
+from threading import Event
 from baseclasses.tridentstates import MissionControlState, GotoWaypointStatus, StartMissionStatus, WaypointActionType
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
@@ -23,6 +24,8 @@ class MissionControlBase(Node):
         super().__init__(node_name)
         self.state = MissionControlState.NO_MISSION
         self.mission = None
+        # Event that keeps track on whether an action has finished or not.
+        self._goto_waypoint_done_event = Event()
 
 
         self.get_logger().info('Creating servers.')
@@ -79,6 +82,8 @@ class MissionControlBase(Node):
         distance_to_goal = future.result().result.distance_to_goal
         message = future.result().result.message
         self.get_logger().info(f"Mission finished {distance_to_goal}m from the goal with status: {GotoWaypointStatus(status)}. {message}")
+        # Signal that the event is finished
+        self._goto_waypoint_done_event.set()
 
 
     def _goto_waypoint_send_goal(self, waypoint):
@@ -113,14 +118,20 @@ class MissionControlBase(Node):
 
         # Update mission control state
         self.state = MissionControlState.EXECUTING_MISSION
-        # Set the goal state
-        goal_handle.succeed()
         self.get_logger().info(f"Starting to execute mission with {total_waypoints} waypoints.")
 
         for i, waypoint in enumerate(self.mission.waypoints):
-            goto_waypoint_goal_future =  await self._goto_waypoint_send_goal(waypoint)
-            goto_waypoint_result_future = await self._goto_waypoint_get_result_future
-            goto_waypoint_result = goto_waypoint_result_future.result
+            self._goto_waypoint_done_event.clear()
+            # self.get_logger().info(f"Awaiting goto_waypoint_send_goal")
+            goto_waypoint_goal_future = self._goto_waypoint_send_goal(waypoint)
+            # goto_waypoint_goal_future =  await self._goto_waypoint_send_goal(waypoint)
+            # self.get_logger().info(f"Finished waiting goto_waypoint_send_goal: {goto_waypoint_goal_future}")
+            # self.get_logger().info(f"Awaiting goto_waypoint_get_result_future: {self._goto_waypoint_get_result_future}")
+            # goto_waypoint_result_future = await self._goto_waypoint_get_result_future
+            # self.get_logger().info(f"Finished waiting goto_waypoint_get_result_future: {self._goto_waypoint_get_result_future}")
+            # Wait for the GotoWaypoint action to finish by waiting on the event property.
+            self._goto_waypoint_done_event.wait()
+            goto_waypoint_result = self._goto_waypoint_get_result_future.result().result
             self.get_logger().info(f"goto_waypoint_result: {goto_waypoint_result}.")
 
             if GotoWaypointStatus(goto_waypoint_result.status) in GotoWaypointStatus.FINISHED:
@@ -148,6 +159,8 @@ class MissionControlBase(Node):
         self.state = MissionControlState.MISSION_FINISHED
         # goal_handle.succeed()
         
+        # Set the goal state
+        goal_handle.succeed()
         result = StartMission.Result()
         result.success = True if StartMissionStatus.FINISHED else False
         result.message = f"Mission with {total_waypoints} waypoints finished."
@@ -171,9 +184,9 @@ class MissionControlBase(Node):
             wp_action.action_type = WaypointActionType.NO_ACTION
             wp_action.action_param = 0
             pose = Pose()
-            pose.position.x = 42.0
-            pose.position.y = 42.0
-            pose.position.z = 42.0
+            pose.position.x = 3.0
+            pose.position.y = 3.0
+            pose.position.z = 3.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0

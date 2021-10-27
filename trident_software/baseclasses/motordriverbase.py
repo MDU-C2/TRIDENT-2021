@@ -8,6 +8,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
 from std_srvs.srv import Trigger
+import json
 # from geometry_msgs.msg import Pose, Point, Quaternion
 # from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutput
@@ -28,11 +29,11 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             namespace='',
             parameters=[
                 ('motor_output_silence_period',  100), # Milliseconds
-                ('num_motors',  2)
+                ('motor_config',  [])
             ])
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().integer_value # Milliseconds
-        self._num_motors = self.get_parameter('num_motors').get_parameter_value().integer_value
+        self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value)
 
         # Set default motor state to active
         self.motors_killed = False
@@ -79,8 +80,8 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
     def set_zero_motor_output(self):
         """Simply sets all motors output to zero.
         """
-        for motor_num in range(self._num_motors):
-            self._send_motor_value(motor_num, 0)
+        for motor in self._motor_config:
+            self.__send_motor_value(motor["id"], 0)
 
     #                   Callbacks
     # -----------------------------------------
@@ -133,10 +134,10 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         self._motor_output_silence_watchdog_timer.cancel()
         # Check if the motors are supposed to be killed
         if not self.motors_killed:
-            motor_values = msg.motor_outputs
-            self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_values}')
+            motor_outputs = msg.motor_outputs
+            self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
             self.motor_driver_state = MotorDriverState.ACTIVE
-            for motor_num, value in enumerate(motor_values):
+            for motor_num, value in motor_outputs:
                 self.__send_motor_value(motor_num, value)
             # Motor values are sent to the motors, reset the watchdog timer
             self._motor_output_silence_watchdog_timer.reset()

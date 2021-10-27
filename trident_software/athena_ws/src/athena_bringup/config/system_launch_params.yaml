@@ -80,6 +80,5 @@ athena:
           {
             "id": 1,
             "gpio_pin": 42
-
           }
         ]          
