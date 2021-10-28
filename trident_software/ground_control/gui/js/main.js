@@ -1,11 +1,29 @@
 class WaypointMap {
 	constructor(){
-		this.map = new L.map('map1').setView([51.505, -0.09], 13);
+		this.relativeNullPoint = {latitude:59.6175191,longitude:16.5609992}; //Null point from where to measure [x,y] distance, set at MDH C2
+		this.map = new L.map('map1').setView([this.relativeNullPoint.latitude,this.relativeNullPoint.longitude], 17);
 		this.waypointCounter = [0,0]; 	// [athena,naiad]
 		this.waypointObjects = [[],[]];	// [[athena],[naiad]]
 		this.latlng = [[],[]];			// [[athena],[naiad]]
 		this.polyLines = [[],[]];		// [[athena],[naiad]]
 		this.waypointType = 0;			// 0 = Athena, 1 = Naiad
+		
+	}
+	asRadians(degrees)
+	{
+		return degrees * Math.PI / 180
+	}
+
+	getXYpos(desiredPos)
+	{
+		// Calculates X and Y distances in meters.
+		var deltaLatitude = desiredPos.latitude - this.relativeNullPoint.latitude
+		var deltaLongitude = desiredPos.longitude - this.relativeNullPoint.longitude
+		//The circumference at the equator (latitude 0) is 40075160 meters
+		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude))
+		var resultX = deltaLongitude * latitudeCircumference / 360
+		var resultY = deltaLatitude * 40008000 / 360
+		return [resultX, resultY]
 	}
 }
 
@@ -161,12 +179,14 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 		zoomOffset: -1
 	}).addTo(waypointMap.map);
 
+var waypointMarker = new L.marker([waypointMap.relativeNullPoint.latitude,waypointMap.relativeNullPoint.longitude]).addTo(waypointMap.map);
+
 waypointMap.map.on('click', function(e) {
 	waypointMap.waypointCounter[waypointMap.waypointType] += 1;
     var waypointMarker = new L.marker(e.latlng, {draggable:'true', waypointType: waypointMap.waypointType, waypointNum: waypointMap.waypointCounter[waypointMap.waypointType]})
 	.on('drag', function(){
-		document.getElementById("waypointLat-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lat.toFixed(4);
-		document.getElementById("waypointLng-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lng.toFixed(4);
+		document.getElementById("waypointLat-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lat.toFixed(7);
+		document.getElementById("waypointLng-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lng.toFixed(7);
 	})
 	.on('dragend', function(){
 		remapPolyLines();
@@ -177,8 +197,8 @@ waypointMap.map.on('click', function(e) {
 	waypointMap.latlng[waypointMap.waypointType].push([e.latlng.lat, e.latlng.lng]);
 	waypointMap.map.addLayer(waypointMarker);
     document.getElementById("waypointList-"+waypointMap.waypointType).innerHTML += "<li id='waypointListItem-" + waypointMap.waypointType + "-" + waypointMap.waypointCounter[waypointMap.waypointType] +"' class='list-group-item waypoint-item-"+waypointMap.waypointType+"'>Waypoint "+ waypointMap.waypointCounter[waypointMap.waypointType] +":<br> \
-		<span>Lat: </span><span id='waypointLat-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lat.toFixed(4)+"</span> \
-		<br><span>Lng: </span><span id='waypointLng-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lng.toFixed(4)+"</span> \
+		<span>Lat: </span><span id='waypointLat-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lat.toFixed(7)+"</span> \
+		<br><span>Lng: </span><span id='waypointLng-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lng.toFixed(7)+"</span> \
 		<button onclick='removeWaypoint(\""+waypointMap.waypointType+"\",\""+waypointMap.waypointCounter[waypointMap.waypointType]+"\")' style='position:absolute;top:0.5rem;right:0.5rem;background:transparent;border:none;'><i class='bi bi-x-circle' style='color: red; font-size: 2rem;'></i></button></li>";
 
 	if (waypointMap.waypointCounter[waypointMap.waypointType] > 1)
@@ -360,6 +380,11 @@ async function sendPayload()
 	// [athena,naiad]
 	var targets = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked];
 	var tmpTargerArr = [];
+	if (!targets[0] && !targets[1])
+	{
+		printLoggerMain("No target selected.","red");
+		return;
+	}
 	if (targets[0] && !athena.connected)
 	{
 		printLoggerMain("Can't send payload, not connected to Athena.","red");
@@ -395,7 +420,6 @@ async function sendPayload()
 				printLoggerMain("Sending toggle_manual_control to: " + tar);
 				var resp = await server.sendReq(data);
 				resp = JSON.parse(resp);
-				console.log(resp.target);
 				if (resp.success == true)
 				{
 					if (resp.target == 'athena')
@@ -443,15 +467,20 @@ async function sendPayload()
 		case 'load_mission_plan':
 			for (tar of tmpTargerArr)
 			{
-				if (tar == 'athena' && document.querySelectorAll('.waypoint-item-0').length > 0)
+				var waypoints = [];
+				if (tar == 'athena' && waypointMap.latlng[0].length > 0)
 				{
-					var waypoints = [];
-					console.log(document.querySelectorAll('.waypoint-item-0'));
+					waypointMap.latlng[0].forEach(item => {
+						waypoints.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
+					});
+					console.log(waypoints);
 				}
-				else if (tar == 'naiad' && document.querySelectorAll('.waypoint-item-0').length > 0)
+				else if (tar == 'naiad' && waypointMap.latlng[0].length > 0)
 				{
-					var waypoints = [];
-					console.log(document.querySelectorAll('.waypoint-item-1'));
+					waypointMap.latlng[1].forEach(item => {
+						waypoints.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
+					});
+					console.log(waypoints);
 				}
 				else
 				{
@@ -459,7 +488,7 @@ async function sendPayload()
 					continue;
 				}
 				var server = new Server();
-				var data = JSON.stringify({url:"http://localhost:"+server.port+"/load_mission_plan",target:tar});
+				var data = JSON.stringify({url:"http://localhost:"+server.port+"/load_mission_plan",target:tar,waypoints:waypoints});
 				printLoggerMain("Sending toggle_automatic_control to: " + tar);
 				var resp = await server.sendReq(data);
 				resp = JSON.parse(resp);
