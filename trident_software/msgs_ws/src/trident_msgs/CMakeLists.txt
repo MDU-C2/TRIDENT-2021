@@ -38,6 +38,18 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Num.msg"
   "srv/ToggleControl.srv"
   "srv/Abort.srv"
+  "msg/Waypoint.msg"
+  "msg/WaypointAction.msg"
+  "msg/Mission.msg"
+  "msg/MotorOutput.msg"
+  "msg/MotorOutputs.msg"
+  "srv/LoadMission.srv"
+  "srv/GuidanceRequest.srv"
+  "srv/GetGoalPose.srv"
+  "action/StartMission.action"
+  "action/GotoWaypoint.action"
+  "action/GotoPose.action"
+  "action/HoldPose.action"
  )
 
 ament_package()
