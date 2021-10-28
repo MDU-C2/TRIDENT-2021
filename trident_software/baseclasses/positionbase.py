@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from example_interfaces.msg import String
 from trident_msgs.srv import KalmanSensorService
 
-class MainNode(Node, ABC):
+class PosNode(Node, ABC):
     def __init__(self, name, pub_topic_type, pub_topic_name, interval,
                  start_state, start_covar, proc_noise, sensor_list):
                  
@@ -173,12 +173,12 @@ class MainNode(Node, ABC):
 def main(args=None):
     rclpy.init(args=args)
     
-    main_node = MainNode("unnamed_position_node", "unnamed_current_state", 1)
+    pos_node = PosNode("unnamed_position_node", "unnamed_current_state", 1)
     
     #rclpy.spin(main_node)
-    main_node.spin()
+    pos_node.spin()
     
-    main_node.destroy_node()
+    pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
