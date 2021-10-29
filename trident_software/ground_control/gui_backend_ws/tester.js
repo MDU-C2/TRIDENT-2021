@@ -6,6 +6,7 @@ const Waypoint = rclnodejs.require('trident_msgs/msg/Waypoint');
 const WaypointAction = rclnodejs.require('trident_msgs/msg/WaypointAction');
 const Pose = rclnodejs.require('geometry_msgs/msg/Pose');
 
+let prefixTopics = "gc/";
 class StartMissionActionServer {
   constructor(node) {
     this._node = node;
@@ -80,28 +81,42 @@ rclnodejs
     let count = 0;
 
     //hearbeat tester
-    const heartbeatPublisherAthena = node.createPublisher('trident_msgs/msg/Num','hearbeat/athena');
+    const heartbeatPublisherAthena = node.createPublisher('trident_msgs/msg/Num',prefixTopics+'athena/heartbeat');
     let counter1 = 0;
     setInterval(() => {
       heartbeatPublisherAthena.publish({a:counter1++});
-    }, 500);
+    }, 100);
     
-    const heartbeatPublisherNaiad = node.createPublisher('trident_msgs/msg/Num','hearbeat/naiad');
+    const heartbeatPublisherNaiad = node.createPublisher('trident_msgs/msg/Num',prefixTopics+'naiad/heartbeat');
     let counter2 = 0;
     setInterval(() => {
       heartbeatPublisherNaiad.publish({a:counter2++});
-    }, 500);
+    }, 100);
 
 
-    //toggle control mode tester
+    //Manual override athena
     node.createService(
       'trident_msgs/srv/ToggleControl',
-      'toggle_control_mode',
+      prefixTopics+'athena/motor_control/manual_override',
       (request, response) => {
         console.log(request);
-        console.log('Request to toggle on');
         let result = response.template;
         result.success = true;
+        result.message = "done";
+        console.log(`Sending response: ${typeof result}`, result, '\n--');
+        response.send(result);
+      }
+    );
+
+    //Manual override naiad
+    node.createService(
+      'trident_msgs/srv/ToggleControl',
+      prefixTopics+'naiad/motor_control/manual_override',
+      (request, response) => {
+        console.log(request);
+        let result = response.template;
+        result.success = true;
+        result.message = "done";
         console.log(`Sending response: ${typeof result}`, result, '\n--');
         response.send(result);
       }
@@ -110,18 +125,9 @@ rclnodejs
     //load mission plan tester (athena)
     node.createService(
       'trident_msgs/srv/LoadMission',
-      'load_mission_plan/athena',
+      prefixTopics+'athena/mission_control/mission/load',
       (request, response) => {
-        let loadMission = new LoadMission();
-        let mission = new Mission();
-        let waypoint = new Waypoint();
-        let wpAction = new WaypointAction();
-        let pose = new Pose();
-        mission = request.mission;
-        waypoint = mission.waypoints;
-        console.log(waypoint);
-        //console.log(JSON.stringify(request));
-        //console.log('Request to load '+JSON.stringify(request)+' on athena');
+        console.log(JSON.stringify(request));
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on athena";
@@ -132,10 +138,10 @@ rclnodejs
 
     //load mission plan tester (naiad)
     node.createService(
-      'std_srvs/srv/Trigger',
-      'load_mission_plan/naiad',
+      'trident_msgs/srv/LoadMission',
+      prefixTopics+'naiad/mission_control/mission/load',
       (request, response) => {
-        //console.log('Request to load mission plan on naiad');
+        console.log(request.mission.waypoints);
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on naiad";
@@ -150,7 +156,7 @@ rclnodejs
     //abort tester
     node.createService(
       'trident_msgs/srv/Abort',
-      'abort',
+      prefixTopics+'abort',
       (request, response) => {
         console.log(request);
         console.log('Request to toggle on');
