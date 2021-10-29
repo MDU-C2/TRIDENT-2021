@@ -489,25 +489,32 @@ async function sendPayload()
 			for (tar of tmpTargerArr)
 			{
 				var waypoints = [];
-				if (tar == 'athena' && waypointMap.latlng[0].length > 0)
-				{
-					waypointMap.latlng[0].forEach(item => {
-						waypoints.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
-					});
-					console.log(waypoints);
-				}
-				else if (tar == 'naiad' && waypointMap.latlng[0].length > 0)
-				{
-					waypointMap.latlng[1].forEach(item => {
-						waypoints.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
-					});
-					console.log(waypoints);
-				}
-				else
+				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[0].length == 0))
 				{
 					printLoggerMain("No waypoints added for: " + tar, "red");
 					continue;
 				}
+				if (tar == 'athena')
+				{
+					var tarIndex = 0;
+				}
+				else if (tar == 'naiad')
+				{
+					var tarIndex = 1;
+				}
+
+				waypointMap.latlng[tarIndex].forEach(item => {
+					//Create temporary waypoint array
+					var tmpWP = [];
+					//Insert converted [x,y] pos to temporary array
+					tmpWP.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
+					//Get corresponding z pos (depth)
+					var depth = parseInt(waypointMap.depth[tarIndex][waypointMap.latlng[tarIndex].indexOf(item)]);
+					//Add [x,y,z] pos to waypoints array
+					waypoints.push([tmpWP[0][0], tmpWP[0][1], depth]);
+				});
+				console.log(waypoints);
+
 				var server = new Server();
 				var data = JSON.stringify({url:"http://localhost:"+server.port+"/load_mission_plan",target:tar,waypoints:waypoints});
 				printLoggerMain("Sending toggle_automatic_control to: " + tar);
@@ -515,14 +522,6 @@ async function sendPayload()
 				resp = JSON.parse(resp);
 				if (resp.success == true)
 				{
-					if (resp.target == 'athena')
-					{
-						athena.setState('Ready');
-					}
-					if (resp.target == 'naiad')
-					{
-						naiad.setState('Ready');
-					}
 					printLoggerMain("Loading mission plan on "+resp.target+" successful", "green");
 				}
 				else
