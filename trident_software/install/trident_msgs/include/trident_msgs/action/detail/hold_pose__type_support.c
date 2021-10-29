@@ -124,10 +124,12 @@ ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspecti
 // Include directives for member types
 // Member `message`
 #include "rosidl_runtime_c/string_functions.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/pose.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/detail/pose__rosidl_typesupport_introspection_c.h"
 
@@ -150,7 +152,7 @@ void HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_fini_f
   trident_msgs__action__HoldPose_Result__fini(message_memory);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array[3] = {
+static rosidl_typesupport_introspection_c__MessageMember HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array[5] = {
   {
     "duration",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_INT64,  // type
@@ -160,6 +162,21 @@ static rosidl_typesupport_introspection_c__MessageMember HoldPose_Result__rosidl
     0,  // array size
     false,  // is upper bound
     offsetof(trident_msgs__action__HoldPose_Result, duration),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "status",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_INT16,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(trident_msgs__action__HoldPose_Result, status),  // bytes offset in struct
     NULL,  // default value
     NULL,  // size() function pointer
     NULL,  // get_const(index) function pointer
@@ -182,14 +199,29 @@ static rosidl_typesupport_introspection_c__MessageMember HoldPose_Result__rosidl
     NULL  // resize(index) function pointer
   },
   {
-    "mean_pose_deviation",  // name
+    "pose_mean",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
     0,  // upper bound of string
     NULL,  // members of sub message (initialized later)
     false,  // is array
     0,  // array size
     false,  // is upper bound
-    offsetof(trident_msgs__action__HoldPose_Result, mean_pose_deviation),  // bytes offset in struct
+    offsetof(trident_msgs__action__HoldPose_Result, pose_mean),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "pose_variance",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message (initialized later)
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(trident_msgs__action__HoldPose_Result, pose_variance),  // bytes offset in struct
     NULL,  // default value
     NULL,  // size() function pointer
     NULL,  // get_const(index) function pointer
@@ -201,7 +233,7 @@ static rosidl_typesupport_introspection_c__MessageMember HoldPose_Result__rosidl
 static const rosidl_typesupport_introspection_c__MessageMembers HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_members = {
   "trident_msgs__action",  // message namespace
   "HoldPose_Result",  // message name
-  3,  // number of fields
+  5,  // number of fields
   sizeof(trident_msgs__action__HoldPose_Result),
   HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array,  // message members
   HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_init_function,  // function to initialize message memory (memory has to be allocated)
@@ -219,7 +251,9 @@ static rosidl_message_type_support_t HoldPose_Result__rosidl_typesupport_introsp
 ROSIDL_TYPESUPPORT_INTROSPECTION_C_EXPORT_trident_msgs
 const rosidl_message_type_support_t *
 ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, trident_msgs, action, HoldPose_Result)() {
-  HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array[2].members_ =
+  HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array[3].members_ =
+    ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, geometry_msgs, msg, Pose)();
+  HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_member_array[4].members_ =
     ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, geometry_msgs, msg, Pose)();
   if (!HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_type_support_handle.typesupport_identifier) {
     HoldPose_Result__rosidl_typesupport_introspection_c__HoldPose_Result_message_type_support_handle.typesupport_identifier =
@@ -253,10 +287,12 @@ ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspecti
 // Member `message`
 // already included above
 // #include "rosidl_runtime_c/string_functions.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/pose.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/detail/pose__rosidl_typesupport_introspection_c.h"
 
@@ -279,7 +315,7 @@ void HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_fi
   trident_msgs__action__HoldPose_Feedback__fini(message_memory);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_member_array[3] = {
+static rosidl_typesupport_introspection_c__MessageMember HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_member_array[4] = {
   {
     "status",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_INT16,  // type
@@ -311,14 +347,29 @@ static rosidl_typesupport_introspection_c__MessageMember HoldPose_Feedback__rosi
     NULL  // resize(index) function pointer
   },
   {
-    "mean_pose_deviation",  // name
+    "pose_mean",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
     0,  // upper bound of string
     NULL,  // members of sub message (initialized later)
     false,  // is array
     0,  // array size
     false,  // is upper bound
-    offsetof(trident_msgs__action__HoldPose_Feedback, mean_pose_deviation),  // bytes offset in struct
+    offsetof(trident_msgs__action__HoldPose_Feedback, pose_mean),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "pose_variance",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message (initialized later)
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(trident_msgs__action__HoldPose_Feedback, pose_variance),  // bytes offset in struct
     NULL,  // default value
     NULL,  // size() function pointer
     NULL,  // get_const(index) function pointer
@@ -330,7 +381,7 @@ static rosidl_typesupport_introspection_c__MessageMember HoldPose_Feedback__rosi
 static const rosidl_typesupport_introspection_c__MessageMembers HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_members = {
   "trident_msgs__action",  // message namespace
   "HoldPose_Feedback",  // message name
-  3,  // number of fields
+  4,  // number of fields
   sizeof(trident_msgs__action__HoldPose_Feedback),
   HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_member_array,  // message members
   HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_init_function,  // function to initialize message memory (memory has to be allocated)
@@ -349,6 +400,8 @@ ROSIDL_TYPESUPPORT_INTROSPECTION_C_EXPORT_trident_msgs
 const rosidl_message_type_support_t *
 ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, trident_msgs, action, HoldPose_Feedback)() {
   HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_member_array[2].members_ =
+    ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, geometry_msgs, msg, Pose)();
+  HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_member_array[3].members_ =
     ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, geometry_msgs, msg, Pose)();
   if (!HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_type_support_handle.typesupport_identifier) {
     HoldPose_Feedback__rosidl_typesupport_introspection_c__HoldPose_Feedback_message_type_support_handle.typesupport_identifier =

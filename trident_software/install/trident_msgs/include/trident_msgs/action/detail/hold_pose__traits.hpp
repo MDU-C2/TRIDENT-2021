@@ -44,7 +44,8 @@ struct is_message<trident_msgs::action::HoldPose_Goal>
 }  // namespace rosidl_generator_traits
 
 // Include directives for member types
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__traits.hpp"
 
@@ -78,7 +79,8 @@ struct is_message<trident_msgs::action::HoldPose_Result>
 }  // namespace rosidl_generator_traits
 
 // Include directives for member types
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__traits.hpp"
 

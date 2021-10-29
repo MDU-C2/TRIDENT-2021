@@ -146,7 +146,8 @@ using HoldPose_Goal =
 
 
 // Include directives for member types
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__struct.hpp"
 
@@ -169,24 +170,28 @@ struct HoldPose_Result_
   using Type = HoldPose_Result_<ContainerAllocator>;
 
   explicit HoldPose_Result_(rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
-  : mean_pose_deviation(_init)
+  : pose_mean(_init),
+    pose_variance(_init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->duration = 0ll;
+      this->status = 0;
       this->message = "";
     }
   }
 
   explicit HoldPose_Result_(const ContainerAllocator & _alloc, rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
   : message(_alloc),
-    mean_pose_deviation(_alloc, _init)
+    pose_mean(_alloc, _init),
+    pose_variance(_alloc, _init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->duration = 0ll;
+      this->status = 0;
       this->message = "";
     }
   }
@@ -195,12 +200,18 @@ struct HoldPose_Result_
   using _duration_type =
     int64_t;
   _duration_type duration;
+  using _status_type =
+    int16_t;
+  _status_type status;
   using _message_type =
     std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other>;
   _message_type message;
-  using _mean_pose_deviation_type =
+  using _pose_mean_type =
     geometry_msgs::msg::Pose_<ContainerAllocator>;
-  _mean_pose_deviation_type mean_pose_deviation;
+  _pose_mean_type pose_mean;
+  using _pose_variance_type =
+    geometry_msgs::msg::Pose_<ContainerAllocator>;
+  _pose_variance_type pose_variance;
 
   // setters for named parameter idiom
   Type & set__duration(
@@ -209,16 +220,28 @@ struct HoldPose_Result_
     this->duration = _arg;
     return *this;
   }
+  Type & set__status(
+    const int16_t & _arg)
+  {
+    this->status = _arg;
+    return *this;
+  }
   Type & set__message(
     const std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other> & _arg)
   {
     this->message = _arg;
     return *this;
   }
-  Type & set__mean_pose_deviation(
+  Type & set__pose_mean(
     const geometry_msgs::msg::Pose_<ContainerAllocator> & _arg)
   {
-    this->mean_pose_deviation = _arg;
+    this->pose_mean = _arg;
+    return *this;
+  }
+  Type & set__pose_variance(
+    const geometry_msgs::msg::Pose_<ContainerAllocator> & _arg)
+  {
+    this->pose_variance = _arg;
     return *this;
   }
 
@@ -267,10 +290,16 @@ struct HoldPose_Result_
     if (this->duration != other.duration) {
       return false;
     }
+    if (this->status != other.status) {
+      return false;
+    }
     if (this->message != other.message) {
       return false;
     }
-    if (this->mean_pose_deviation != other.mean_pose_deviation) {
+    if (this->pose_mean != other.pose_mean) {
+      return false;
+    }
+    if (this->pose_variance != other.pose_variance) {
       return false;
     }
     return true;
@@ -293,7 +322,8 @@ using HoldPose_Result =
 
 
 // Include directives for member types
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__struct.hpp"
 
@@ -316,7 +346,8 @@ struct HoldPose_Feedback_
   using Type = HoldPose_Feedback_<ContainerAllocator>;
 
   explicit HoldPose_Feedback_(rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
-  : mean_pose_deviation(_init)
+  : pose_mean(_init),
+    pose_variance(_init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
@@ -328,7 +359,8 @@ struct HoldPose_Feedback_
 
   explicit HoldPose_Feedback_(const ContainerAllocator & _alloc, rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
   : message(_alloc),
-    mean_pose_deviation(_alloc, _init)
+    pose_mean(_alloc, _init),
+    pose_variance(_alloc, _init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
@@ -345,9 +377,12 @@ struct HoldPose_Feedback_
   using _message_type =
     std::basic_string<char, std::char_traits<char>, typename ContainerAllocator::template rebind<char>::other>;
   _message_type message;
-  using _mean_pose_deviation_type =
+  using _pose_mean_type =
     geometry_msgs::msg::Pose_<ContainerAllocator>;
-  _mean_pose_deviation_type mean_pose_deviation;
+  _pose_mean_type pose_mean;
+  using _pose_variance_type =
+    geometry_msgs::msg::Pose_<ContainerAllocator>;
+  _pose_variance_type pose_variance;
 
   // setters for named parameter idiom
   Type & set__status(
@@ -362,10 +397,16 @@ struct HoldPose_Feedback_
     this->message = _arg;
     return *this;
   }
-  Type & set__mean_pose_deviation(
+  Type & set__pose_mean(
     const geometry_msgs::msg::Pose_<ContainerAllocator> & _arg)
   {
-    this->mean_pose_deviation = _arg;
+    this->pose_mean = _arg;
+    return *this;
+  }
+  Type & set__pose_variance(
+    const geometry_msgs::msg::Pose_<ContainerAllocator> & _arg)
+  {
+    this->pose_variance = _arg;
     return *this;
   }
 
@@ -417,7 +458,10 @@ struct HoldPose_Feedback_
     if (this->message != other.message) {
       return false;
     }
-    if (this->mean_pose_deviation != other.mean_pose_deviation) {
+    if (this->pose_mean != other.pose_mean) {
+      return false;
+    }
+    if (this->pose_variance != other.pose_variance) {
       return false;
     }
     return true;

@@ -124,11 +124,6 @@ class MissionControlBase(Node):
             self._goto_waypoint_done_event.clear()
             # self.get_logger().info(f"Awaiting goto_waypoint_send_goal")
             goto_waypoint_goal_future = self._goto_waypoint_send_goal(waypoint)
-            # goto_waypoint_goal_future =  await self._goto_waypoint_send_goal(waypoint)
-            # self.get_logger().info(f"Finished waiting goto_waypoint_send_goal: {goto_waypoint_goal_future}")
-            # self.get_logger().info(f"Awaiting goto_waypoint_get_result_future: {self._goto_waypoint_get_result_future}")
-            # goto_waypoint_result_future = await self._goto_waypoint_get_result_future
-            # self.get_logger().info(f"Finished waiting goto_waypoint_get_result_future: {self._goto_waypoint_get_result_future}")
             # Wait for the GotoWaypoint action to finish by waiting on the event property.
             self._goto_waypoint_done_event.wait()
             goto_waypoint_result = self._goto_waypoint_get_result_future.result().result
@@ -164,6 +159,7 @@ class MissionControlBase(Node):
         result = StartMission.Result()
         result.success = True if StartMissionStatus.FINISHED else False
         result.message = f"Mission with {total_waypoints} waypoints finished."
+        self.get_logger().info(result.message)
 
         return result
 
@@ -181,8 +177,8 @@ class MissionControlBase(Node):
             mission = Mission()
             waypoint = Waypoint()
             wp_action = WaypointAction()
-            wp_action.action_type = WaypointActionType.NO_ACTION
-            wp_action.action_param = 0
+            wp_action.action_type = WaypointActionType.HOLD
+            wp_action.action_param = 5
             pose = Pose()
             pose.position.x = 3.0
             pose.position.y = 3.0

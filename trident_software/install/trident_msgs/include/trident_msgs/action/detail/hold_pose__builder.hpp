@@ -78,16 +78,32 @@ namespace action
 namespace builder
 {
 
-class Init_HoldPose_Result_mean_pose_deviation
+class Init_HoldPose_Result_pose_variance
 {
 public:
-  explicit Init_HoldPose_Result_mean_pose_deviation(::trident_msgs::action::HoldPose_Result & msg)
+  explicit Init_HoldPose_Result_pose_variance(::trident_msgs::action::HoldPose_Result & msg)
   : msg_(msg)
   {}
-  ::trident_msgs::action::HoldPose_Result mean_pose_deviation(::trident_msgs::action::HoldPose_Result::_mean_pose_deviation_type arg)
+  ::trident_msgs::action::HoldPose_Result pose_variance(::trident_msgs::action::HoldPose_Result::_pose_variance_type arg)
   {
-    msg_.mean_pose_deviation = std::move(arg);
+    msg_.pose_variance = std::move(arg);
     return std::move(msg_);
+  }
+
+private:
+  ::trident_msgs::action::HoldPose_Result msg_;
+};
+
+class Init_HoldPose_Result_pose_mean
+{
+public:
+  explicit Init_HoldPose_Result_pose_mean(::trident_msgs::action::HoldPose_Result & msg)
+  : msg_(msg)
+  {}
+  Init_HoldPose_Result_pose_variance pose_mean(::trident_msgs::action::HoldPose_Result::_pose_mean_type arg)
+  {
+    msg_.pose_mean = std::move(arg);
+    return Init_HoldPose_Result_pose_variance(msg_);
   }
 
 private:
@@ -100,10 +116,26 @@ public:
   explicit Init_HoldPose_Result_message(::trident_msgs::action::HoldPose_Result & msg)
   : msg_(msg)
   {}
-  Init_HoldPose_Result_mean_pose_deviation message(::trident_msgs::action::HoldPose_Result::_message_type arg)
+  Init_HoldPose_Result_pose_mean message(::trident_msgs::action::HoldPose_Result::_message_type arg)
   {
     msg_.message = std::move(arg);
-    return Init_HoldPose_Result_mean_pose_deviation(msg_);
+    return Init_HoldPose_Result_pose_mean(msg_);
+  }
+
+private:
+  ::trident_msgs::action::HoldPose_Result msg_;
+};
+
+class Init_HoldPose_Result_status
+{
+public:
+  explicit Init_HoldPose_Result_status(::trident_msgs::action::HoldPose_Result & msg)
+  : msg_(msg)
+  {}
+  Init_HoldPose_Result_message status(::trident_msgs::action::HoldPose_Result::_status_type arg)
+  {
+    msg_.status = std::move(arg);
+    return Init_HoldPose_Result_message(msg_);
   }
 
 private:
@@ -116,10 +148,10 @@ public:
   Init_HoldPose_Result_duration()
   : msg_(::rosidl_runtime_cpp::MessageInitialization::SKIP)
   {}
-  Init_HoldPose_Result_message duration(::trident_msgs::action::HoldPose_Result::_duration_type arg)
+  Init_HoldPose_Result_status duration(::trident_msgs::action::HoldPose_Result::_duration_type arg)
   {
     msg_.duration = std::move(arg);
-    return Init_HoldPose_Result_message(msg_);
+    return Init_HoldPose_Result_status(msg_);
   }
 
 private:
@@ -152,16 +184,32 @@ namespace action
 namespace builder
 {
 
-class Init_HoldPose_Feedback_mean_pose_deviation
+class Init_HoldPose_Feedback_pose_variance
 {
 public:
-  explicit Init_HoldPose_Feedback_mean_pose_deviation(::trident_msgs::action::HoldPose_Feedback & msg)
+  explicit Init_HoldPose_Feedback_pose_variance(::trident_msgs::action::HoldPose_Feedback & msg)
   : msg_(msg)
   {}
-  ::trident_msgs::action::HoldPose_Feedback mean_pose_deviation(::trident_msgs::action::HoldPose_Feedback::_mean_pose_deviation_type arg)
+  ::trident_msgs::action::HoldPose_Feedback pose_variance(::trident_msgs::action::HoldPose_Feedback::_pose_variance_type arg)
   {
-    msg_.mean_pose_deviation = std::move(arg);
+    msg_.pose_variance = std::move(arg);
     return std::move(msg_);
+  }
+
+private:
+  ::trident_msgs::action::HoldPose_Feedback msg_;
+};
+
+class Init_HoldPose_Feedback_pose_mean
+{
+public:
+  explicit Init_HoldPose_Feedback_pose_mean(::trident_msgs::action::HoldPose_Feedback & msg)
+  : msg_(msg)
+  {}
+  Init_HoldPose_Feedback_pose_variance pose_mean(::trident_msgs::action::HoldPose_Feedback::_pose_mean_type arg)
+  {
+    msg_.pose_mean = std::move(arg);
+    return Init_HoldPose_Feedback_pose_variance(msg_);
   }
 
 private:
@@ -174,10 +222,10 @@ public:
   explicit Init_HoldPose_Feedback_message(::trident_msgs::action::HoldPose_Feedback & msg)
   : msg_(msg)
   {}
-  Init_HoldPose_Feedback_mean_pose_deviation message(::trident_msgs::action::HoldPose_Feedback::_message_type arg)
+  Init_HoldPose_Feedback_pose_mean message(::trident_msgs::action::HoldPose_Feedback::_message_type arg)
   {
     msg_.message = std::move(arg);
-    return Init_HoldPose_Feedback_mean_pose_deviation(msg_);
+    return Init_HoldPose_Feedback_pose_mean(msg_);
   }
 
 private:

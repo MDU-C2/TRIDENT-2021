@@ -21,16 +21,7 @@ module trident_msgs {
       int64 duration;
 
       @verbatim (language="comment", text=
-        " Informational message about the status")
-      string message;
-
-      @verbatim (language="comment", text=
-        " Some kind of measurement of how well the position is held over time")
-      geometry_msgs::msg::Pose mean_pose_deviation;
-    };
-    struct HoldPose_Feedback {
-      @verbatim (language="comment", text=
-        " Status of the action. 1 = moving to pose, 2 = holding")
+        " Status of the action. 1 = moving to pose, 2 = holding, 3 = Finished.")
       int16 status;
 
       @verbatim (language="comment", text=
@@ -38,8 +29,29 @@ module trident_msgs {
       string message;
 
       @verbatim (language="comment", text=
-        " Some kind of measurement of how well the position is held over time")
-      geometry_msgs::msg::Pose mean_pose_deviation;
+        " The mean pose held over time")
+      geometry_msgs::msg::Pose pose_mean;
+
+      @verbatim (language="comment", text=
+        " Variance of the poses held over time")
+      geometry_msgs::msg::Pose pose_variance;
+    };
+    struct HoldPose_Feedback {
+      @verbatim (language="comment", text=
+        " Status of the action. 1 = moving to pose, 2 = holding, 3 = Finished.")
+      int16 status;
+
+      @verbatim (language="comment", text=
+        " Informational message about the status")
+      string message;
+
+      @verbatim (language="comment", text=
+        " The mean pose held over time")
+      geometry_msgs::msg::Pose pose_mean;
+
+      @verbatim (language="comment", text=
+        " Variance of the poses held over time")
+      geometry_msgs::msg::Pose pose_variance;
     };
   };
 };
