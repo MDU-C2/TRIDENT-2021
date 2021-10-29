@@ -11,8 +11,6 @@ class MissionControlState(IntEnum):
     def __str__(self):
         return self.name
 
-
-
 class GuidanceSystemState(IntEnum):
     """Enum for the Guidance system states.
     """
@@ -72,6 +70,7 @@ class HoldPoseStatus(IntEnum):
     """
     MOVING_TO_POSE = 1
     HOLDING = 2
+    FINISHED = 3
 
     def __str__(self):
         return self.name

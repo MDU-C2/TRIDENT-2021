@@ -152,7 +152,8 @@ trident_msgs__action__HoldPose_Goal__Sequence__destroy(trident_msgs__action__Hol
 // Include directives for member types
 // Member `message`
 #include "rosidl_runtime_c/string_functions.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/detail/pose__functions.h"
 
@@ -163,13 +164,19 @@ trident_msgs__action__HoldPose_Result__init(trident_msgs__action__HoldPose_Resul
     return false;
   }
   // duration
+  // status
   // message
   if (!rosidl_runtime_c__String__init(&msg->message)) {
     trident_msgs__action__HoldPose_Result__fini(msg);
     return false;
   }
-  // mean_pose_deviation
-  if (!geometry_msgs__msg__Pose__init(&msg->mean_pose_deviation)) {
+  // pose_mean
+  if (!geometry_msgs__msg__Pose__init(&msg->pose_mean)) {
+    trident_msgs__action__HoldPose_Result__fini(msg);
+    return false;
+  }
+  // pose_variance
+  if (!geometry_msgs__msg__Pose__init(&msg->pose_variance)) {
     trident_msgs__action__HoldPose_Result__fini(msg);
     return false;
   }
@@ -183,10 +190,13 @@ trident_msgs__action__HoldPose_Result__fini(trident_msgs__action__HoldPose_Resul
     return;
   }
   // duration
+  // status
   // message
   rosidl_runtime_c__String__fini(&msg->message);
-  // mean_pose_deviation
-  geometry_msgs__msg__Pose__fini(&msg->mean_pose_deviation);
+  // pose_mean
+  geometry_msgs__msg__Pose__fini(&msg->pose_mean);
+  // pose_variance
+  geometry_msgs__msg__Pose__fini(&msg->pose_variance);
 }
 
 trident_msgs__action__HoldPose_Result *
@@ -303,7 +313,8 @@ trident_msgs__action__HoldPose_Result__Sequence__destroy(trident_msgs__action__H
 // Member `message`
 // already included above
 // #include "rosidl_runtime_c/string_functions.h"
-// Member `mean_pose_deviation`
+// Member `pose_mean`
+// Member `pose_variance`
 // already included above
 // #include "geometry_msgs/msg/detail/pose__functions.h"
 
@@ -319,8 +330,13 @@ trident_msgs__action__HoldPose_Feedback__init(trident_msgs__action__HoldPose_Fee
     trident_msgs__action__HoldPose_Feedback__fini(msg);
     return false;
   }
-  // mean_pose_deviation
-  if (!geometry_msgs__msg__Pose__init(&msg->mean_pose_deviation)) {
+  // pose_mean
+  if (!geometry_msgs__msg__Pose__init(&msg->pose_mean)) {
+    trident_msgs__action__HoldPose_Feedback__fini(msg);
+    return false;
+  }
+  // pose_variance
+  if (!geometry_msgs__msg__Pose__init(&msg->pose_variance)) {
     trident_msgs__action__HoldPose_Feedback__fini(msg);
     return false;
   }
@@ -336,8 +352,10 @@ trident_msgs__action__HoldPose_Feedback__fini(trident_msgs__action__HoldPose_Fee
   // status
   // message
   rosidl_runtime_c__String__fini(&msg->message);
-  // mean_pose_deviation
-  geometry_msgs__msg__Pose__fini(&msg->mean_pose_deviation);
+  // pose_mean
+  geometry_msgs__msg__Pose__fini(&msg->pose_mean);
+  // pose_variance
+  geometry_msgs__msg__Pose__fini(&msg->pose_variance);
 }
 
 trident_msgs__action__HoldPose_Feedback *

@@ -20,6 +20,7 @@ from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorContr
 
 from rclpy.callback_groups import ReentrantCallbackGroup
 
+
 class MotorControlBase(Node, metaclass=ABCMeta):
     """A base class for the motor control nodes used in Athena and NAIAD designed with
     generalization in mind.
@@ -61,6 +62,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._agent_state: Pose = Pose()
         # The current goal pose received from either GotoPose action or HoldPose action.
         self._goal_pose = None
+        # Boolean that keeps track on whether the HoldPose time has been reached.
+        self._hold_pose_time_reached = False
         # The latest computation of the point and shoot orientation.
         # (This is updated by a timer callback set to the pas_orientation_update_freq)
         self._pas_orientation = None
@@ -76,6 +79,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
+        self._motor_update_rate2 = self.create_rate(self._motor_update_frequency)
 
         # Subscriptions
         # -------------
@@ -114,11 +118,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             execute_callback=self._action_server_goto_pose_execute_callback,
         )
         # Action server for the HoldPose action
-        self._action_server_goto_pose = ActionServer(
+        self._action_server_hold_pose = ActionServer(
             self,
-            GotoPose,
+            HoldPose,
             'motor_control/pose/hold',
-            execute_callback=self._action_server_goto_pose_execute_callback,
+            execute_callback=self._action_server_hold_pose_execute_callback,
         )
         # Manual override service
         self._server_manual_override = self.create_service(
@@ -292,7 +296,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             Quaternion: Orientation needed to "shoot".
         """
         current = self._agent_state.position
-        goal = self._goal_pose.pose.position
+        
+        goal = self._goal_pose.position
         # Create vector from the two points
         pas_vec = (goal.x - current.x, goal.y - current.y, goal.z - current.z)
         # Convert the vector to the unit vector
@@ -325,9 +330,157 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
         self._agent_state = msg
 
+    def _running_std_update(self, existing_aggregate, new_values):
+        """Algorithm for computing variance in a single pass to save memory and computational power.
+        Fore more information see Welford's online algorithm: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance.
+        """
+        new_values = np.array([new_values.position.x, new_values.position.y, new_values.position.z,
+                    new_values.orientation.x, new_values.orientation.y, new_values.orientation.y, new_values.orientation.z])
+
+        (count, means, M2) = existing_aggregate
+        count += 1
+        delta = new_values - means #[a-m for a,m in zip(new_values, means)]
+        means = means + (delta / count) #[m + (d/count) for m,d in zip(means, delta)]
+        delta2 = new_values - means #[a-m for a,m in zip(new_values, means)]
+        M2 = M2 + (delta*delta2) # [m + (d1*d2) for m,d1,d2 in zip(M2, delta, delta2)]
+
+        return (count, means, M2)
+
+    def _finalize_running_std(self, existing_aggregate):
+        """Retrieves the mean, variance and sample variance from an aggregate.
+        See Welford's online algorithm: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        """
+        (count, means, M2) = existing_aggregate
+        if count < 2:
+            return float("nan")
+        else:
+            (means, variances, sample_variances) = (means, M2 / count, M2 / (count - 1))
+            return (means, variances, sample_variances)
+
+    def pose_from_list(self, list_):
+        """Helper function that returns a Pose created from a list with position x,y,z and orientation x,y,z,w in that order."""
+        pose = Pose()
+        pose.position.x, pose.position.y, pose.position.z = list_[0], list_[1], list_[2]
+        pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w = list_[3], list_[4], list_[5], list_[6]
+
+        return Pose()
+
     # HoldPose callbacks
     # ------------------
-    # TODO: IMPLEMENT THIS!! Very similar to gotopose?
+    def _set_hold_pose_time_reached(self):
+        """Callback for the hold pose timer that gets executed when the HoldPose request duration is reached."""
+        self.get_logger().info(f'Holding duration reached.')
+        self._hold_pose_time_reached = True
+
+    def _action_server_hold_pose_on_cancel_callback(self):
+        pass # TODO: Just set the hole_pose_time_reached to true?
+
+    def _action_server_hold_pose_execute_callback(self, goal_handle):
+        """Execution callback for the HoldPose action. Executes the goal with the help of PID regulation
+        of the motors.
+        """
+        self.get_logger().info(f'Received HoldPose goal: {goal_handle.request}')
+        self._update_node_state(MotorControlState.EXECUTING)
+        # Update object properties
+        self._goal_pose = goal_handle.request.pose
+        # Compute and update initial PaS orientation
+        self._update_pas_orientation()
+        # Create timer that continuously updates the PaS orientation
+        pas_orientation_timer = self.create_timer(1/self._pas_orientation_update_freq, self._update_pas_orientation)
+
+        # Variables that tracks the mean pose deviation
+        mean_pose = [self._agent_state.position.x, self._agent_state.position.y, self._agent_state.position.z,
+                    self._agent_state.orientation.x, self._agent_state.orientation.y, self._agent_state.orientation.y, self._agent_state.orientation.z]
+        mean_pose_m2 = [0] * 7
+        mean_pose_count = 1
+        # pose_variance = []
+
+        if goal_handle.request.duration != 0:
+            # Start the hold pose timer
+            hold_pose_timer = self.create_timer(goal_handle.request.duration, self._set_hold_pose_time_reached)
+        # Start time for the hold action
+        hold_start_time = self.get_clock().now().seconds_nanoseconds()[0]
+        # Loop as long as the time goal hasn't been reached
+        while(not self._hold_pose_time_reached):
+            current_pos = self._agent_state.position
+            desired_pos = goal_handle.request.pose.position
+            current_orientation = self._agent_state.orientation
+            desired_orientation = goal_handle.request.pose.orientation
+            # Calculate distance between desired position and current position.
+            distance_to_goal = self.distance_to_goal(current_pos, desired_pos)
+            # Check if the distance is within the point_and_shoot_threshold.
+            if distance_to_goal < self._pas_threshold:
+                # Set the desired orientation to the point and shoot orientation.
+                desired_orientation = self._pas_orientation
+
+            desired_pose = Pose()
+            desired_pose.position = desired_pos
+            desired_pose.orientation = desired_orientation
+
+            # Create feedback message
+            feedback_msg = HoldPose.Feedback()
+            if self._manual_override:
+                self.get_logger().info('Manual override is active. Not sending motor values to motor driver this iteration.')
+                feedback_msg.status = HoldPoseStatus.HOLDING
+                feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
+
+            else:
+                motor_outputs_msg = self.pid(self._agent_state, desired_pose)
+                self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
+                self._motor_outputs_publisher.publish(motor_outputs_msg)
+                feedback_msg.status = HoldPoseStatus.HOLDING
+                feedback_msg.message = "Holding pose."
+
+            # Calculate pose mean and variance
+            mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state)
+            means, variance, _ = self._finalize_running_std((mean_pose_count, mean_pose, mean_pose_m2))
+            feedback_msg.pose_mean = self.pose_from_list(means)
+            feedback_msg.pose_variance = self.pose_from_list(variance)
+            # Publish the feedback message
+            goal_handle.publish_feedback(feedback_msg)
+
+            self.get_logger().info(f'{feedback_msg.message}')
+            # Relative sleep according to the goto_pose_rate.
+            self._motor_update_rate.sleep()
+        
+        # GOAL FINISHED
+        # -------------
+        # Stop the PaS orientation timer
+        pas_orientation_timer.cancel()
+        # ... and the hold_pose timer
+        if goal_handle.request.duration != 0:
+            hold_pose_timer.cancel()
+        # Send 0 as the final motor output values so the agent stops acting since the goal is finished.
+        motor_output_msg = MotorOutputs()
+        outputs = []
+        for motor in self._motor_config:
+            output = MotorOutput()
+            output.id = motor["id"]
+            output.value = 0.0
+            outputs.append(output)
+        motor_output_msg.motor_outputs = outputs
+        self.get_logger().info(f'Goal reached. Stopping motors by publishing {motor_output_msg.motor_outputs} to the motor driver.')
+        self._motor_outputs_publisher.publish(motor_output_msg)
+        # Result message
+        hold_end_time = self.get_clock().now().seconds_nanoseconds()[0]
+        goal_handle.succeed()
+        result = HoldPose.Result()
+        result.status = HoldPoseStatus.FINISHED
+        result.duration = hold_end_time - hold_start_time
+        result.message = f"time: {hold_end_time}"
+        result.message = f"Finished holding pose for {result.duration} seconds. Goal finished."
+        # Calculate the final mean and variance
+        mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state)
+        means, variance, _ = self._finalize_running_std((mean_pose_count, mean_pose, mean_pose_m2))
+        result.pose_mean = self.pose_from_list(means)
+        result.pose_variance = self.pose_from_list(variance)
+
+        self.get_logger().info(f'Returning result: {result}')
+
+        self._update_node_state(MotorControlState.IDLE)
+        self._hold_pose_time_reached = False
+
+        return result
 
     # GotoPose callbacks
     # -----------------
@@ -344,12 +497,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self.get_logger().info(f'Received goal: {goal_handle.request}')
         self._update_node_state(MotorControlState.EXECUTING)
         # Update object properties
-        self._goal_pose = goal_handle.request
+        self._goal_pose = goal_handle.request.pose
         # Compute and update initial PaS orientation
         self._update_pas_orientation()
         # Create timer that continuously updates the PaS orientation
-        pas_orientation_timer = self.create_timer(self._pas_orientation_update_freq, self._update_pas_orientation)
+        pas_orientation_timer = self.create_timer(1/self._pas_orientation_update_freq, self._update_pas_orientation)
 
+        self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Loop as long as the goal isn't reached.
         i = 0 # For testing
         while(i < 2):
@@ -396,7 +550,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # GOAL FINISHED
         # -------------
         # Stop the PaS orientation timer
-        pas_orientation_timer.destroy()
+        pas_orientation_timer.cancel()
         # Send 0 as the final motor output values so the agent stops acting since the goal is finished.
         motor_output_msg = MotorOutputs()
         outputs = []
@@ -420,6 +574,3 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._update_node_state(MotorControlState.IDLE)
 
         return result
-
-
-    # TODO: HoldPose Callback

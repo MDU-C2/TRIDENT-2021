@@ -44,7 +44,8 @@ typedef struct trident_msgs__action__HoldPose_Goal__Sequence
 // Include directives for member types
 // Member 'message'
 #include "rosidl_runtime_c/string.h"
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__struct.h"
 
@@ -52,8 +53,10 @@ typedef struct trident_msgs__action__HoldPose_Goal__Sequence
 typedef struct trident_msgs__action__HoldPose_Result
 {
   int64_t duration;
+  int16_t status;
   rosidl_runtime_c__String message;
-  geometry_msgs__msg__Pose mean_pose_deviation;
+  geometry_msgs__msg__Pose pose_mean;
+  geometry_msgs__msg__Pose pose_variance;
 } trident_msgs__action__HoldPose_Result;
 
 // Struct for a sequence of trident_msgs__action__HoldPose_Result.
@@ -73,7 +76,8 @@ typedef struct trident_msgs__action__HoldPose_Result__Sequence
 // Member 'message'
 // already included above
 // #include "rosidl_runtime_c/string.h"
-// Member 'mean_pose_deviation'
+// Member 'pose_mean'
+// Member 'pose_variance'
 // already included above
 // #include "geometry_msgs/msg/detail/pose__struct.h"
 
@@ -82,7 +86,8 @@ typedef struct trident_msgs__action__HoldPose_Feedback
 {
   int16_t status;
   rosidl_runtime_c__String message;
-  geometry_msgs__msg__Pose mean_pose_deviation;
+  geometry_msgs__msg__Pose pose_mean;
+  geometry_msgs__msg__Pose pose_variance;
 } trident_msgs__action__HoldPose_Feedback;
 
 // Struct for a sequence of trident_msgs__action__HoldPose_Feedback.
