@@ -5,6 +5,7 @@ class WaypointMap {
 		this.waypointCounter = [0,0]; 	// [athena,naiad]
 		this.waypointObjects = [[],[]];	// [[athena],[naiad]]
 		this.latlng = [[],[]];			// [[athena],[naiad]]
+		this.depth = [[],[]];			// [[athena],[naiad]]
 		this.polyLines = [[],[]];		// [[athena],[naiad]]
 		this.waypointType = 0;			// 0 = Athena, 1 = Naiad
 		
@@ -193,14 +194,34 @@ waypointMap.map.on('click', function(e) {
 	});
 	//Add waypoint object to array
 	waypointMap.waypointObjects[waypointMap.waypointType].push(waypointMarker);
+	waypointMap.depth[waypointMap.waypointType].push(0);
 	//Add waypoint lat and lng to array for polylines
 	waypointMap.latlng[waypointMap.waypointType].push([e.latlng.lat, e.latlng.lng]);
 	waypointMap.map.addLayer(waypointMarker);
-    document.getElementById("waypointList-"+waypointMap.waypointType).innerHTML += "<li id='waypointListItem-" + waypointMap.waypointType + "-" + waypointMap.waypointCounter[waypointMap.waypointType] +"' class='list-group-item waypoint-item-"+waypointMap.waypointType+"'>Waypoint "+ waypointMap.waypointCounter[waypointMap.waypointType] +":<br> \
+	var slider = document.createElement('input');
+	slider.type = 'range';
+	slider.id = "depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType];
+	slider.className = "form-range"
+	slider.min = 0;
+	slider.max = 100;
+	slider.value = 0;
+	slider.step = 1;
+	slider.onchange = function () {
+		//console.log(waypointMap.waypointType + " " + waypointMap.waypointCounter[waypointMap.waypointType]);
+		var rangeVal = document.getElementById("depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]).value;
+		waypointMap.depth[waypointMap.waypointType][waypointMap.waypointCounter[waypointMap.waypointType]-1] = rangeVal;
+		document.getElementById("depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]).innerHTML = rangeVal;
+	};
+	var list = document.createElement('li');
+	list.id = "waypointListItem-" + waypointMap.waypointType + "-" + waypointMap.waypointCounter[waypointMap.waypointType];
+	list.className = "list-group-item waypoint-item-"+waypointMap.waypointType;
+	list.innerHTML = "Waypoint "+ waypointMap.waypointCounter[waypointMap.waypointType] +":<br> \
 		<span>Lat: </span><span id='waypointLat-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lat.toFixed(7)+"</span> \
 		<br><span>Lng: </span><span id='waypointLng-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lng.toFixed(7)+"</span> \
-		<button onclick='removeWaypoint(\""+waypointMap.waypointType+"\",\""+waypointMap.waypointCounter[waypointMap.waypointType]+"\")' style='position:absolute;top:0.5rem;right:0.5rem;background:transparent;border:none;'><i class='bi bi-x-circle' style='color: red; font-size: 2rem;'></i></button></li>";
-
+		<br><span>Depth: </span><span id='depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>0</span><span> meters</span> \
+		<button onclick='removeWaypoint(\""+waypointMap.waypointType+"\",\""+waypointMap.waypointCounter[waypointMap.waypointType]+"\")' style='position:absolute;top:0.5rem;right:0.5rem;background:transparent;border:none;'><i class='bi bi-x-circle' style='color: red; font-size: 2rem;'></i></button>";
+	list.appendChild(slider);
+	document.getElementById("waypointList-"+waypointMap.waypointType).appendChild(list); 
 	if (waypointMap.waypointCounter[waypointMap.waypointType] > 1)
 	{
 		var tmpArr = [];
@@ -219,7 +240,7 @@ waypointMap.map.on('click', function(e) {
 	}
 	//Set number of waypoint items in list
 	document.getElementById("waypointNumCounter").innerHTML = document.querySelectorAll('.waypoint-item-'+waypointMap.waypointType).length;
-	});
+});
 
 //Remove waypoints on the map
 function removeWaypoint(type, counter)
