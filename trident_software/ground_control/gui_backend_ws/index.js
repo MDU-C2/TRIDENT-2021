@@ -78,24 +78,22 @@ class Server
 
       for (var wp of req.body.waypoints)
       {
-        console.log(wp);
+        wpAction.action_type = waypointAction.NO_ACTION;
+        wpAction.action_param = 0;
+        point.x = wp[0];
+        point.y = wp[1];
+        point.z = wp[2];
+        //Temporarily set orientation to zero
+        quaternion.x = 0.0;
+        quaternion.y = 0.0;
+        quaternion.z = 0.0;
+        quaternion.w = 0.0;
+        pose.position = point;
+        pose.orientation = quaternion;
+        waypoint.pose = pose;
+        waypoint.action = wpAction;
+        mission.waypoints.push(waypoint);
       }
-      wpAction.action_type = waypointAction.NO_ACTION;
-      wpAction.action_param = 0;
-      point.x = 1.0;
-      point.y = 2.0;
-      point.z = 3.0;
-      //Temporarily set orientation to zero
-      quaternion.x = 0.0;
-      quaternion.y = 0.0;
-      quaternion.z = 0.0;
-      quaternion.w = 0.0;
-      pose.position = point;
-      pose.orientation = quaternion;
-      waypoint.pose = pose;
-      waypoint.action = wpAction;
-      mission.waypoints = [waypoint];
-      
       loadMission.mission = mission;
       ROS2handle.loadMissionPlan._serviceName = prefixTopics+req.body.target+"/mission_control/mission/load";
       ROS2handle.loadMissionPlan.waitForService(1000).then((result) => {
