@@ -1,0 +1,7 @@
+main.c:109:5:main	32	static
+main.c:243:6:SystemClock_Config	120	static
+main.c:300:13:MX_TIM2_Init	40	static
+main.c:345:13:MX_GPIO_Init	40	static
+main.c:392:6:Sensor_Multiplex_Control	4	static
+main.c:419:6:Get_Mid_Points	16	static
+main.c:451:6:Error_Handler	4	static,ignoring_inline_asm
