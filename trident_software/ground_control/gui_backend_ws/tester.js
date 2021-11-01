@@ -5,6 +5,7 @@ const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 const Waypoint = rclnodejs.require('trident_msgs/msg/Waypoint');
 const WaypointAction = rclnodejs.require('trident_msgs/msg/WaypointAction');
 const Pose = rclnodejs.require('geometry_msgs/msg/Pose');
+const tridenStates = require('./tridentstates')
 
 let prefixTopics = "gc/";
 class StartMissionActionServer {
@@ -96,7 +97,7 @@ rclnodejs
 
     //Manual override athena
     node.createService(
-      'trident_msgs/srv/ToggleControl',
+      'std_srvs/srv/SetBool',
       prefixTopics+'athena/motor_control/manual_override',
       (request, response) => {
         console.log(request);
@@ -110,7 +111,7 @@ rclnodejs
 
     //Manual override naiad
     node.createService(
-      'trident_msgs/srv/ToggleControl',
+      'std_srvs/srv/SetBool',
       prefixTopics+'naiad/motor_control/manual_override',
       (request, response) => {
         console.log(request);
@@ -150,22 +151,48 @@ rclnodejs
       }
     );
 
-    //start mission plan tester
-    //new StartMissionActionServer(node);
-
-    //abort tester
+    //abort tester (Athena)
     node.createService(
-      'trident_msgs/srv/Abort',
-      prefixTopics+'abort',
+      'std_srvs/srv/Trigger',
+      prefixTopics+'athena/abort',
       (request, response) => {
-        console.log(request);
-        console.log('Request to toggle on');
+        console.log("Abort athena " + request);
         let result = response.template;
         result.success = true;
+        result.message = "Done";
         console.log(`Sending response: ${typeof result}`, result, '\n--');
         response.send(result);
       }
     );
+
+    //abort tester (Athena)
+    node.createService(
+      'std_srvs/srv/Trigger',
+      prefixTopics+'naiad/abort',
+      (request, response) => {
+        console.log("Abort athena " + request);
+        let result = response.template;
+        result.success = true;
+        result.message = "Done";
+        console.log(`Sending response: ${typeof result}`, result, '\n--');
+        response.send(result);
+      }
+    );
+
+    //Get states athena
+    node.createService(
+      'trident_msgs/srv/GetState',
+      prefixTopics+'athena/mission_control/state/get',
+      (request, response) => {
+        console.log("get state " + request);
+        let result = response.template;
+        result.success = true;
+        result.state = tridenStates.missionControlState.MISSION_LOADED;
+        console.log(`Sending response: ${typeof result}`, result, '\n--');
+        response.send(result);
+      }
+    );
+
 
     //toggle mode on naiad
     /*
