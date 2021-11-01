@@ -32,7 +32,7 @@ class NaiadPosNode(PosNode):
             [0, 0, 0, 0, 0, 0,         0,         0,  0,  0,  0,  1]])#dh
         # TODO: add the contol vector, using the motor config.
         transition = np.matmul(trans_mat,prev)
-        retunr transition
+        return transition
     
     def state_publish(self):
         msg = NaiadState()
