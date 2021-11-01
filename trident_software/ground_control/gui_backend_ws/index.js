@@ -1,4 +1,6 @@
-const express = require('express');
+
+
+
 const rclnodejs = require('./node_modules/rclnodejs/index.js')
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 
@@ -12,10 +14,12 @@ class Server
 {
   constructor()
   {
-    this.express = express;
+    this.express = require('express');
     //Setup express node and port
     this.app = this.express();
     this.port = process.env.PORT || 8080;
+    this.server = null;
+    this.io = null;
   }
 
   init()
@@ -25,11 +29,21 @@ class Server
     //Allow gui to send POST message in JSON format to index.js
     this.app.use(this.express.json());
     this.app.use(this.express.urlencoded({ extended: true }));
+    //Setup http server, which will server the socket.io server
+    this.server = require('http').createServer(this.app);
+    //Setup socket.io server
+    this.io = require("socket.io")(this.server, {  
+      cors: {
+        origin: "http://localhost:8080",
+        methods: ["GET", "POST"]  
+      }
+    });
   }
 
-  start()
+  start(ROS2handle)
   {
-    this.app.listen(this.port);
+    this.heartbeat(ROS2handle);
+    this.server.listen(this.port);
     console.log('Server started at http://localhost:' + this.port);
 
     process.on('SIGINT', function() {
@@ -38,87 +52,123 @@ class Server
     });
   }
 
+  heartbeat(ROS2handle)
+  {
+    setInterval(() => {
+      this.io.emit('heartbeat',{'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
+      ROS2handle.heartbeatAthena.active = false;
+            ROS2handle.heartbeatNaiad.active = false;
+    },1000);
+  }
+
   handleReq(ROS2handle)
   {
-    //Handler for heartbeat
-    this.app.post('/heartbeat', function(req,res) {
-      res.send({'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
-      //Reset Athena and Naiad active status
-      ROS2handle.heartbeatAthena.active = false;
-      ROS2handle.heartbeatNaiad.active = false;
-    });
+    this.io.on('connect', socket => {
+      /*
+        Handle requests by client
+      */
+      socket.on("request", req => {
+        switch(req.data.function) {
+          /*
+            Request to load mission plan
+          */
+          case 'load_mission_plan':
+            //Setup mission parameters
+            let mission = rclnodejs.createMessageObject('trident_msgs/msg/Mission');
+            let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
+            let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
+            let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
+            let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
+            let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
+            let loadMission = new LoadMission.Request();
 
-    //Handler for service: toggle_manual_control
-    this.app.post('/manual_override', function(req,res) {
-      const request = {target:req.body.target, mode:req.body.mode};
-      ROS2handle.manualOverride._serviceName = prefixTopics+req.body.target+"/motor_control/manual_override";
-      ROS2handle.manualOverride.waitForService(1000).then((result) => {
-        if (!result) {
-          console.log('Error: service not available');
-          return;
+            for (var wp of req.data.waypoints)
+            {
+              wpAction.action_type = waypointAction.NO_ACTION;
+              wpAction.action_param = 0;
+              point.x = wp[0];
+              point.y = wp[1];
+              point.z = wp[2];
+              //Temporarily set orientation to zero
+              quaternion.x = 0.0;
+              quaternion.y = 0.0;
+              quaternion.z = 0.0;
+              quaternion.w = 0.0;
+              pose.position = point;
+              pose.orientation = quaternion;
+              waypoint.pose = pose;
+              waypoint.action = wpAction;
+              mission.waypoints.push(waypoint);
+            }
+            loadMission.mission = mission;
+            ROS2handle.loadMissionPlan._serviceName = prefixTopics+req.data.target+"/mission_control/mission/load";
+            ROS2handle.loadMissionPlan.waitForService(1000).then((result) => {
+              if (!result) {
+                console.log('Error: service not available');
+                return;
+              }
+              //console.log(`Sending: ${typeof loadMission}`, loadMission);
+              ROS2handle.loadMissionPlan.sendRequest(loadMission, (response) => {
+                //Send response back to client
+                socket.emit('response',{data:response});
+                //Close connection
+                socket.disconnect();
+              });
+            });
+            break;
+          /*
+            Request to toggle manual override
+          */
+          case 'toggle_manual_override':
+            var request = {data:req.data.bool};
+            ROS2handle.manualOverride._serviceName = prefixTopics+req.data.target+"/motor_control/manual_override";
+            ROS2handle.manualOverride.waitForService(1000).then((result) => {
+              if (!result) {
+                console.log('Error: service not available');
+                return;
+              }
+              ROS2handle.manualOverride.sendRequest(request, (response) => {
+                //Send response back to client
+                socket.emit('response',{data:response});
+                //Close connection
+                socket.disconnect();
+              });
+            });
+            break;
+          /*
+            Request to abort
+          */
+          case 'abort':
+            var request = {};
+            ROS2handle.abort._serviceName = prefixTopics+req.data.target+"/abort";
+            ROS2handle.abort.waitForService(1000).then((result) => {
+              if (!result) {
+                console.log('Error: service not available');
+                return;
+              }
+              ROS2handle.abort.sendRequest(request, (response) => {
+                //Send response back to client
+                socket.emit('response',{data:response});
+                //Close connection
+                socket.disconnect();
+              });
+            });
         }
-        console.log(`Sending: ${typeof request}`, request);
-        ROS2handle.toggleControlMode.sendRequest(request, (response) => {
-          res.send({'success':response.success, 'target':req.body.target});
-        });
+        
       });
-    });
 
-    //Handler for service: load_mission_plan
-    this.app.post('/load_mission_plan', function(req,res) {
-      
-      //Setup mission parameters
-      let mission = rclnodejs.createMessageObject('trident_msgs/msg/Mission');
-      let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
-      let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
-      let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
-      let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
-      let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
-      let loadMission = new LoadMission.Request();
-
-      for (var wp of req.body.waypoints)
-      {
-        wpAction.action_type = waypointAction.NO_ACTION;
-        wpAction.action_param = 0;
-        point.x = wp[0];
-        point.y = wp[1];
-        point.z = wp[2];
-        //Temporarily set orientation to zero
-        quaternion.x = 0.0;
-        quaternion.y = 0.0;
-        quaternion.z = 0.0;
-        quaternion.w = 0.0;
-        pose.position = point;
-        pose.orientation = quaternion;
-        waypoint.pose = pose;
-        waypoint.action = wpAction;
-        mission.waypoints.push(waypoint);
-      }
-      loadMission.mission = mission;
-      ROS2handle.loadMissionPlan._serviceName = prefixTopics+req.body.target+"/mission_control/mission/load";
-      ROS2handle.loadMissionPlan.waitForService(1000).then((result) => {
-        if (!result) {
-          console.log('Error: service not available');
-          return;
-        }
-        //console.log(`Sending: ${typeof loadMission}`, loadMission);
-        ROS2handle.loadMissionPlan.sendRequest(loadMission, (response) => {
-          res.send({'success':response.success, 'target':req.body.target});
-        });
-      });
-      
     });
 
     //Handler for service: abort
     this.app.post('/abort', function(req,res) {
-      const request = {target:req.body.target};
+      const request = {target:req.target};
       ROS2handle.abort.waitForService(1000).then((result) => {
         if (!result) {
           console.log('Error: service not available');
           return;
         }
         ROS2handle.abort.sendRequest(request, (response) => {
-          res.send({'success':response.success, 'target':req.body.target});
+          res.send({'success':response.success, 'target':req.target});
         });
       });
     });
@@ -160,7 +210,7 @@ class ROS2
     });
 
     //Create service: manual_override (athena)
-    this.manualOverrideAthena = this.node.createClient('std_srvs/srv/SetBool', prefixTopics+'athena/motor_control/manual_override');
+    this.manualOverride = this.node.createClient('std_srvs/srv/SetBool', prefixTopics+'athena/motor_control/manual_override');
     //this.manualOverrideAthena._serviceName = 'naiad/motor_control_manual_override';
     //console.log(this.manualOverrideAthena);
 
@@ -173,7 +223,7 @@ class ROS2
     //this.startMissionPlanAthena.sendMission();
 
     //Create service: abort
-    this.abort = this.node.createClient('trident_msgs/srv/Abort', 'abort');
+    this.abort = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
 
     this.node.spin();
   }
@@ -236,13 +286,12 @@ function main()
 
   //Setup server and start it
   server.init();
-  server.start();
+  server.start(ros2);
   server.handleReq(ros2);
 
   //Setup ros2 and serve messages/services/actions
   ros2.init();
   ros2.startInterfaces();
-
   
 }
 

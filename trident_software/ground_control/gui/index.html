@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Ground control</title>
+        <link rel="icon" type="image/png" href="img/TridentLogoAlpha.png">
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/bootstrap-icons.css">
@@ -90,10 +91,9 @@
                 <div class="row p-2" style="background: white;">
                     <span class="pb-1 px-0 fw-bold">Payload type:</span>
                     <select id="payloadSelectBox" class="form-select" size="6">
-                        <option value="load_mission_plan" selected>Load mission plan</option>
+                        <option value="load_mission_plan">Load mission plan</option>
                         <option value="start_mission_plan">Start mission plan</option>
-                        <option value="toggle_manual_control">Toggle manual control</option>
-                        <option value="toggle_automatic_control">Toggle automatic control</option>
+                        <option value="toggle_manual_override">Toggle manual override</option>
                         <option value="abort">Abort</option>
                     </select>
 
@@ -101,13 +101,13 @@
                     <div class="d-flex justify-content-between px-0">
                         <div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="checkboxTargetAthena">
+                                <input class="form-check-input checkboxTarget" type="checkbox" name="target" value="athena" id="checkboxTargetAthena">
                                 <label class="form-check-label" for="flexCheckDefault">
                                   Athena
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="checkboxTargetNaiad">
+                                <input class="form-check-input checkboxTarget" type="checkbox" name="target" value="naiad" id="checkboxTargetNaiad">
                                 <label class="form-check-label" for="flexCheckChecked">
                                   Naiad
                                 </label>
@@ -131,11 +131,11 @@
                                 <div class="card-body">
                                     <ul class="list-group shadow-sm">
                                         <div class="card-header">
-                                            <h6 class="my-0">Mode</h6>
+                                            <h6 class="my-0">Manual override</h6>
                                         </div>
                                         <li class="list-group-item">
                                             <div class="d-flex justify-content-center">
-                                                <span id="systemAthenaMode" class="badge bg-info">manual</span>
+                                                <span id="systemAthenaMO" class="badge bg-secondary">off</span>
                                             </div>
                                         </li>
                                     </ul>
@@ -185,11 +185,11 @@
                                 <div class="card-body">
                                     <ul class="list-group shadow-sm">
                                         <div class="card-header">
-                                            <h6 class="my-0">Mode</h6>
+                                            <h6 class="my-0">Manual override</h6>
                                         </div>
                                         <li class="list-group-item">
                                             <div class="d-flex justify-content-center">
-                                                <span id="systemNaiadMode" class="badge bg-info">manual</span>
+                                                <span id="systemNaiadMO" class="badge bg-secondary">off</span>
                                             </div>
                                         </li>
                                     </ul>
@@ -240,6 +240,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="js/socket.io.min.js"></script>
     <script src="js/main.js" type="text/javascript"></script>
 
 </html>

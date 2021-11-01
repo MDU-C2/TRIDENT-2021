@@ -41,8 +41,6 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Num.msg"
-  "srv/ToggleControl.srv"
-  "srv/Abort.srv"
   "msg/Waypoint.msg"
   "msg/WaypointAction.msg"
   "msg/Mission.msg"
@@ -51,6 +49,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LoadMission.srv"
   "srv/GuidanceRequest.srv"
   "srv/GetGoalPose.srv"
+  "srv/GetState.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"
   "action/GotoPose.action"
