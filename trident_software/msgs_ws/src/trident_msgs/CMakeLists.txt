@@ -54,6 +54,7 @@ set(msg_files
   "srv/LoadMission.srv"
   "srv/GuidanceRequest.srv"
   "srv/GetGoalPose.srv"
+  "srv/GetState.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"
   "action/GotoPose.action"

@@ -12,6 +12,7 @@ import json
 # from geometry_msgs.msg import Pose, Point, Quaternion
 # from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutputs, MotorOutput
+from trident_msgs.srv import GetState
 from baseclasses.tridentstates import MotorDriverState
 
 
@@ -22,7 +23,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
 
     def __init__(self, node_name):
         super().__init__(node_name)
-        self.motor_driver_state = MotorDriverState.IDLE
+        self._motor_driver_state = MotorDriverState.IDLE
 
         # Declare parameters
         self.declare_parameters(
@@ -63,6 +64,12 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             'motor_driver/motors/activate',
             self._activate_motors_service_callback
         )
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'motor_driver/state/get',
+            self._get_state_callback
+        )
 
     @abstractmethod
     def _send_motor_values(self, motor_values):
@@ -90,7 +97,16 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         self.__send_motor_values(outputs)
 
     #                   Callbacks
-    # -----------------------------------------
+    # -----------------------------------------        
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._motor_driver_state)
+        response.int_state = self._motor_driver_state
+
+        return response
+
     def _kill_motors_service_callback(self, _, response):
         """Callback function for the kill_motors service.
         The motors are killed by setting the motor output to 0 and the motors_killed boolean to True,
@@ -98,7 +114,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """
         try:
             self.set_zero_motor_output()
-            self.motor_driver_state = MotorDriverState.KILLED
+            self._motor_driver_state = MotorDriverState.KILLED
             self.motors_killed = True
             response.success = True
             response.message = "Successfully killed the motors."
@@ -112,7 +128,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """Callback function for the activate_motors service.
         """
         try:
-            self.motor_driver_state = MotorDriverState.ACTIVE
+            self._motor_driver_state = MotorDriverState.ACTIVE
             self.motors_killed = False
             response.success = True
             response.message = "Successfully activated the motors."
@@ -130,7 +146,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
 
         self.get_logger().info('Watchdog timer for motor output silence triggered.')
         self.set_zero_motor_output()
-        self.motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
+        self._motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
         # Cancel the timer so it behaves like a oneshot timer.
         self._motor_output_silence_watchdog_timer.cancel()
 
@@ -146,7 +162,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         if not self.motors_killed:
             motor_outputs = msg.motor_outputs
             self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
-            self.motor_driver_state = MotorDriverState.ACTIVE
+            self._motor_driver_state = MotorDriverState.ACTIVE
             # for motor_num, value in motor_outputs:
             self.__send_motor_values(motor_outputs)
             # Motor values are sent to the motors, reset the watchdog timer

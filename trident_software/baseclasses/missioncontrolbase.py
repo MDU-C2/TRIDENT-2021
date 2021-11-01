@@ -10,7 +10,7 @@ from rclpy.action import ActionClient, ActionServer
 
 from geometry_msgs.msg import Pose, Point, Quaternion      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
-from trident_msgs.srv import LoadMission
+from trident_msgs.srv import LoadMission, GetState
 from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
 
@@ -22,35 +22,51 @@ class MissionControlBase(Node):
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
-        self.state = MissionControlState.NO_MISSION
+        self._mission_control_state = MissionControlState.NO_MISSION
         self.mission = None
         # Event that keeps track on whether an action has finished or not.
         self._goto_waypoint_done_event = Event()
 
 
-        self.get_logger().info('Creating servers.')
+        # self.get_logger().info('Creating servers.')
         # Create the servers
         # ------------------
         # Server for the mission control's load mission service
         self._server_load_mission = self.create_service(LoadMission, 'mission_control/mission/load', self.server_load_mission_callback)
-        self.get_logger().info('LoadMission server created.')
+        # self.get_logger().info('LoadMission server created.')
         self._action_server_start_mission = ActionServer(
             self,
             StartMission,
             'mission_control/mission/start',
             execute_callback=self._action_server_start_mission_execute_callback,
         )
-        self.get_logger().info('StartMission action server created.')
+        # self.get_logger().info('StartMission action server created.')
+
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'mission_control/state/get',
+            self._get_state_callback
+        )
         
         # Create the clients
         # ------------------
         self._action_client_goto_waypoint = ActionClient(self, GotoWaypoint, 'navigation/waypoint/go')
         self._goto_waypoint_get_result_future = None
-        self.get_logger().info('GotoWaypoint action client created.')
+        # self.get_logger().info('GotoWaypoint action client created.')
 
 
     #                   Callbacks
     # -----------------------------------------
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._mission_control_state)
+        response.int_state = self._mission_control_state
+
+        return response
+
     # Goto waypoint action client callbacks
     # -----------------------
     def _goto_waypoint_feedback_callback(self, feedback):
@@ -117,7 +133,7 @@ class MissionControlBase(Node):
         waypoints_failed = 0
 
         # Update mission control state
-        self.state = MissionControlState.EXECUTING_MISSION
+        self._mission_control_state = MissionControlState.EXECUTING_MISSION
         self.get_logger().info(f"Starting to execute mission with {total_waypoints} waypoints.")
 
         for i, waypoint in enumerate(self.mission.waypoints):
@@ -151,7 +167,7 @@ class MissionControlBase(Node):
             goal_handle.publish_feedback(feedback_msg)
 
         # Update mission control state, since the mission is finished.
-        self.state = MissionControlState.MISSION_FINISHED
+        self._mission_control_state = MissionControlState.MISSION_FINISHED
         # goal_handle.succeed()
         
         # Set the goal state

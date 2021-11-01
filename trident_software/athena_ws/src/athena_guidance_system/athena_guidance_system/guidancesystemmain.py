@@ -15,7 +15,7 @@ from std_srvs.srv import Trigger                           # https://github.com/
 from std_msgs.msg import String
 from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
-from trident_msgs.srv import GuidanceRequest, GetGoalPose
+from trident_msgs.srv import GuidanceRequest, GetGoalPose, GetState
 
 
 class GuidanceSystemNode(Node):
@@ -38,6 +38,12 @@ class GuidanceSystemNode(Node):
             Trigger,
             'guidance_system/guidance/stop',
             self._guidance_stop_callback
+        )
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'guidance_system/state/get',
+            self._get_state_callback
         )
 
         # Clients
@@ -83,6 +89,15 @@ class GuidanceSystemNode(Node):
 
     # Callbacks
     # ---------
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._guidance_system_state)
+        response.int_state = self._guidance_system_state
+
+        return response
+
     async def _guidance_request_callback(self, request, response):
         """Callback for the guidance request service.
         If the agent's GotoWaypoint status is Holding, the guidance request can be accepted,
