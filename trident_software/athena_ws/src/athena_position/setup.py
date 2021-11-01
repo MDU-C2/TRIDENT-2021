@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'position_node = athena_position.athena_position:main'
+            'position_node = athena_position.athena_position:main',
+            'imu_node = athena_position.sensor_imu:main',
+            'gps_node = athena_position.sensor_gps:main'
         ],
     },
 )
