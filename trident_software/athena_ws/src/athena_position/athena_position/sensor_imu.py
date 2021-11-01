@@ -22,7 +22,7 @@ class IMUNode(sensbase):
         # TODO: couldn't find any real noise values, but these should be fine?
         (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
         
-        super().__init__('imu', 'athena', 0.25
+        super().__init__('imu', 'athena', 0.25,
                          init_obs_mat, 4, np.identity(4)*0.1**2)
         
         self.prev_state = np.transpose(np.zeros((6,1)))
@@ -35,9 +35,9 @@ class IMUNode(sensbase):
     def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
-        self.obs_mat[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /
+        self.obs_mat[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
                              (dt*state[3, 0])
-        self.obs_mat[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /
+        self.obs_mat[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
                              (dt*state[4, 0])
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
