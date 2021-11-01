@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'position_node = athena_position.athena_position:main'
         ],
     },
 )
