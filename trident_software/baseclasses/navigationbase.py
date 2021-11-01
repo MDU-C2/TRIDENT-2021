@@ -13,7 +13,7 @@ from rclpy.action import ActionClient, ActionServer
 from geometry_msgs.msg import Pose, Point      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
 from std_msgs.msg import String
-from trident_msgs.srv import GetGoalPose
+from trident_msgs.srv import GetGoalPose, GetState
 from trident_msgs.action import GotoWaypoint, GotoPose, HoldPose
 
 
@@ -51,6 +51,12 @@ class NavigationBase(Node):
             GetGoalPose,
             'navigation/waypoint/get/goal_pose',
             self._get_goal_pose_callback
+        )
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'navigation/state/get',
+            self._get_state_callback
         )
 
         
@@ -135,6 +141,15 @@ class NavigationBase(Node):
 
     #                   Callbacks
     # --------------------------------------------
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._navigation_state)
+        response.int_state = self._navigation_state
+
+        return response
+
     def _get_goal_pose_callback(self, _, response):
         """Simple getter for the current goal pose.
         """

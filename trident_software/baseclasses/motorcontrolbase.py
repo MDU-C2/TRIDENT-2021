@@ -16,6 +16,7 @@ from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutputs, MotorOutput
+from trident_msgs.srv import GetState
 from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorControlState
 
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -55,7 +56,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
 
         # Set initial motor control state to IDLE
-        self.motor_control_state = MotorControlState.IDLE
+        self._motor_control_state = MotorControlState.IDLE
         # Boolean that controls the manual override, if manual override is True, the motor control will not send any output values to the motor driver.
         self._manual_override = False
         # The last known state of the agent.
@@ -131,13 +132,20 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             self._server_manual_override_callback
         )
 
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'motor_control/state/get',
+            self._get_state_callback
+        )
+
 
     def _update_node_state(self, new_state):
         """Updates the node's state and publish the new state to the state topic.
         """
-        self.motor_control_state = MotorControlState(new_state)
+        self._motor_control_state = MotorControlState(new_state)
         msg = String()
-        msg.data = str(self.motor_control_state)
+        msg.data = str(self._motor_control_state)
         self.get_logger().info(f"Publishing new state: {msg.data}")
         self._motor_control_state_publisher.publish(msg)
 
@@ -254,6 +262,15 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
     #                   Callbacks
     # -----------------------------------------
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._motor_control_state)
+        response.int_state = self._motor_control_state
+
+        return response
+
     def _teleop_twist_callback(self, msg):
         """Callback for the teleop twist cmd vel message subcription.
         The teleop only works if manual override is set to True.

@@ -20,6 +20,10 @@ srv/GetGoalPose.idl
 srv/GetGoalPose.srv
 srv/GetGoalPose_Request.msg
 srv/GetGoalPose_Response.msg
+srv/GetState.idl
+srv/GetState.srv
+srv/GetState_Request.msg
+srv/GetState_Response.msg
 srv/GuidanceRequest.idl
 srv/GuidanceRequest.srv
 srv/GuidanceRequest_Request.msg
