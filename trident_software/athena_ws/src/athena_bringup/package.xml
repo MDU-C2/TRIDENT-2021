@@ -14,10 +14,13 @@
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_srvs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>athena_motor_control</exec_depend>
   <exec_depend>athena_navigation</exec_depend>
   <exec_depend>athena_mission_control</exec_depend>
+  <exec_depend>athena_guidance_system</exec_depend>
+  <exec_depend>athena_driver</exec_depend>
   <!-- The msgs_ws needs to be sourced before building in order to import the custom interface -->
   <depend>trident_msgs</depend> 
 

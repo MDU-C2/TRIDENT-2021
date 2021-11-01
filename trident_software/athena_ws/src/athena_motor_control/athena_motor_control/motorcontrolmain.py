@@ -1,12 +1,11 @@
 import rclpy
-from typing import List
 from rclpy.executors import MultiThreadedExecutor
 from geometry_msgs.msg import Pose
 from trident_msgs.msg import MotorOutputs, MotorOutput
 from baseclasses.motorcontrolbase import MotorControlBase
 
 class MotorControlNode(MotorControlBase):
-    """The main node for the motor control module.
+    """The main node for the motor control module in Athena.
     """
     def __init__(self, node_name):
         super().__init__(node_name)
@@ -36,5 +35,3 @@ def main(args=None):
 
 if __name__=="__main__":
     main()
-
-

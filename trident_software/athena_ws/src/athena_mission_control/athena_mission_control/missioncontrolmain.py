@@ -4,7 +4,7 @@ from baseclasses.missioncontrolbase import MissionControlBase
 
 
 class MissionControlNode(MissionControlBase):
-    """The main node for the Mission Control module. 
+    """The main node for the Mission Control module in Athena.
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)

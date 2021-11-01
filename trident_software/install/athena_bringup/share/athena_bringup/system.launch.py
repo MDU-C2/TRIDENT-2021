@@ -28,14 +28,14 @@ def generate_launch_description():
             name='navigation',
             parameters=[config]
         ),
-        # Node(
-        #     package='athena_motor_control',
-        #     namespace='athena',
-        #     executable='motor_control',
-        #     output='screen',
-        #     name='motor_control',
-        #     parameters=[config]
-        # ),
+        Node(
+            package='athena_motor_control',
+            namespace='athena',
+            executable='motor_control',
+            output='screen',
+            name='motor_control',
+            parameters=[config]
+        ),
         Node(
             package='athena_driver',
             namespace='athena',
