@@ -12,15 +12,16 @@ class SensorNode(Node, ABC):
         self.obs_mat = observation_matrix
         self.measure = np.zeros((measure_var_count, 1))
         self.m_noise = noise_matrix
-        assert (self.obs_mat.shape[0] == measure_var_count), "Matrix is not the right shape for the measurement size"
+        assert (self.obs_mat.shape[0] == measure_var_count),\
+            "Matrix is not the right shape for the measurement size"
         # I think?
-        assert (self.obs_mat.m_noise[0] == measure_var_count &&
-                self.obs_mat.m_noise[1] == measure_var_count) "Noise matrix is not the right shape for the measurement size"
+        assert (self.m_noise.shape[0] == measure_var_count and self.m_noise.shape[1] == measure_var_count),\
+            "Noise matrix is not the right shape for the measurement size"
         
         self.srv   = self.create_service(
             KalmanSensorService,
             '/'+mounted_on+'/sensor/'+sensor_type,
-            SensorService)
+            self.SensorService)
         self.timer = self.create_timer(read_interval, self.TakeMeasurement)
         
     def SensorService(self, request, response):
@@ -35,16 +36,17 @@ class SensorNode(Node, ABC):
                              self.obs_mat,
                              covar),
                              np.transpose(self.obs_mat)) + self.m_noise
-        kalman_gain = np.marmul(np.matmul(
+        kalman_gain = np.matmul(np.matmul(
                           covar,
                           np.transpose(self.obs_mat)),
                           np.linalg.inv(residual_covar))
         
         # Craft and send response
-        response.residual          = list(residual.flatten())
-        response.gain              = list(gain.flatten())
-        response.observationmatrix = list(self.obs_mat.flatten())
-        
+        response.residual          = tuple(residual.flatten())
+        response.gain              = tuple(kalman_gain.flatten())
+        response.observationmatrix = tuple(self.obs_mat.flatten())
+        print(response)
+
         return response
     
     @abstractmethod

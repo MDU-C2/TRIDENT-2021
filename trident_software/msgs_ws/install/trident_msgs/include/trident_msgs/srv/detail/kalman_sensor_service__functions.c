@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rcutils/allocator.h"
-
 // Include directives for member types
 // Member `state`
 // Member `covar`
@@ -49,15 +47,14 @@ trident_msgs__srv__KalmanSensorService_Request__fini(trident_msgs__srv__KalmanSe
 trident_msgs__srv__KalmanSensorService_Request *
 trident_msgs__srv__KalmanSensorService_Request__create()
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  trident_msgs__srv__KalmanSensorService_Request * msg = (trident_msgs__srv__KalmanSensorService_Request *)allocator.allocate(sizeof(trident_msgs__srv__KalmanSensorService_Request), allocator.state);
+  trident_msgs__srv__KalmanSensorService_Request * msg = (trident_msgs__srv__KalmanSensorService_Request *)malloc(sizeof(trident_msgs__srv__KalmanSensorService_Request));
   if (!msg) {
     return NULL;
   }
   memset(msg, 0, sizeof(trident_msgs__srv__KalmanSensorService_Request));
   bool success = trident_msgs__srv__KalmanSensorService_Request__init(msg);
   if (!success) {
-    allocator.deallocate(msg, allocator.state);
+    free(msg);
     return NULL;
   }
   return msg;
@@ -66,11 +63,10 @@ trident_msgs__srv__KalmanSensorService_Request__create()
 void
 trident_msgs__srv__KalmanSensorService_Request__destroy(trident_msgs__srv__KalmanSensorService_Request * msg)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (msg) {
     trident_msgs__srv__KalmanSensorService_Request__fini(msg);
   }
-  allocator.deallocate(msg, allocator.state);
+  free(msg);
 }
 
 
@@ -80,11 +76,9 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__init(trident_msgs__srv
   if (!array) {
     return false;
   }
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   trident_msgs__srv__KalmanSensorService_Request * data = NULL;
-
   if (size) {
-    data = (trident_msgs__srv__KalmanSensorService_Request *)allocator.zero_allocate(size, sizeof(trident_msgs__srv__KalmanSensorService_Request), allocator.state);
+    data = (trident_msgs__srv__KalmanSensorService_Request *)calloc(size, sizeof(trident_msgs__srv__KalmanSensorService_Request));
     if (!data) {
       return false;
     }
@@ -101,7 +95,7 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__init(trident_msgs__srv
       for (; i > 0; --i) {
         trident_msgs__srv__KalmanSensorService_Request__fini(&data[i - 1]);
       }
-      allocator.deallocate(data, allocator.state);
+      free(data);
       return false;
     }
   }
@@ -117,8 +111,6 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__fini(trident_msgs__srv
   if (!array) {
     return;
   }
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-
   if (array->data) {
     // ensure that data and capacity values are consistent
     assert(array->capacity > 0);
@@ -126,7 +118,7 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__fini(trident_msgs__srv
     for (size_t i = 0; i < array->capacity; ++i) {
       trident_msgs__srv__KalmanSensorService_Request__fini(&array->data[i]);
     }
-    allocator.deallocate(array->data, allocator.state);
+    free(array->data);
     array->data = NULL;
     array->size = 0;
     array->capacity = 0;
@@ -140,14 +132,13 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__fini(trident_msgs__srv
 trident_msgs__srv__KalmanSensorService_Request__Sequence *
 trident_msgs__srv__KalmanSensorService_Request__Sequence__create(size_t size)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  trident_msgs__srv__KalmanSensorService_Request__Sequence * array = (trident_msgs__srv__KalmanSensorService_Request__Sequence *)allocator.allocate(sizeof(trident_msgs__srv__KalmanSensorService_Request__Sequence), allocator.state);
+  trident_msgs__srv__KalmanSensorService_Request__Sequence * array = (trident_msgs__srv__KalmanSensorService_Request__Sequence *)malloc(sizeof(trident_msgs__srv__KalmanSensorService_Request__Sequence));
   if (!array) {
     return NULL;
   }
   bool success = trident_msgs__srv__KalmanSensorService_Request__Sequence__init(array, size);
   if (!success) {
-    allocator.deallocate(array, allocator.state);
+    free(array);
     return NULL;
   }
   return array;
@@ -156,11 +147,10 @@ trident_msgs__srv__KalmanSensorService_Request__Sequence__create(size_t size)
 void
 trident_msgs__srv__KalmanSensorService_Request__Sequence__destroy(trident_msgs__srv__KalmanSensorService_Request__Sequence * array)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (array) {
     trident_msgs__srv__KalmanSensorService_Request__Sequence__fini(array);
   }
-  allocator.deallocate(array, allocator.state);
+  free(array);
 }
 
 
@@ -212,15 +202,14 @@ trident_msgs__srv__KalmanSensorService_Response__fini(trident_msgs__srv__KalmanS
 trident_msgs__srv__KalmanSensorService_Response *
 trident_msgs__srv__KalmanSensorService_Response__create()
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  trident_msgs__srv__KalmanSensorService_Response * msg = (trident_msgs__srv__KalmanSensorService_Response *)allocator.allocate(sizeof(trident_msgs__srv__KalmanSensorService_Response), allocator.state);
+  trident_msgs__srv__KalmanSensorService_Response * msg = (trident_msgs__srv__KalmanSensorService_Response *)malloc(sizeof(trident_msgs__srv__KalmanSensorService_Response));
   if (!msg) {
     return NULL;
   }
   memset(msg, 0, sizeof(trident_msgs__srv__KalmanSensorService_Response));
   bool success = trident_msgs__srv__KalmanSensorService_Response__init(msg);
   if (!success) {
-    allocator.deallocate(msg, allocator.state);
+    free(msg);
     return NULL;
   }
   return msg;
@@ -229,11 +218,10 @@ trident_msgs__srv__KalmanSensorService_Response__create()
 void
 trident_msgs__srv__KalmanSensorService_Response__destroy(trident_msgs__srv__KalmanSensorService_Response * msg)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (msg) {
     trident_msgs__srv__KalmanSensorService_Response__fini(msg);
   }
-  allocator.deallocate(msg, allocator.state);
+  free(msg);
 }
 
 
@@ -243,11 +231,9 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__init(trident_msgs__sr
   if (!array) {
     return false;
   }
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   trident_msgs__srv__KalmanSensorService_Response * data = NULL;
-
   if (size) {
-    data = (trident_msgs__srv__KalmanSensorService_Response *)allocator.zero_allocate(size, sizeof(trident_msgs__srv__KalmanSensorService_Response), allocator.state);
+    data = (trident_msgs__srv__KalmanSensorService_Response *)calloc(size, sizeof(trident_msgs__srv__KalmanSensorService_Response));
     if (!data) {
       return false;
     }
@@ -264,7 +250,7 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__init(trident_msgs__sr
       for (; i > 0; --i) {
         trident_msgs__srv__KalmanSensorService_Response__fini(&data[i - 1]);
       }
-      allocator.deallocate(data, allocator.state);
+      free(data);
       return false;
     }
   }
@@ -280,8 +266,6 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__fini(trident_msgs__sr
   if (!array) {
     return;
   }
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-
   if (array->data) {
     // ensure that data and capacity values are consistent
     assert(array->capacity > 0);
@@ -289,7 +273,7 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__fini(trident_msgs__sr
     for (size_t i = 0; i < array->capacity; ++i) {
       trident_msgs__srv__KalmanSensorService_Response__fini(&array->data[i]);
     }
-    allocator.deallocate(array->data, allocator.state);
+    free(array->data);
     array->data = NULL;
     array->size = 0;
     array->capacity = 0;
@@ -303,14 +287,13 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__fini(trident_msgs__sr
 trident_msgs__srv__KalmanSensorService_Response__Sequence *
 trident_msgs__srv__KalmanSensorService_Response__Sequence__create(size_t size)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  trident_msgs__srv__KalmanSensorService_Response__Sequence * array = (trident_msgs__srv__KalmanSensorService_Response__Sequence *)allocator.allocate(sizeof(trident_msgs__srv__KalmanSensorService_Response__Sequence), allocator.state);
+  trident_msgs__srv__KalmanSensorService_Response__Sequence * array = (trident_msgs__srv__KalmanSensorService_Response__Sequence *)malloc(sizeof(trident_msgs__srv__KalmanSensorService_Response__Sequence));
   if (!array) {
     return NULL;
   }
   bool success = trident_msgs__srv__KalmanSensorService_Response__Sequence__init(array, size);
   if (!success) {
-    allocator.deallocate(array, allocator.state);
+    free(array);
     return NULL;
   }
   return array;
@@ -319,9 +302,8 @@ trident_msgs__srv__KalmanSensorService_Response__Sequence__create(size_t size)
 void
 trident_msgs__srv__KalmanSensorService_Response__Sequence__destroy(trident_msgs__srv__KalmanSensorService_Response__Sequence * array)
 {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (array) {
     trident_msgs__srv__KalmanSensorService_Response__Sequence__fini(array);
   }
-  allocator.deallocate(array, allocator.state);
+  free(array);
 }

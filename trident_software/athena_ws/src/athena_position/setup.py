@@ -1,11 +1,23 @@
 from setuptools import setup
+import os
 
 package_name = 'athena_position'
+
+baseclasses_package_path = os.path.join(
+    os.path.abspath(__file__).split('TRIDENT-2021')[0],
+    ('TRIDENT-2021/trident_software/baseclasses')
+)
+
+messages_package_path = os.path.join(
+    os.path.abspath(__file__).split('TRIDENT-2021')[0],
+    ('TRIDENT-2021/trident_software/msgs_ws')
+)
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    package_dir={'baseclasses': baseclasses_package_path},
+    packages=[package_name, 'baseclasses'],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

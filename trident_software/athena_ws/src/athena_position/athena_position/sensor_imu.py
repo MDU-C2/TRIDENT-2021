@@ -4,8 +4,9 @@ import board
 import busio
 import adafruit_bno055
 from time import time
+import numpy as np
 
-class IMUNode(sensbase):
+class IMUNode(sensbase.SensorNode):
     def __init__(self):
         '''The IMU measurement vector will look like this
            accel_x accel_y heading delta_head
@@ -25,10 +26,10 @@ class IMUNode(sensbase):
         super().__init__('imu', 'athena', 0.25,
                          init_obs_mat, 4, np.identity(4)*0.1**2)
         
-        self.prev_state = np.transpose(np.zeros((6,1)))
+        self.prev_state = np.zeros((6,1))
         self.prev_state_time = time()
         self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.sensor = adafruit_bno055.BNO055_I2C(i2c)
+        self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
     
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
@@ -46,10 +47,10 @@ class IMUNode(sensbase):
     
     def TakeMeasurement(self):
         # TODO: Maybe switch readings to follow north-east-down?
-        self.measure[0,0] = sensor.linear_acceleration[0] # X Accel
-        self.measure[1,0] = sensor.linear_acceleration[1] # Y Accel
-        self.measure[2,0] = sensor.euler[0]               # Yaw (heading)
-        self.measure[3,0] = sensor.gyro[2]                # Rotation
+        self.measure[0,0] = self.sensor.linear_acceleration[0] # X Accel
+        self.measure[1,0] = self.sensor.linear_acceleration[1] # Y Accel
+        self.measure[2,0] = self.sensor.euler[0]               # Yaw (heading)
+        self.measure[3,0] = self.sensor.gyro[2]                # Rotation
 
 def main(args=None):
     rclpy.init(args=args)

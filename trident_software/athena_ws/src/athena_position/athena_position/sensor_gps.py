@@ -3,8 +3,9 @@ import rclpy
 import serial #package is named "pyserial"!
 import io
 import pynmea2
+import numpy as np
 
-class GPSNode(sensbase):
+class GPSNode(sensbase.SensorNode):
     def __init__(self):
         # NOTE: having an interval of 0 sec may not work! Fix a cleaner solution!
         ''' NOTE: Depending on how the Athena's xyz coordinates are stored,
@@ -13,7 +14,7 @@ class GPSNode(sensbase):
         super().__init__('gps', 'athena', 0,
                          np.eye(2,6), 2, np.identity(2)*0.0001**2)
         # Change as needed
-        self.ser = serial.Serial(port="COM7",baudrate=9600,timeout=0.5)
+        self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
         self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
     
     def TakeMeasurement(self):

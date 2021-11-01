@@ -55,7 +55,7 @@ add_library(trident_msgs::trident_msgs__rosidl_generator_c SHARED IMPORTED)
 
 set_target_properties(trident_msgs::trident_msgs__rosidl_generator_c PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "rosidl_runtime_c::rosidl_runtime_c;rosidl_typesupport_interface::rosidl_typesupport_interface;rcutils::rcutils"
+  INTERFACE_LINK_LIBRARIES "rosidl_runtime_c::rosidl_runtime_c;rosidl_typesupport_interface::rosidl_typesupport_interface"
 )
 
 if(CMAKE_VERSION VERSION_LESS 2.8.12)

@@ -45,21 +45,21 @@ struct KalmanSensorService_Request_
 
   // field types and members
   using _state_type =
-    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+    std::vector<double, typename ContainerAllocator::template rebind<double>::other>;
   _state_type state;
   using _covar_type =
-    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+    std::vector<double, typename ContainerAllocator::template rebind<double>::other>;
   _covar_type covar;
 
   // setters for named parameter idiom
   Type & set__state(
-    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+    const std::vector<double, typename ContainerAllocator::template rebind<double>::other> & _arg)
   {
     this->state = _arg;
     return *this;
   }
   Type & set__covar(
-    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+    const std::vector<double, typename ContainerAllocator::template rebind<double>::other> & _arg)
   {
     this->covar = _arg;
     return *this;
@@ -163,30 +163,30 @@ struct KalmanSensorService_Response_
 
   // field types and members
   using _residual_type =
-    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+    std::vector<double, typename ContainerAllocator::template rebind<double>::other>;
   _residual_type residual;
   using _gain_type =
-    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+    std::vector<double, typename ContainerAllocator::template rebind<double>::other>;
   _gain_type gain;
   using _observationmatrix_type =
-    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+    std::vector<double, typename ContainerAllocator::template rebind<double>::other>;
   _observationmatrix_type observationmatrix;
 
   // setters for named parameter idiom
   Type & set__residual(
-    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+    const std::vector<double, typename ContainerAllocator::template rebind<double>::other> & _arg)
   {
     this->residual = _arg;
     return *this;
   }
   Type & set__gain(
-    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+    const std::vector<double, typename ContainerAllocator::template rebind<double>::other> & _arg)
   {
     this->gain = _arg;
     return *this;
   }
   Type & set__observationmatrix(
-    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+    const std::vector<double, typename ContainerAllocator::template rebind<double>::other> & _arg)
   {
     this->observationmatrix = _arg;
     return *this;

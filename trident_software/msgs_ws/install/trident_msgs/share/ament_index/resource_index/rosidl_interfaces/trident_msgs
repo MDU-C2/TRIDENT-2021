@@ -1,3 +1,7 @@
+msg/AthenaState.idl
+msg/AthenaState.msg
+msg/NaiadState.idl
+msg/NaiadState.msg
 srv/KalmanSensorService.idl
 srv/KalmanSensorService.srv
 srv/KalmanSensorService_Request.msg
