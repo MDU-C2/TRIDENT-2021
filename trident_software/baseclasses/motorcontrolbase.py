@@ -33,7 +33,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             namespace='',
             parameters=[
                 ('motor_update_frequency', 50.0), # Hz
-                ('pas_orientation_update_freq', 0.5), # Hz
+                ('pas_orientation_update_freq', 2), # Hz
                 ('pas_threshold', 0.0), # Point and Shoot threshold in meters
                 ('goal_distance_slack', 0.2), # Meters
                 ('goal_orientation_slack', 0.1), # Percent

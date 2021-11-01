@@ -1,32 +1,49 @@
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from baseclasses.motordriverbase import MotorDriverBase
+from trident_msgs.msg import MotorOutputs
+from cola2_msgs.msg import Setpoints
 
 
 class MotorDriverNode(MotorDriverBase):
-    """The main node for the motor driver module.
+    """The main node for the motor driver module in Athena.
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
         self._simulation = True
+        # TODO: Read simulation param from config file
 
-        # if self._simulation:
-            # import 
-        # self._sim_motor_publisher = self.create_publisher(
-        # )
+        if self._simulation:
+            # Publisher for the motors in stonefish simulator
+            self._sim_motor_publisher = self.create_publisher(
+                Setpoints,
+                'thruster_setpoints',
+                10
+            )
 
-    def _send_motor_value(self, motor_number: int, value: int):
+    def _send_motor_values(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
 
         Args:
-            motor_number (int): The number of the motor that should receive the value
-            value (int): Value for the motor output
+            motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        # TODO: Implement this function
+        # Reset the motor output silence watchdog timer.
+        self._motor_output_silence_watchdog_timer.reset()
         if self._simulation:
-            pass
-            
+            # Create the thruster Setpoints message
+            msg = Setpoints()
+            outputs = []
+            for motor_output in motor_outputs:
+                # Scale the output value to stonefish values (-1, 1)
+                val = float(motor_output.value / 100)
+                outputs.append(val)
+            msg.setpoints = outputs
+            self.get_logger().info(f"Publishing motor outputs to simulation. Outputs: {msg}")
+            self._sim_motor_publisher.publish(msg)
+
+        # TODO: Implement real world drivers
+
 
 
 def main(args=None):
@@ -39,5 +56,3 @@ def main(args=None):
 
 if __name__=="__main__":
     main()
-
-

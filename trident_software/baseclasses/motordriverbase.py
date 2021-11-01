@@ -11,7 +11,7 @@ from std_srvs.srv import Trigger
 import json
 # from geometry_msgs.msg import Pose, Point, Quaternion
 # from trident_msgs.action import GotoPose, HoldPose
-from trident_msgs.msg import MotorOutput
+from trident_msgs.msg import MotorOutputs, MotorOutput
 from baseclasses.tridentstates import MotorDriverState
 
 
@@ -28,11 +28,11 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('motor_output_silence_period',  100), # Milliseconds
+                ('motor_output_silence_period',  0.3), # Seconds
                 ('motor_config',  [])
             ])
         # Load parameters
-        self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().integer_value # Milliseconds
+        self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
         self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value)
 
         # Set default motor state to active
@@ -45,7 +45,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         # Subscriptions
         # -------------
         self._motor_output_subscription = self.create_subscription(
-            MotorOutput,
+            MotorOutputs,
             'motor_control/motor_output',
             self._motor_output_sub_callback,
             1 # TODO: Use deadlines?
@@ -65,23 +65,29 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         )
 
     @abstractmethod
-    def _send_motor_value(self, motor_number, value):
+    def _send_motor_values(self, motor_values):
         pass
     
-    def __send_motor_value(self, motor_number, value):
+    def __send_motor_values(self, motor_values):
         """Private wrapper for the _send_motor_value abstract method.
         This wrapper ensures that the killed state of the motors is respected.
         """
         if self.motors_killed:
             self.get_logger().info('Motors are killed. Not sending motor values.')
             return
-        self._send_motor_value(motor_number, value)
+        self._send_motor_values(motor_values)
 
     def set_zero_motor_output(self):
         """Simply sets all motors output to zero.
         """
+        # motor_outputs = MotorOutputs()
+        outputs = []
         for motor in self._motor_config:
-            self.__send_motor_value(motor["id"], 0)
+            output = MotorOutput()
+            output.id, output.value = motor["id"], 0.0
+            outputs.append(output)
+        # motor_outputs.motor_outputs = outputs
+        self.__send_motor_values(outputs)
 
     #                   Callbacks
     # -----------------------------------------
@@ -121,8 +127,12 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """Callback for the motor output silence watchdog timer that simply sets all motor values to 0
         to avoid the agent from escaping form us in case the motor control node stops functioning. 
         """
+
+        self.get_logger().info('Watchdog timer for motor output silence triggered.')
         self.set_zero_motor_output()
         self.motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
+        # Cancel the timer so it behaves like a oneshot timer.
+        self._motor_output_silence_watchdog_timer.cancel()
 
     def _motor_output_sub_callback(self, msg):
         """Callback for messages received on the motor_control/motor_output topic.
@@ -137,8 +147,8 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             motor_outputs = msg.motor_outputs
             self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
             self.motor_driver_state = MotorDriverState.ACTIVE
-            for motor_num, value in motor_outputs:
-                self.__send_motor_value(motor_num, value)
+            # for motor_num, value in motor_outputs:
+            self.__send_motor_values(motor_outputs)
             # Motor values are sent to the motors, reset the watchdog timer
             self._motor_output_silence_watchdog_timer.reset()
         else:
