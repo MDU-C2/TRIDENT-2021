@@ -1,10 +1,11 @@
-"""The main node for the guidance system that is repsonsible for handling the guidance of NAIAD.
-The node can start and stop pinging sessions, responds to guidance requests and send reference position.
+"""The main node for the guidance system that is repsonsible for handling
+the guidance of NAIAD. The node can start and stop pinging sessions,
+responds to guidance requests and send reference position.
 
 Author: Johannes Deivard 2021-10
 """
 import rclpy
-from baseclasses.tridentstates import GotoWaypointStatus, GuidanceSystemState
+from baseclasses.tridentstates import GotoWaypointStatus, AthenaGuidanceSystemState
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.action import ActionClient, ActionServer
@@ -18,9 +19,11 @@ from trident_msgs.srv import GuidanceRequest, GetGoalPose
 
 
 class GuidanceSystemNode(Node):
+    """Node for the guidance system in Athena.
+    """
     def __init__(self, node_name):
         super().__init__(node_name)
-        self._guidance_system_state = GuidanceSystemState.IDLE
+        self._guidance_system_state = AthenaGuidanceSystemState.IDLE
         self._goto_waypoint_status = None
 
 
@@ -110,7 +113,7 @@ class GuidanceSystemNode(Node):
             if request.duration != 0:
                 # TODO: Create pinger shutdown timer
                 pass
-            self.update_state(GuidanceSystemState.GUIDING)
+            self.update_state(AthenaGuidanceSystemState.GUIDING)
             response.accepted = True
             response.reference_position = goal_pose.position
             response.message = f"Guidance request accepted. Pinger started with reference position: {goal_pose.position}"
@@ -135,7 +138,7 @@ class GuidanceSystemNode(Node):
             # Set the new state to idle
             response.success = True
             response.message = "Successfully stopped the guidance."
-            self.update_state(GuidanceSystemState.IDLE)
+            self.update_state(AthenaGuidanceSystemState.IDLE)
         except Exception as e:
             response.success = False
             response.message = f"Failed to stop the guidance. Error {e}"
@@ -145,7 +148,7 @@ class GuidanceSystemNode(Node):
 
     def _goto_waypoint_status_subscriber_callback(self, msg):
         """Callback that handles the GotoWaypoint status messages sent by the Navigation node.
-        NOTE: It might be better to make this a Getter service instead of constantly reading and 
+        NOTE: It might be better to make this a Getter service instead of constantly reading and
         updating the status.
         """
         self.get_logger().info(f"Read GotoWaypoint status update: {msg.data}. Updating state in guidance system.")

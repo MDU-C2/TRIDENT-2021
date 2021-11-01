@@ -10,7 +10,7 @@ from squaternion import Quaternion as SQuaternion # Simple quaternion calculatio
 import json
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionClient, ActionServer
+from rclpy.action import ActionClient, ActionServer, GoalResponse, CancelResponse
 from std_msgs.msg import String
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
@@ -372,8 +372,15 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self.get_logger().info(f'Holding duration reached.')
         self._hold_pose_time_reached = True
 
-    def _action_server_hold_pose_on_cancel_callback(self):
-        pass # TODO: Just set the hole_pose_time_reached to true?
+    def _action_server_hold_pose_on_cancel_callback(self, goal_handle):
+        """When a cancel is requested, we just set the hold_pose_time_reached
+        to true, and lets the execute callback handle the rest.
+        """
+        self.get_logger().info("Received cancel request. Cancelling...")
+        self._hold_pose_time_reached = True
+
+        return CancelResponse.ACCEPT
+    
 
     def _action_server_hold_pose_execute_callback(self, goal_handle):
         """Execution callback for the HoldPose action. Executes the goal with the help of PID regulation
@@ -467,7 +474,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result = HoldPose.Result()
         result.status = HoldPoseStatus.FINISHED
         result.duration = hold_end_time - hold_start_time
-        result.message = f"time: {hold_end_time}"
         result.message = f"Finished holding pose for {result.duration} seconds. Goal finished."
         # Calculate the final mean and variance
         mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state)
@@ -476,8 +482,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result.pose_variance = self.pose_from_list(variance)
 
         self.get_logger().info(f'Returning result: {result}')
-
+        # Update the motor control node state
         self._update_node_state(MotorControlState.IDLE)
+        # Reset the hold_pose_time_reached
         self._hold_pose_time_reached = False
 
         return result

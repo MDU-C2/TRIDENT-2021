@@ -11,12 +11,22 @@ class MissionControlState(IntEnum):
     def __str__(self):
         return self.name
 
-class GuidanceSystemState(IntEnum):
-    """Enum for the Guidance system states.
+class AthenaGuidanceSystemState(IntEnum):
+    """Enum for the Guidance system states in Athena.
     """
     IDLE = 1
     PREPARING_GUIDANCE = 2
     GUIDING = 3 # Pinging
+
+    def __str__(self):
+        return self.name
+
+class NaiadGuidanceSystemState(IntEnum):
+    """Enum for the Guidance system states.
+    """
+    IDLE = 1
+    AWAITING_GUIDANCE = 2
+    BEING_GUIDED = 3
 
     def __str__(self):
         return self.name
