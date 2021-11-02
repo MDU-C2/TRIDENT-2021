@@ -42,10 +42,12 @@ class SensorNode(Node, ABC):
                           np.linalg.inv(residual_covar))
         
         # Craft and send response
-        response.residual          = tuple(residual.flatten())
-        response.gain              = tuple(kalman_gain.flatten())
-        response.observationmatrix = tuple(self.obs_mat.flatten())
-        print(response)
+        response.residual          = residual.flatten().astype('float32').tolist()
+        response.gain              = kalman_gain.flatten().astype('float32').tolist()
+        response.observationmatrix = self.obs_mat.flatten().astype('float32').tolist()
+        #print("Request:",  request)
+        print("Response:", response)
+        print("First Gain Type:", type(response.gain[0]))
 
         return response
     
@@ -56,7 +58,7 @@ class SensorNode(Node, ABC):
 def main(args=None):
     rclpy.init(args=args)
     node = SensorNode()
-    sclpy.spin(node)
+    rclpy.spin(node)
     rclpy.shutdown()
 
 if __name__ == "__main__":

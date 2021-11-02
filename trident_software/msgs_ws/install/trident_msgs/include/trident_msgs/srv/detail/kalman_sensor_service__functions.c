@@ -20,12 +20,12 @@ trident_msgs__srv__KalmanSensorService_Request__init(trident_msgs__srv__KalmanSe
     return false;
   }
   // state
-  if (!rosidl_runtime_c__double__Sequence__init(&msg->state, 0)) {
+  if (!rosidl_runtime_c__float__Sequence__init(&msg->state, 0)) {
     trident_msgs__srv__KalmanSensorService_Request__fini(msg);
     return false;
   }
   // covar
-  if (!rosidl_runtime_c__double__Sequence__init(&msg->covar, 0)) {
+  if (!rosidl_runtime_c__float__Sequence__init(&msg->covar, 0)) {
     trident_msgs__srv__KalmanSensorService_Request__fini(msg);
     return false;
   }
@@ -39,9 +39,9 @@ trident_msgs__srv__KalmanSensorService_Request__fini(trident_msgs__srv__KalmanSe
     return;
   }
   // state
-  rosidl_runtime_c__double__Sequence__fini(&msg->state);
+  rosidl_runtime_c__float__Sequence__fini(&msg->state);
   // covar
-  rosidl_runtime_c__double__Sequence__fini(&msg->covar);
+  rosidl_runtime_c__float__Sequence__fini(&msg->covar);
 }
 
 trident_msgs__srv__KalmanSensorService_Request *
@@ -168,17 +168,17 @@ trident_msgs__srv__KalmanSensorService_Response__init(trident_msgs__srv__KalmanS
     return false;
   }
   // residual
-  if (!rosidl_runtime_c__double__Sequence__init(&msg->residual, 0)) {
+  if (!rosidl_runtime_c__float__Sequence__init(&msg->residual, 0)) {
     trident_msgs__srv__KalmanSensorService_Response__fini(msg);
     return false;
   }
   // gain
-  if (!rosidl_runtime_c__double__Sequence__init(&msg->gain, 0)) {
+  if (!rosidl_runtime_c__float__Sequence__init(&msg->gain, 0)) {
     trident_msgs__srv__KalmanSensorService_Response__fini(msg);
     return false;
   }
   // observationmatrix
-  if (!rosidl_runtime_c__double__Sequence__init(&msg->observationmatrix, 0)) {
+  if (!rosidl_runtime_c__float__Sequence__init(&msg->observationmatrix, 0)) {
     trident_msgs__srv__KalmanSensorService_Response__fini(msg);
     return false;
   }
@@ -192,11 +192,11 @@ trident_msgs__srv__KalmanSensorService_Response__fini(trident_msgs__srv__KalmanS
     return;
   }
   // residual
-  rosidl_runtime_c__double__Sequence__fini(&msg->residual);
+  rosidl_runtime_c__float__Sequence__fini(&msg->residual);
   // gain
-  rosidl_runtime_c__double__Sequence__fini(&msg->gain);
+  rosidl_runtime_c__float__Sequence__fini(&msg->gain);
   // observationmatrix
-  rosidl_runtime_c__double__Sequence__fini(&msg->observationmatrix);
+  rosidl_runtime_c__float__Sequence__fini(&msg->observationmatrix);
 }
 
 trident_msgs__srv__KalmanSensorService_Response *

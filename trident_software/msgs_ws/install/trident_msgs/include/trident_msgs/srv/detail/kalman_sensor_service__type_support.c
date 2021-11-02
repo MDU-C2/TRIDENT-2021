@@ -39,7 +39,7 @@ void KalmanSensorService_Request__rosidl_typesupport_introspection_c__KalmanSens
 static rosidl_typesupport_introspection_c__MessageMember KalmanSensorService_Request__rosidl_typesupport_introspection_c__KalmanSensorService_Request_message_member_array[2] = {
   {
     "state",  // name
-    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
     true,  // is array
@@ -54,7 +54,7 @@ static rosidl_typesupport_introspection_c__MessageMember KalmanSensorService_Req
   },
   {
     "covar",  // name
-    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
     true,  // is array
@@ -147,7 +147,7 @@ void KalmanSensorService_Response__rosidl_typesupport_introspection_c__KalmanSen
 static rosidl_typesupport_introspection_c__MessageMember KalmanSensorService_Response__rosidl_typesupport_introspection_c__KalmanSensorService_Response_message_member_array[3] = {
   {
     "residual",  // name
-    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
     true,  // is array
@@ -162,7 +162,7 @@ static rosidl_typesupport_introspection_c__MessageMember KalmanSensorService_Res
   },
   {
     "gain",  // name
-    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
     true,  // is array
@@ -177,7 +177,7 @@ static rosidl_typesupport_introspection_c__MessageMember KalmanSensorService_Res
   },
   {
     "observationmatrix",  // name
-    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     NULL,  // members of sub message
     true,  // is array

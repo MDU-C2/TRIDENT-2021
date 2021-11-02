@@ -25,8 +25,8 @@ extern "C"
 // Struct defined in srv/KalmanSensorService in the package trident_msgs.
 typedef struct trident_msgs__srv__KalmanSensorService_Request
 {
-  rosidl_runtime_c__double__Sequence state;
-  rosidl_runtime_c__double__Sequence covar;
+  rosidl_runtime_c__float__Sequence state;
+  rosidl_runtime_c__float__Sequence covar;
 } trident_msgs__srv__KalmanSensorService_Request;
 
 // Struct for a sequence of trident_msgs__srv__KalmanSensorService_Request.
@@ -52,9 +52,9 @@ typedef struct trident_msgs__srv__KalmanSensorService_Request__Sequence
 // Struct defined in srv/KalmanSensorService in the package trident_msgs.
 typedef struct trident_msgs__srv__KalmanSensorService_Response
 {
-  rosidl_runtime_c__double__Sequence residual;
-  rosidl_runtime_c__double__Sequence gain;
-  rosidl_runtime_c__double__Sequence observationmatrix;
+  rosidl_runtime_c__float__Sequence residual;
+  rosidl_runtime_c__float__Sequence gain;
+  rosidl_runtime_c__float__Sequence observationmatrix;
 } trident_msgs__srv__KalmanSensorService_Response;
 
 // Struct for a sequence of trident_msgs__srv__KalmanSensorService_Response.
