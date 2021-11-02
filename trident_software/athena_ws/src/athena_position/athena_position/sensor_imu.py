@@ -31,20 +31,6 @@ class IMUNode(sensbase.SensorNode):
         self.i2c = busio.I2C(board.SCL, board.SDA)
         self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
     
-    # Redefined to allow dynamic changing of observation matrix
-    # Maybe make this a full-fledged function?
-    def SensorService(self, request, response):
-        state = np.reshape(request.state, (-1,1))
-        dt = time() - self.prev_state_time
-        self.obs_mat[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
-                             (dt*state[3, 0])
-        self.obs_mat[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
-                             (dt*state[4, 0])
-        self.prev_state = np.copy(state)
-        self.prev_state_time = time()
-        
-        super().SensorService(request, response)
-    
     def TakeMeasurement(self):
         # TODO: Maybe switch readings to follow north-east-down?
         self.measure[0,0] = self.sensor.linear_acceleration[0] # X Accel

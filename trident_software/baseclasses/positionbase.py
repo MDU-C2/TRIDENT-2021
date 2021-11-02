@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 from example_interfaces.msg import String
 from trident_msgs.srv import KalmanSensorService
+from std_srvs.srv import SetBool
 
 class PosNode(Node, ABC):
     def __init__(self, name, pub_topic_type, pub_topic_name, interval,
@@ -44,7 +45,7 @@ class PosNode(Node, ABC):
         #-----------------------------------------------#
         self.sensor_handles = []
         for service_name in sensor_list:
-            cli = self.create_client(KalmanSensorService, service_name)
+            cli = self.create_client(SetBool, service_name)
             while not cli.wait_for_service(timeout_sec=1.0):
                 print(service_name,"is taking a while...")
             self.sensor_handles.append(cli)
@@ -95,9 +96,8 @@ class PosNode(Node, ABC):
     
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
-        req = KalmanSensorService.Request()
-        req.state = list(pred_state.flatten())
-        req.covar = list(pred_covar.flatten())
+        req = SetBool.Request()
+        req.data = True
         try:
             future = sensor_handle.call_async(req)
             #rclpy.spin_until_future_complete(self, future)
@@ -105,11 +105,7 @@ class PosNode(Node, ABC):
                 rclpy.spin_once(self)
                 if future.done():
                     resp = future.result()
-                    x_size = len(pred_state)
-                    y_size = len(resp.residual)
-                    return(np.reshape(resp.gain,               (x_size, y_size)),
-                           np.reshape(resp.residual,           (-1,1)          ),
-                           np.reshape(resp.observationmatrix,  (y_size, x_size)))
+                    return resp
         except Exception as e:
                 print("Couldn't get values from a service:",e)
     
@@ -148,16 +144,9 @@ class PosNode(Node, ABC):
             for sensor in self.sensor_handles:
                 try:
                     # Get the values from the sensors
-                    gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
-                    # Update the state estimate
-                    #print(gain, resid)
-                    pred_state = pred_state + np.matmul(gain, resid)
-                    # Update the covariance estimate
-                    pred_covar = np.matmul(
-                                    np.identity(pred_state.shape[0]) - np.matmul(
-                                        gain,
-                                        obs_mat),
-                                    pred_covar)
+                    resp = self.service_call(sensor, pred_state, pred_covar)
+                    print(resp)
+                    # Do nothing now, i guess
                 except Exception as e:
                     print("Skipping sensor due to failure!",e)
             
