@@ -42,7 +42,9 @@ class Server
 
   start(ROS2handle)
   {
-    this.heartbeat(ROS2handle);
+
+    this.heartbeat(ROS2handle); //Heartbeat handler
+    this.getStates(ROS2handle); //Get states handler
     this.server.listen(this.port);
     console.log('Server started at http://localhost:' + this.port);
 
@@ -54,11 +56,136 @@ class Server
 
   heartbeat(ROS2handle)
   {
+    //Check for hearbeat every 1s
     setInterval(() => {
       this.io.emit('heartbeat',{'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
       ROS2handle.heartbeatAthena.active = false;
             ROS2handle.heartbeatNaiad.active = false;
     },1000);
+  }
+
+  getStates(ROS2handle)
+  {
+    //Fetch states from each module every 1s
+    setInterval(() => {
+      var request = {}; //Empty request
+
+      /*
+        Athena
+      */
+      //Get state from Athena mission control module
+      ROS2handle.getStatesAthena.missionControl.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesAthena.missionControl.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Athena',module:'missionControl',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Athena navigation module
+      ROS2handle.getStatesAthena.navigation.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesAthena.navigation.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Athena',module:'navigation',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Athena motor control module
+      ROS2handle.getStatesAthena.motorControl.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesAthena.motorControl.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Athena',module:'motorControl',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Athena motor driver module
+      ROS2handle.getStatesAthena.motorDriver.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesAthena.motorDriver.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Athena',module:'motorDriver',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Athena position module
+      ROS2handle.getStatesAthena.position.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesAthena.position.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
+        });
+      });
+
+      /*
+        Naiad
+      */
+      //Get state from Athena mission control module
+      ROS2handle.getStatesNaiad.missionControl.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesNaiad.missionControl.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Naiad',module:'missionControl',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Naiad navigation module
+      ROS2handle.getStatesNaiad.navigation.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesNaiad.navigation.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Naiad',module:'navigation',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Naiad motor control module
+      ROS2handle.getStatesNaiad.motorControl.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesNaiad.motorControl.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Naiad',module:'motorControl',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Naiad motor driver module
+      ROS2handle.getStatesNaiad.motorDriver.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesNaiad.motorDriver.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Naiad',module:'motorDriver',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Naiad position module
+      ROS2handle.getStatesNaiad.position.waitForService(1000).then((result) => {
+        if (!result) {
+          console.log('Error: service not available');
+          return;
+        }
+        ROS2handle.getStatesNaiad.position.sendRequest(request, (response) => {
+          this.io.emit('getStates',{target:'Naiad',module:'position',state:response.state,intState:response.int_state})
+        });
+      });
+    },2000);
   }
 
   handleReq(ROS2handle)
@@ -188,6 +315,8 @@ class ROS2
     this.loadMissionPlan = null;
     this.startMissionPlan = null;
     this.abort = null;
+    this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
+    this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
   }
 
   init()
@@ -216,11 +345,21 @@ class ROS2
 
     //Create service: load_mission_plan
     this.loadMissionPlan = this.node.createClient('trident_msgs/srv/LoadMission', prefixTopics+'athena/mission_control/mission/load');
-    //this.loadMissionPlanNaiad = this.node.createClient('std_srvs/srv/Trigger', 'load_mission_plan/naiad');
 
-    //Create service: start_mission
-    //this.startMissionPlanAthena = new StartMissionActionClient(this.node);
-    //this.startMissionPlanAthena.sendMission();
+    /*
+      Create services to get states from Athena and Naiad
+    */
+    this.getStatesAthena.missionControl = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/mission_control/state/get');
+    this.getStatesAthena.navigation     = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/navigation/state/get');
+    this.getStatesAthena.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_control/state/get');
+    this.getStatesAthena.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_driver/state/get');
+    this.getStatesAthena.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/position/state/get');
+
+    this.getStatesNaiad.missionControl = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/mission_control/state/get');
+    this.getStatesNaiad.navigation     = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/navigation/state/get');
+    this.getStatesNaiad.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_control/state/get');
+    this.getStatesNaiad.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_driver/state/get');
+    this.getStatesNaiad.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/position/state/get');
 
     //Create service: abort
     this.abort = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');

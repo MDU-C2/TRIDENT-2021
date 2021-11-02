@@ -1,3 +1,39 @@
+class TridenStates {
+	constructor()
+	{
+		this.missionControlState = {
+			NO_MISSION: 0,
+			MISSION_LOADED: 1,
+			EXECUTING_MISSION: 2,
+			MISSION_FINISHED: 3
+		};
+		
+		this.guidanceState = {
+			IDLE: 1,
+			PREPARING_GUIDANCE: 2,
+			GUIDING: 3 //Pinging
+		};
+		
+		this.navigationState = {
+			IDLE: 0,
+			EXECUTING: 1
+		};
+		
+		this.motorControlState = {
+			IDLE: 0,
+			EXECUTING: 1,
+			MANUAL_OVERRIDE: 2
+		};
+		
+		this.motorDriverState = {
+			IDLE: 0,
+			KILLED: 1,
+			MOTOR_OUTPUT_SILENCE: 2,
+			ACTIVE: 3
+		};
+	}
+}
+
 class WaypointMap {
 	constructor(){
 		this.relativeNullPoint = {latitude:59.6175191,longitude:16.5609992}; //Null point from where to measure [x,y] distance, set at MDH C2
@@ -88,6 +124,106 @@ class Server {
 				document.getElementById("connStatusNaiad").innerHTML = "offline";
 				document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
 				printLoggerMain("Connection lost with Naiad", "red");
+			}
+		});
+	}
+
+	listenGetStates()
+	{
+		var state = new TridenStates();
+		this.socket.on('getStates', resp => {
+			//Switch statement for modules in athena
+			switch(resp.module)
+			{
+				//Switch statement for mission control
+				case 'missionControl':
+					switch(resp.intState)
+					{
+						case state.missionControlState.NO_MISSION:
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-secondary';
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "NO_MISSION";
+							break;
+						case state.missionControlState.MISSION_LOADED:
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-info';
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_LOADED";
+							break;
+						case state.missionControlState.EXECUTING_MISSION:
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "EXECUTING_MISSION";
+							break;
+						case state.missionControlState.MISSION_FINISHED:
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-success';
+							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_FINISHED";
+							break;
+					}
+				//Switch statement for navigation
+				case 'navigation':
+					switch(resp.intState)
+					{
+						case state.navigationState.IDLE:
+							document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-secondary';
+							document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "IDLE";
+							break;
+						case state.navigationState.EXECUTING:
+							document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "EXECUTING";
+							break;
+					}
+				//Switch statement for motor control
+				case 'motorControl':
+					switch(resp.intState)
+					{
+						case state.motorControlState.IDLE:
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-secondary';
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "IDLE";
+							break;
+						case state.motorControlState.EXECUTING:
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "EXECUTING";
+							break;
+						case state.motorControlState.MANUAL_OVERRIDE:
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-info';
+							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "MANUAL_OVERRIDE";
+							break;
+					}
+				//Switch statement for navigation
+				case 'motorDriver':
+					switch(resp.intState)
+					{
+						case state.motorDriverState.IDLE:
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-secondary';
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "IDLE";
+							break;
+						case state.motorDriverState.KILLED:
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-danger';
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "KILLED";
+							break;
+						case state.motorDriverState.MOTOR_OUTPUT_SILENCE:
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "MOTOR_OUTPUT_SILENCE";
+							break;
+						case state.motorDriverState.ACTIVE:
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "ACTIVE";
+							break;
+					}
+				//Switch statement for navigation
+				case 'position':
+					switch(resp.intState)
+					{
+						case state.guidanceState.IDLE:
+							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-secondary';
+							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "IDLE";
+							break;
+						case state.guidanceState.PREPARING_GUIDANCE:
+							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-info';
+							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "PREPARING_GUIDANCE";
+							break;
+						case state.guidanceState.GUIDING:
+							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-primary';
+							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "GUIDING";
+							break;
+					}
 			}
 		});
 	}
@@ -229,7 +365,7 @@ var naiad = new Naiad();
 	- setup marker functionality
 */
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-		maxZoom: 18,
+		maxZoom: 20,
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
 			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
 		id: 'mapbox/streets-v11',
@@ -237,7 +373,33 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 		zoomOffset: -1
 	}).addTo(waypointMap.map);
 
-var waypointMarker = new L.marker([waypointMap.relativeNullPoint.latitude,waypointMap.relativeNullPoint.longitude]).addTo(waypointMap.map);
+var athenaIcon = L.icon({
+	iconUrl: 'img/athena-marker.png',
+	iconSize: [52,69],
+	iconAnchor: [26,35]
+});
+
+var naiadIcon = L.icon({
+	iconUrl: 'img/naiad-marker.png',
+	iconSize: [52,69],
+	iconAnchor: [26,35]
+});
+
+var nullpointIcon = L.icon({
+	iconUrl: 'img/nullpoint.png',
+	iconSize: [52,52],
+	iconAnchor: [26,26]
+});
+
+var waypointMarker = new L.marker([waypointMap.relativeNullPoint.latitude,waypointMap.relativeNullPoint.longitude], {icon:nullpointIcon}).addTo(waypointMap.map);
+
+var athenaMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude+0.001], {icon:athenaIcon,rotationAngle:45}).addTo(waypointMap.map);
+var naiadMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude-0.001], {icon:naiadIcon}).addTo(waypointMap.map);
+console.log(athenaMarker);
+setTimeout(() => {
+	athenaMarker.setLatLng([waypointMap.relativeNullPoint.latitude-0.001,waypointMap.relativeNullPoint.longitude+0.001]);
+	athenaMarker.setRotationAngle(90);
+}, 1000);
 
 waypointMap.map.on('click', function(e) {
 	waypointMap.waypointCounter[waypointMap.waypointType] += 1;
@@ -252,23 +414,28 @@ waypointMap.map.on('click', function(e) {
 	//Add waypoint object to array
 	waypointMap.waypointObjects[waypointMap.waypointType].push(waypointMarker);
 	waypointMap.depth[waypointMap.waypointType].push(0);
+
 	//Add waypoint lat and lng to array for polylines
 	waypointMap.latlng[waypointMap.waypointType].push([e.latlng.lat, e.latlng.lng]);
 	waypointMap.map.addLayer(waypointMarker);
+
+	//Create waypoint depth slider element
 	var slider = document.createElement('input');
 	slider.type = 'range';
+	slider.name = waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType];
 	slider.id = "depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType];
 	slider.className = "form-range"
 	slider.min = 0;
 	slider.max = 100;
 	slider.value = 0;
 	slider.step = 1;
-	slider.onchange = function () {
-		//console.log(waypointMap.waypointType + " " + waypointMap.waypointCounter[waypointMap.waypointType]);
-		var rangeVal = document.getElementById("depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]).value;
-		waypointMap.depth[waypointMap.waypointType][waypointMap.waypointCounter[waypointMap.waypointType]-1] = rangeVal;
-		document.getElementById("depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]).innerHTML = rangeVal;
+	var tmpType = waypointMap.waypointType;
+	slider.onchange = slider => {
+		waypointMap.depth[waypointMap.waypointType][waypointMap.waypointCounter[waypointMap.waypointType]-1] = slider.target.value;
+		document.getElementById("depthRangeNum-"+slider.target.name).innerHTML = slider.target.value;
 	};
+
+	//Create waypoint list element
 	var list = document.createElement('li');
 	list.id = "waypointListItem-" + waypointMap.waypointType + "-" + waypointMap.waypointCounter[waypointMap.waypointType];
 	list.className = "list-group-item waypoint-item-"+waypointMap.waypointType;
@@ -353,6 +520,8 @@ function remapPolyLines()
 			waypointMap.polyLines[waypointMap.waypointType].push(polyline);
 		}
 	}
+	//Set number of waypoint items in list
+	document.getElementById("waypointNumCounter").innerHTML = document.querySelectorAll('.waypoint-item-'+waypointMap.waypointType).length;
 }
 
 /*
@@ -373,7 +542,6 @@ function selectWaypointType(target)
 		document.getElementById("waypointTypeTarget").innerHTML = "Athena";
 		document.getElementById("waypointList-1").style.display = "none";
 		document.getElementById("waypointList-0").style.display = "block";
-		document.getElementById("waypointNumCounter").innerHTML = document.querySelectorAll('.waypoint-item-'+target).length;
 	}
 	else if (target == 1) //set naiad active
 	{
@@ -387,7 +555,6 @@ function selectWaypointType(target)
 		document.getElementById("waypointTypeTarget").innerHTML = "Naiad";
 		document.getElementById("waypointList-0").style.display = "none";
 		document.getElementById("waypointList-1").style.display = "block";
-		document.getElementById("waypointNumCounter").innerHTML = document.querySelectorAll('.waypoint-item-'+target).length;
 	}
 }
 
@@ -508,124 +675,12 @@ async function sendPayload()
 			printLoggerMain("Sending payload "+payload+" to "+tar+" unsuccessful", "red");
 		}
 	}
-	/*
-	switch(payload) {
-		case 'toggle_manual_control':
-			
-			break;
-		case 'toggle_automatic_control':
-			for (tar of tmpTargerArr)
-			{
-				var server = new Server();
-				var data = JSON.stringify({url:"http://localhost:"+server.port+"/toggleControl",target:tar,mode:'automatic'});
-				printLoggerMain("Sending toggle_automatic_control to: " + tar);
-				var resp = await server.sendReq(data);
-				resp = JSON.parse(resp);
-				if (resp.success == true)
-				{
-					if (resp.target == 'athena')
-					{
-						athena.setMode('automatic');
-					}
-					if (resp.target == 'naiad')
-					{
-						naiad.setMode('automatic');
-					}
-					printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" successful", "green");
-				}
-				else
-				{
-					printLoggerMain("Toggling AUTOMATIC control on "+resp.target+" unsuccessful", "red");
-				}
-			}
-			break;
-		case 'load_mission_plan':
-			for (tar of tmpTargerArr)
-			{
-				var waypoints = [];
-				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[0].length == 0))
-				{
-					printLoggerMain("No waypoints added for: " + tar, "red");
-					continue;
-				}
-				if (tar == 'athena')
-				{
-					var tarIndex = 0;
-				}
-				else if (tar == 'naiad')
-				{
-					var tarIndex = 1;
-				}
-
-				waypointMap.latlng[tarIndex].forEach(item => {
-					//Create temporary waypoint array
-					var tmpWP = [];
-					//Insert converted [x,y] pos to temporary array
-					tmpWP.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
-					//Get corresponding z pos (depth)
-					var depth = parseInt(waypointMap.depth[tarIndex][waypointMap.latlng[tarIndex].indexOf(item)]);
-					//Add [x,y,z] pos to waypoints array
-					waypoints.push([tmpWP[0][0], tmpWP[0][1], depth]);
-				});
-				console.log(waypoints);
-
-				var server = new Server();
-				var data = JSON.stringify({url:"http://localhost:"+server.port+"/load_mission_plan",target:tar,waypoints:waypoints});
-				printLoggerMain("Sending toggle_automatic_control to: " + tar);
-				var resp = await server.sendReq(data);
-				resp = JSON.parse(resp);
-				if (resp.success == true)
-				{
-					printLoggerMain("Loading mission plan on "+resp.target+" successful", "green");
-				}
-				else
-				{
-					printLoggerMain("Loading mission plan on "+resp.target+" unsuccessful", "red");
-				}
-			}
-			break;
-		case 'start_mission_plan':
-			for (tar of tmpTargerArr)
-			{
-				var server = new Server();
-				var data = JSON.stringify({url:"http://localhost:"+server.port+"/start_mission_plan",target:tar});
-				printLoggerMain("Sending toggle_automatic_control to: " + tar);
-				var resp = await server.sendReq(data);
-				resp = JSON.parse(resp);
-				if (resp.success == true)
-				{
-					printLoggerMain("Starting mission plan on "+resp.target+" successful", "green");
-				}
-				else
-				{
-					printLoggerMain("Starting mission plan on "+resp.target+" unsuccessful", "red");
-				}
-			}
-			break;
-		case 'abort':
-			for (tar of tmpTargerArr)
-			{
-				var server = new Server();
-				var data = JSON.stringify({url:"http://localhost:"+server.port+"/abort",target:tar});
-				printLoggerMain("Sending toggle_manual_control to: " + tar);
-				var resp = await server.sendReq(data);
-				resp = JSON.parse(resp);
-				if (resp.success == true)
-				{
-					printLoggerMain(""+resp.target+" aborted", "green");
-				}
-				else
-				{
-					printLoggerMain("Couldn't abort "+resp.target+"", "red");
-				}
-			}
-		break;
-	}*/
 }
 
 $(document).ready(function(){
 	var server = new Server();
 	server.listenHeartbeat();
+	server.listenGetStates();
 	//heartbeat();
 });
 
