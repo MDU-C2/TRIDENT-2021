@@ -135,17 +135,7 @@
                                         </div>
                                         <li class="list-group-item">
                                             <div class="d-flex justify-content-center">
-                                                <span id="systemAthenaMO" class="badge bg-secondary">off</span>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                    <ul class="list-group pt-2 shadow-sm">
-                                        <div class="card-header">
-                                            <h6 class="my-0">State</h6>
-                                        </div>
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-center">
-                                                <span id="systemAthenaState" class="badge bg-secondary">idle</span>
+                                                <span id="systemAthenaMO" class="badge bg-secondary">None</span>
                                             </div>
                                         </li>
                                     </ul>
@@ -156,22 +146,27 @@
                                         <li class="list-group-item">
                                             <span>Mission ctrl: </span>
                                             <br>
-                                            <span id="systemAthenaSubstateMissionCtrl" class="badge bg-secondary">idle</span>
+                                            <span id="systemAthenaSubstateMissionCtrl" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Navigation: </span>
                                             <br>
-                                            <span id="systemAthenaSubstateNavigation" class="badge bg-secondary">idle</span>
+                                            <span id="systemAthenaSubstateNavigation" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Motor ctrl: </span>
                                             <br>
-                                            <span id="systemAthenaSubstateMotorCtrl" class="badge bg-secondary">idle</span>
+                                            <span id="systemAthenaSubstateMotorCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor driver: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMotorDriver" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Position: </span>
                                             <br>
-                                            <span id="systemAthenaSubstatePosition" class="badge bg-secondary">idle</span>
+                                            <span id="systemAthenaSubstatePosition" class="badge bg-secondary">None</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -189,17 +184,7 @@
                                         </div>
                                         <li class="list-group-item">
                                             <div class="d-flex justify-content-center">
-                                                <span id="systemNaiadMO" class="badge bg-secondary">off</span>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                    <ul class="list-group pt-2 shadow-sm">
-                                        <div class="card-header">
-                                            <h6 class="my-0">State</h6>
-                                        </div>
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-center">
-                                                <span id="systemNaiadState" class="badge bg-secondary">idle</span>
+                                                <span id="systemNaiadMO" class="badge bg-secondary">None</span>
                                             </div>
                                         </li>
                                     </ul>
@@ -210,22 +195,27 @@
                                         <li class="list-group-item">
                                             <span>Mission ctrl: </span>
                                             <br>
-                                            <span id="systemNaiadSubstateMissionCtrl" class="badge bg-secondary">idle</span>
+                                            <span id="systemNaiadSubstateMissionCtrl" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Navigation: </span>
                                             <br>
-                                            <span id="systemNaiadSubstateNavigation" class="badge bg-secondary">idle</span>
+                                            <span id="systemNaiadSubstateNavigation" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Motor ctrl: </span>
                                             <br>
-                                            <span id="systemNaiadSubstateMotorCtrl" class="badge bg-secondary">idle</span>
+                                            <span id="systemNaiadSubstateMotorCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor driver: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMotorDriver" class="badge bg-secondary">None</span>
                                         </li>
                                         <li class="list-group-item">
                                             <span>Position: </span>
                                             <br>
-                                            <span id="systemNaiadSubstatePosition" class="badge bg-secondary">idle</span>
+                                            <span id="systemNaiadSubstatePosition" class="badge bg-secondary">None</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -241,6 +231,7 @@
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="js/socket.io.min.js"></script>
+    <script src="js/leaflet-rotatedMarker.js"></script> <!-- Enables rotation of markers in leaflet (https://github.com/bbecquet/Leaflet.RotatedMarker) -->
     <script src="js/main.js" type="text/javascript"></script>
 
 </html>
