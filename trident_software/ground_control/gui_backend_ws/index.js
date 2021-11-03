@@ -243,9 +243,9 @@ class Server
               });
             });
             break;
-          case 'start_mission':
+          case 'start_mission_plan':
             const client = new ActionClient(ROS2handle.node, req.data.target);
-            client.StartMission();
+            client.sendMission();
             break;
           /*
             Request to toggle manual override
@@ -371,7 +371,7 @@ class ActionClient {
     this.target = target;
     this._actionClient = new rclnodejs.ActionClient(
       node,
-      'trident_msgs/action/startMission',
+      'trident_msgs/action/StartMission',
       prefixTopics+this.target+'/mission_control/mission/start'
     );
   }
@@ -383,7 +383,7 @@ class ActionClient {
     const mission = {};
 
     this._node.getLogger().info('Sending goal request...');
-    const goalHandle = await this._actionClient.sendMission(mission, (feedback) =>
+    const goalHandle = await this._actionClient.sendGoal(mission, (feedback) =>
       this.feedbackCallback(feedback)
     );
 
@@ -399,7 +399,7 @@ class ActionClient {
     if (goalHandle.isSucceeded()) {
       this._node
         .getLogger()
-        .info(`Goal suceeded with result: ${result.sequence}`);
+        .info(`Goal suceeded with result: ${result}`);
     } else {
       this._node.getLogger().info(`Goal failed with status: ${status}`);
     }

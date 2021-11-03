@@ -644,6 +644,7 @@ async function sendPayload()
 				data = {function:payload, waypoints:waypoints, target:tar};
 				break;
 			case 'start_mission_plan':
+				data = {function:payload,target:tar};
 				break;
 			case 'toggle_manual_override':
 				var tmpBool = null;
