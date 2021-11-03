@@ -46,6 +46,7 @@ class SensorNode(Node, ABC):
         response.gain              = kalman_gain.flatten().astype('float32').tolist()
         response.observationmatrix = self.obs_mat.flatten().astype('float32').tolist()
         #print("Request:",  request)
+        print(residual.flatten().astype('float32').tolist())
         print("Response:", response)
         print("First Gain Type:", type(response.gain[0]))
 

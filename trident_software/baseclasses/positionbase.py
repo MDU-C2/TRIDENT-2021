@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from random import gauss
-from time import sleep
+from time import time, sleep
 from abc import ABC, abstractmethod
 
 from example_interfaces.msg import String
@@ -101,6 +101,7 @@ class PosNode(Node, ABC):
         try:
             future = sensor_handle.call_async(req)
             #rclpy.spin_until_future_complete(self, future)
+            start_time = time()
             while rclpy.ok():
                 rclpy.spin_once(self)
                 if future.done():
@@ -110,6 +111,8 @@ class PosNode(Node, ABC):
                     return(np.reshape(resp.gain,               (x_size, y_size)),
                            np.reshape(resp.residual,           (-1,1)          ),
                            np.reshape(resp.observationmatrix,  (y_size, x_size)))
+                elif time() - start_time > 3:
+                    raise Exception("Service took too long (more than three seconds)!")
         except Exception as e:
                 print("Couldn't get values from a service:",e)
     
