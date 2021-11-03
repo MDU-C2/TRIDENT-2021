@@ -2,20 +2,21 @@
 const rclnodejs = require('./node_modules/rclnodejs/index.js')
 const Mission = rclnodejs.require('trident_msgs/msg/Mission');
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
+const StartMission = rclnodejs.require('trident_msgs/action/StartMission');
 const Waypoint = rclnodejs.require('trident_msgs/msg/Waypoint');
 const WaypointAction = rclnodejs.require('trident_msgs/msg/WaypointAction');
 const Pose = rclnodejs.require('geometry_msgs/msg/Pose');
 const tridenStates = require('./tridentstates')
 
 let prefixTopics = "gc/";
-class StartMissionActionServer {
+class ActionServer {
   constructor(node) {
     this._node = node;
 
     this._actionServer = new rclnodejs.ActionServer(
       node,
-      'trident_msgs/msg/Mission',
-      'startMission',
+      'trident_msgs/action/StartMission',
+      prefixTopics+'athena/mission_control/mission/start',
       this.executeCallback.bind(this),
       this.goalCallback.bind(this),
       null,
@@ -26,40 +27,36 @@ class StartMissionActionServer {
   async executeCallback(missionHandle) {
     this._node.getLogger().info('Executing goal...');
 
-    const feedbackMessage = new Fibonacci.Feedback();
-    const sequence = [0, 1];
+    const feedbackMessage = new StartMission.Feedback();
 
     // Start executing the action
-    for (let i = 1; i < missionHandle.request.order; i++) {
-      // Check if the goal has been canceled
-      if (missionHandle.isCancelRequested) {
-        missionHandle.canceled();
-        this._node.getLogger().info('Goal canceled');
-        return new Fibonacci.Result();
-      }
-
-      // Update Fibonacci sequence
-      sequence.push(sequence[i] + sequence[i - 1]);
-
-      feedbackMessage.sequence = sequence;
-      this._node
-        .getLogger()
-        .info(`Publishing feedback: ${feedbackMessage.sequence}`);
-
-      // Publish the feedback
-      missionHandle.publishFeedback(feedbackMessage);
-
-      // Wait for 1 second
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (missionHandle.isCancelRequested) {
+      missionHandle.canceled();
+      this._node.getLogger().info('Goal canceled');
+      return new StartMission.Result();
     }
+
+    feedbackMessage.status = 0;
+    feedbackMessage.message = "executing";
+    feedbackMessage.waypoints_completed = 1;
+    this._node
+      .getLogger()
+      .info(`Publishing feedback: ${feedbackMessage}`);
+
+    // Publish the feedback
+    missionHandle.publishFeedback(feedbackMessage);
+
+    // Wait for 1 second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     missionHandle.succeed();
 
     // Populate result message
-    const result = new Fibonacci.Result();
-    result.sequence = sequence;
+    const result = new StartMission.Result();
+    result.success = true;
+    result.message = "done";
 
-    this._node.getLogger().info(`Returning result: ${result.sequence}`);
+    this._node.getLogger().info(`Returning result: ${result}`);
 
     return result;
   }
@@ -300,6 +297,9 @@ rclnodejs
         response.send(result);
       }
     );*/
+
+    new ActionServer(node);
+
     console.log("Tester node started");
     rclnodejs.spin(node);
   })
