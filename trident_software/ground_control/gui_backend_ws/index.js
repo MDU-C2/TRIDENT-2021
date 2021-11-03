@@ -243,6 +243,10 @@ class Server
               });
             });
             break;
+          case 'start_mission':
+            const client = new ActionClient(ROS2handle.node, req.data.target);
+            client.StartMission();
+            break;
           /*
             Request to toggle manual override
           */
@@ -285,20 +289,6 @@ class Server
       });
 
     });
-
-    //Handler for service: abort
-    this.app.post('/abort', function(req,res) {
-      const request = {target:req.target};
-      ROS2handle.abort.waitForService(1000).then((result) => {
-        if (!result) {
-          console.log('Error: service not available');
-          return;
-        }
-        ROS2handle.abort.sendRequest(request, (response) => {
-          res.send({'success':response.success, 'target':req.target});
-        });
-      });
-    });
   }
 }
 
@@ -317,6 +307,7 @@ class ROS2
     this.abort = null;
     this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
     this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
+    this.startMission = null;
   }
 
   init()
@@ -364,6 +355,9 @@ class ROS2
     //Create service: abort
     this.abort = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
 
+    //Create action: start_mission
+    //this.startMission = this.node.ActionClient('trident_msgs/action/StartMission', prefixTopics+'athena/mission_control/mission/start');
+
     this.node.spin();
   }
 }
@@ -371,14 +365,14 @@ class ROS2
 /*
   Action classes
 */
-class StartMissionActionClient {
-  constructor(node) {
+class ActionClient {
+  constructor(node,target) {
     this._node = node;
-
+    this.target = target;
     this._actionClient = new rclnodejs.ActionClient(
       node,
-      'trident_msgs/msg/Mission',
-      'startMission'
+      'trident_msgs/action/startMission',
+      prefixTopics+this.target+'/mission_control/mission/start'
     );
   }
 
@@ -414,7 +408,7 @@ class StartMissionActionClient {
   }
 
   feedbackCallback(feedback) {
-    this._node.getLogger().info(`Received feedback: ${feedback.sequence}`);
+    this._node.getLogger().info(`Received feedback: ${feedback}`);
   }
 }
 
