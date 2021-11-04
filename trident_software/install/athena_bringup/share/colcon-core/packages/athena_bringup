@@ -1,1 +1,1 @@
-athena_driver:athena_guidance_system:athena_mission_control:athena_motor_control:athena_navigation:geometry_msgs:rclpy:std_msgs:std_srvs:trident_msgs
+athena_driver:athena_guidance_system:athena_mission_control:athena_motor_control:athena_navigation:cola2_msgs:geometry_msgs:rclpy:std_msgs:std_srvs:trident_msgs

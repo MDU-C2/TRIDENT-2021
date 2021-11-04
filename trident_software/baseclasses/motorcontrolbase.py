@@ -46,7 +46,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # PAS computation update frequency parameter
         self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
         # Motor config parameters, see config file for information about structure
-        self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value) # Hz
+        self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value)
         # Motor control update frequency
         self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
         # Threshold for when to compute orientation internally instead of using goal orientation.
