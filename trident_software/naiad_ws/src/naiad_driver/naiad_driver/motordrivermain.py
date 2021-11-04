@@ -11,12 +11,15 @@ class MotorDriverNode(MotorDriverBase):
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
         self._simulation = True
+        # TODO: Read simulation param from config file
 
-        # if self._simulation:
-            # import 
-        # self._sim_motor_publisher = self.create_publisher(
-        # )
-
+        if self._simulation:
+            # Publisher for the motors in stonefish simulator
+            self._sim_motor_publisher = self.create_publisher(
+                Setpoints,
+                'thruster_setpoints',
+                10
+            )
     def _send_motor_values(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
 
