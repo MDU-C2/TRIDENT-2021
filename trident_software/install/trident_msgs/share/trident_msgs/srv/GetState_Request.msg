@@ -1,1 +1,1 @@
-# Service definition for the GetState service used to get the current state of a single node.
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/GetState_Request.msg

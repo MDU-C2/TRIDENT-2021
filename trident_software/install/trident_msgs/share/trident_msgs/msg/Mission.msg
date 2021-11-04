@@ -1,1 +1,1 @@
-Waypoint[] waypoints
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/Mission.msg

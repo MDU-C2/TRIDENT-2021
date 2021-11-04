@@ -1,2 +1,1 @@
-geometry_msgs/Pose pose
-WaypointAction action
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/Waypoint.msg

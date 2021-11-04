@@ -1,1 +1,1 @@
-Mission mission
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/LoadMission_Request.msg

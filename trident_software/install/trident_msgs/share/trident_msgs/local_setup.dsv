@@ -1,4 +1,1 @@
-source;share/trident_msgs/environment/ament_prefix_path.sh
-source;share/trident_msgs/environment/library_path.sh
-source;share/trident_msgs/environment/path.sh
-source;share/trident_msgs/environment/pythonpath.sh
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/ament_cmake_environment_hooks/local_setup.dsv

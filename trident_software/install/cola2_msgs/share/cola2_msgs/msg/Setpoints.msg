@@ -1,2 +1,1 @@
-std_msgs/Header header
-float64[] setpoints
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/cola2_msgs/msg/Setpoints.msg

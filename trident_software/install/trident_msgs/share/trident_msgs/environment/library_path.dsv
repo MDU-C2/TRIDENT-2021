@@ -1,1 +1,1 @@
-prepend-non-duplicate;LD_LIBRARY_PATH;lib
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/ament_cmake_environment_hooks/library_path.dsv
