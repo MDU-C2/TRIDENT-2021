@@ -1,3 +1,1 @@
-# This service is a basically a GET request for when a node needs to know the current goal pose 
-# (used in GotoWaypoint.action, GotoPose.action or HoldPose.action) 
-
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/GetGoalPose_Request.msg

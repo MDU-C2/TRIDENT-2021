@@ -1,2 +1,1 @@
-int64 id      # ID of the motor
-float64 value  # Output value
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/MotorOutput.msg

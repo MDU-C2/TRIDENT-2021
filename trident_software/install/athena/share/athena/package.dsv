@@ -4,3 +4,6 @@ source;share/athena/hook/pythonpath.sh
 source;share/athena/hook/ament_prefix_path.ps1
 source;share/athena/hook/ament_prefix_path.dsv
 source;share/athena/hook/ament_prefix_path.sh
+source;../../build/athena/share/athena/hook/pythonpath_develop.ps1
+source;../../build/athena/share/athena/hook/pythonpath_develop.dsv
+source;../../build/athena/share/athena/hook/pythonpath_develop.sh

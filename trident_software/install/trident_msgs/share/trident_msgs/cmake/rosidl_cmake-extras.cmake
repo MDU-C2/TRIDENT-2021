@@ -1,4 +1,1 @@
-# generated from rosidl_cmake/cmake/rosidl_cmake-extras.cmake.in
-
-set(trident_msgs_IDL_FILES "msg/Waypoint.idl;msg/WaypointAction.idl;msg/Mission.idl;msg/MotorOutput.idl;msg/MotorOutputs.idl;srv/LoadMission.idl;srv/GuidanceRequest.idl;srv/GetGoalPose.idl;srv/GetState.idl;action/StartMission.idl;action/GotoWaypoint.idl;action/GotoPose.idl;action/HoldPose.idl")
-set(trident_msgs_INTERFACE_FILES "msg/Waypoint.msg;msg/WaypointAction.msg;msg/Mission.msg;msg/MotorOutput.msg;msg/MotorOutputs.msg;srv/LoadMission.srv;srv/LoadMission_Request.msg;srv/LoadMission_Response.msg;srv/GuidanceRequest.srv;srv/GuidanceRequest_Request.msg;srv/GuidanceRequest_Response.msg;srv/GetGoalPose.srv;srv/GetGoalPose_Request.msg;srv/GetGoalPose_Response.msg;srv/GetState.srv;srv/GetState_Request.msg;srv/GetState_Response.msg;action/StartMission.action;action/GotoWaypoint.action;action/GotoPose.action;action/HoldPose.action")
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/rosidl_cmake-extras.cmake

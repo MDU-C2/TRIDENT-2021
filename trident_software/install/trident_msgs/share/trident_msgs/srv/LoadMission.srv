@@ -1,4 +1,1 @@
-Mission mission
----
-bool success    # Indicates the status of the request
-string message  # Informational message
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/srv/LoadMission.srv

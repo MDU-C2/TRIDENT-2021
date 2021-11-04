@@ -1,4 +1,1 @@
-
-bool success 
-string message
-geometry_msgs/Pose goal_pose # Goal pose used in GotoWaypoint
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/GetGoalPose_Response.msg

@@ -1,1 +1,1 @@
-int64 duration   # Duration to guide in seconds. 0 is indefinetly.
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/GuidanceRequest_Request.msg

@@ -120,6 +120,8 @@ naiad:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   motor_driver:
     ros__parameters:
+      simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
+                              # environment or the real motors.
       motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
       motor_interface: >  # The gpio pins that each motor are connected to.

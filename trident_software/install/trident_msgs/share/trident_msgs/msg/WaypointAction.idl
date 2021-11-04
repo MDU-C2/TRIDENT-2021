@@ -1,18 +1,1 @@
-// generated from rosidl_adapter/resource/msg.idl.em
-// with input from trident_msgs/msg/WaypointAction.msg
-// generated code does not contain a copyright notice
-
-
-module trident_msgs {
-  module msg {
-    struct WaypointAction {
-      @verbatim (language="comment", text=
-        " 0=No action, 1=hold")
-      @default (value=0)
-      int16 action_type;
-
-      @default (value=0)
-      int16 action_param;
-    };
-  };
-};
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs/msg/WaypointAction.idl

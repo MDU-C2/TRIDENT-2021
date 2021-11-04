@@ -1,2 +1,1 @@
-int16 action_type 0     # 0=No action, 1=hold
-int16 action_param 0
+/home/johannes/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/WaypointAction.msg

@@ -13,6 +13,7 @@ import json
 # from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutputs, MotorOutput
 from trident_msgs.srv import GetState
+from cola2_msgs.msg import Setpoints
 from baseclasses.tridentstates import MotorDriverState
 
 
@@ -30,11 +31,18 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             namespace='',
             parameters=[
                 ('motor_output_silence_period',  0.3), # Seconds
-                ('motor_interface',  "")
+                ('motor_interface',  ""),
+                ('simulation_env', True)
             ])
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
         self._motor_interface = json.loads(self.get_parameter('motor_interface').get_parameter_value().string_value)
+        self._simulation_env = self.get_parameter('simulation_env').get_parameter_value().bool_value
+        # Check if we are supposed to run in the simulation environment
+        if self._simulation_env:
+            self._send_motor_outputs_fn = self._send_to_simulation
+        else:
+            self._send_motor_outputs_fn = self._send_motor_outputs
 
         # Set default motor state to active
         self.motors_killed = False
@@ -51,6 +59,16 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             self._motor_output_sub_callback,
             1 # TODO: Use deadlines?
         )
+
+        # Publishers
+        # -------------
+        if self._simulation_env:
+            # Publisher for the motors in stonefish simulator
+            self._sim_motor_publisher = self.create_publisher(
+                Setpoints,
+                'thruster_setpoints',
+                10
+            )
 
         # Services
         # --------
@@ -72,17 +90,37 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         )
 
     @abstractmethod
-    def _send_motor_values(self, motor_values):
+    def _send_motor_outputs(self, motor_values):
         pass
     
-    def __send_motor_values(self, motor_values):
+    def _send_to_simulation(self, motor_outputs):
+        """Converts motor_outputs to Setpoints and sends the values
+        to the simulation topic.
+        """
+        # Reset the motor output silence watchdog timer.
+        self._motor_output_silence_watchdog_timer.reset()
+        # Create the thruster Setpoints message
+        msg = Setpoints()
+        outputs = []
+        for motor_output in motor_outputs:
+            # Scale the output value to stonefish values (-1, 1)
+            val = float(motor_output.value / 100)
+            outputs.append(val)
+        msg.setpoints = outputs
+        self.get_logger().info(f"Publishing motor outputs to simulation. Outputs: {msg}")
+        self._sim_motor_publisher.publish(msg)
+
+    def __send_motor_outputs(self, motor_outputs):
         """Private wrapper for the _send_motor_value abstract method.
         This wrapper ensures that the killed state of the motors is respected.
+        The wrapper calls the method that is assigned to the send_motor_outputs_fn,
+        which is a method that sends to the simulator, or a method that sends to the real motors.
         """
         if self.motors_killed:
             self.get_logger().info('Motors are killed. Not sending motor values.')
             return
-        self._send_motor_values(motor_values)
+
+        self._send_motor_outputs_fn(motor_outputs)
 
     def set_zero_motor_output(self):
         """Simply sets all motors output to zero.
@@ -94,7 +132,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             output.id, output.value = motor["id"], 0.0
             outputs.append(output)
         # motor_outputs.motor_outputs = outputs
-        self.__send_motor_values(outputs)
+        self._send_motor_outputs(outputs)
 
     #                   Callbacks
     # -----------------------------------------        
@@ -164,7 +202,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
             self._motor_driver_state = MotorDriverState.ACTIVE
             # for motor_num, value in motor_outputs:
-            self.__send_motor_values(motor_outputs)
+            self.__send_motor_outputs(motor_outputs)
             # Motor values are sent to the motors, reset the watchdog timer
             self._motor_output_silence_watchdog_timer.reset()
         else:
