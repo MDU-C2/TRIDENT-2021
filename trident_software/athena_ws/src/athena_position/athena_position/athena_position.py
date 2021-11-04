@@ -1,8 +1,9 @@
 import rclpy
 import numpy as np
 from baseclasses import positionbase
-from trident_msgs.msg import AthenaState
+from trident_msgs.msg import State
 from math import sin, cos
+import squaternion
 
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
@@ -11,7 +12,7 @@ class AthenaPosNode(positionbase.PosNode):
         init_covar = np.zeros((6,6)) # Starts with no uncertainty
         init_noise = (np.array([0.5, 0.5, 0.4, 0.2, 0.2, 0.1])*np.identity(6))**2 # These are just guesses!
             
-        super().__init__("athena_position_node", AthenaState, "/athena/state", 0.5,
+        super().__init__("athena_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"])
     
     def state_trans(self, prev, control_vec, dt):
@@ -29,13 +30,21 @@ class AthenaPosNode(positionbase.PosNode):
         return transition
     
     def state_publish(self):
-        msg = AthenaState()
-        msg.x          = self.state[0,0]
-        msg.y          = self.state[1,0]
-        msg.heading    = self.state[2,0]
-        msg.velx       = self.state[3,0]
-        msg.vely       = self.state[4,0]
-        msg.velheading = self.state[5,0]
+        msg = State()
+        msg.pose.position.x = self.state[0,0]
+        msg.pose.position.y = self.state[1,0]
+        msg.pose.position.z = 0.0
+        q = Quaternion.from_euler(0, 0, self.state[2,0])
+        msg.pose.orientation.x = q.x
+        msg.pose.orientation.y = q.y
+        msg.pose.orientation.z = q.z
+        msg.pose.orientation.w = q.w
+        msg.twist.linear.x  = self.state[3,0]
+        msg.twist.linear.y  = self.state[4,0]
+        msg.twist.linear.z  = 0.0
+        msg.twist.angular.x = 0.0
+        msg.twist.angular.y = 0.0
+        msg.twist.angular.z = self.state[5,0]
         self.publisher_.publish(msg)
     
 def main(args=None):

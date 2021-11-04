@@ -5,17 +5,17 @@ from random import gauss
 from time import time, sleep
 from abc import ABC, abstractmethod
 
-from example_interfaces.msg import String
+from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
 
 class PosNode(Node, ABC):
-    def __init__(self, name, pub_topic_type, pub_topic_name, interval,
+    def __init__(self, name, pub_topic_name, interval,
                  start_state, start_covar, proc_noise, sensor_list):
                  
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
         super().__init__(name)
-        self.publisher_ = self.create_publisher(pub_topic_type, pub_topic_name, 10)
+        self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
         #timer_period = interval
         #self.timer = self.create_timer(timer_period, self.timer_callback)
         
