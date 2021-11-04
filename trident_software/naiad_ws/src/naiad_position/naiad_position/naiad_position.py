@@ -1,8 +1,9 @@
 import rclpy
 import numpy as np
 from basenodes import positionbase
-from trident.msgs import NaiadState
+from trident.msgs import State
 from math import sin, cos
+from squaternions import Quaternions
 
 class NaiadPosNode(PosNode):
     def __init__(self):
@@ -11,11 +12,11 @@ class NaiadPosNode(PosNode):
         init_covar = np.zeros((12,12)) # Starts with no uncertainty
         init_noise = (np.array([0.5, 0.5, 0.5, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1])*np.identity(12))**2 # These are just guesses!
             
-        super().__init__("naiad_position_node", pub_topic_type, "/naiad/state", 0.5,
+        super().__init__("naiad_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/naiad/sensor/imu"])
     
     def state_trans(self, prev, control_vec, dt):
-        h = prev[5,1]
+        h = prev[5,0]
         trans_mat = np.array([
             #x  y  z  r  p  h         dx         dy dz dr dp dh
             [1, 0, 0, 0, 0, 0, dt*sin(h), dt*cos(h),  0,  0,  0,  0], #x
@@ -35,19 +36,21 @@ class NaiadPosNode(PosNode):
         return transition
     
     def state_publish(self):
-        msg = NaiadState()
-        msg.x          = self.state[0]
-        msg.y          = self.state[1]
-        msg.z          = self.state[2]
-        msg.roll       = self.state[3]
-        msg.pitch      = self.state[4]
-        msg.heading    = self.state[5]
-        msg.velx       = self.state[6]
-        msg.vely       = self.state[7]
-        msg.velz       = self.state[8]
-        msg.velroll    = self.state[9]
-        msg.velpitch   = self.state[10]
-        msg.velheading = self.state[11]
+        msg = State()
+        msg.pose.position.x    = self.state[0]
+        msg.pose.position.y    = self.state[1]
+        msg.pose.position.z    = self.state[2]
+        q = Quaternion.from_euler(self.state[3], self.state[4], self.state[5])
+        msg.pose.orientation.x = q.x
+        msg.pose.orientation.y = q.y
+        msg.pose.orientation.z = q.z
+        msg.pose.orientation.w = q.w
+        msg.twist.linear.x     = self.state[6]
+        msg.twist.linear.y     = self.state[7]
+        msg.twist.linear.z     = self.state[8]
+        msg.twist.angular.x    = self.state[9]
+        msg.twist.angular.y    = self.state[10]
+        msg.twist.angular.z    = self.state[11]
         self.publisher_.publish(msg)
     
 def main(args=None):
