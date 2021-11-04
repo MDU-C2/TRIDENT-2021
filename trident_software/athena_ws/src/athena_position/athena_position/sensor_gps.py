@@ -30,7 +30,7 @@ class GPSNode(sensbase.SensorNode):
             [1/m_per_deg_lat,               0,   0, 0, 0,   0],  #x (latitude)
             [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
-        super().__init__('gps', 'athena', 0,
+        super().__init__('gps', 0,
                          init_obs_mat, 2, np.identity(2)*0.0001**2)
         # Change as needed
         self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)

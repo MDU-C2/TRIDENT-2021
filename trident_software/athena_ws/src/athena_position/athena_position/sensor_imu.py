@@ -23,7 +23,7 @@ class IMUNode(sensbase.SensorNode):
         # TODO: couldn't find any real noise values, but these should be fine?
         (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
         
-        super().__init__('imu', 'athena', 0.25,
+        super().__init__('imu', 0.25,
                          init_obs_mat, 4, np.identity(4)*0.1**2)
         
         self.prev_state = np.zeros((6,1))

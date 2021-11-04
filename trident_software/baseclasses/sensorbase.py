@@ -20,7 +20,7 @@ class SensorNode(Node, ABC):
         
         self.srv   = self.create_service(
             KalmanSensorService,
-            '/'+mounted_on+'/sensor/'+sensor_type,
+            'sensor/'+sensor_type,
             self.SensorService)
         self.timer = self.create_timer(read_interval, self.TakeMeasurement)
         
