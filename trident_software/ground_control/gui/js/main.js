@@ -54,27 +54,38 @@ class WaypointMap {
 	getXYpos(desiredPos)
 	{
 		// Calculates X and Y distances in meters.
-		var deltaLatitude = desiredPos.latitude - this.relativeNullPoint.latitude
-		var deltaLongitude = desiredPos.longitude - this.relativeNullPoint.longitude
+		var deltaLatitude = desiredPos.latitude - this.relativeNullPoint.latitude;
+		var deltaLongitude = desiredPos.longitude - this.relativeNullPoint.longitude;
 		//The circumference at the equator (latitude 0) is 40075160 meters
-		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude))
-		var resultX = deltaLongitude * latitudeCircumference / 360
-		var resultY = deltaLatitude * 40008000 / 360
-		return [resultX, resultY]
+		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude));
+		var resultX = deltaLongitude * latitudeCircumference / 360;
+		var resultY = deltaLatitude * 40008000 / 360;
+		return [resultX, resultY];
+	}
+
+	reverseXYpos(x,y)
+	{
+		//The circumference at the equator (latitude 0) is 40075160 meters
+		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude));
+
+		//Get delta latitude/longitude
+		var deltaLongitude = x * 360 / latitudeCircumference;
+		var deltaLatitude  = y * 360 / 40008000;
+
+		//Get actual latit
+		var latitude = deltaLatitude + this.relativeNullPoint.latitude;
+		var longitude = deltaLongitude + this.relativeNullPoint.longitude;
+
+		return [latitude, longitude];
 	}
 }
-/*
-const socket = io("http://localhost:8080");
 
-socket.on('heartbeat', data => {
-	console.log(data);
-});
-*/
+
 class Server {
 	constructor() {
 		this.port = 8080;
 		this.xhr = new XMLHttpRequest();
-		this.socket = io("http://localhost:8080");
+		this.socket = io("http://localhost:8081");
 		this.heartbeatStatus = [null,null]; //[athena,naiad]
 	}
 
@@ -131,100 +142,142 @@ class Server {
 	listenGetStates()
 	{
 		var state = new TridenStates();
-		this.socket.on('getStates', resp => {
-			//Switch statement for modules in athena
-			switch(resp.module)
+		this.socket.on('state/get/motor_control', resp => {
+			switch(resp.intState)
 			{
-				//Switch statement for mission control
-				case 'missionControl':
-					switch(resp.intState)
-					{
-						case state.missionControlState.NO_MISSION:
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-secondary';
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "NO_MISSION";
-							break;
-						case state.missionControlState.MISSION_LOADED:
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-info';
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_LOADED";
-							break;
-						case state.missionControlState.EXECUTING_MISSION:
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "EXECUTING_MISSION";
-							break;
-						case state.missionControlState.MISSION_FINISHED:
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-success';
-							document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_FINISHED";
-							break;
-					}
-				//Switch statement for navigation
-				case 'navigation':
-					switch(resp.intState)
-					{
-						case state.navigationState.IDLE:
-							document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-secondary';
-							document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "IDLE";
-							break;
-						case state.navigationState.EXECUTING:
-							document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "EXECUTING";
-							break;
-					}
-				//Switch statement for motor control
-				case 'motorControl':
-					switch(resp.intState)
-					{
-						case state.motorControlState.IDLE:
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-secondary';
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "IDLE";
-							break;
-						case state.motorControlState.EXECUTING:
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "EXECUTING";
-							break;
-						case state.motorControlState.MANUAL_OVERRIDE:
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-info';
-							document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "MANUAL_OVERRIDE";
-							break;
-					}
-				//Switch statement for navigation
-				case 'motorDriver':
-					switch(resp.intState)
-					{
-						case state.motorDriverState.IDLE:
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-secondary';
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "IDLE";
-							break;
-						case state.motorDriverState.KILLED:
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-danger';
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "KILLED";
-							break;
-						case state.motorDriverState.MOTOR_OUTPUT_SILENCE:
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "MOTOR_OUTPUT_SILENCE";
-							break;
-						case state.motorDriverState.ACTIVE:
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "ACTIVE";
-							break;
-					}
-				//Switch statement for navigation
-				case 'position':
-					switch(resp.intState)
-					{
-						case state.guidanceState.IDLE:
-							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-secondary';
-							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "IDLE";
-							break;
-						case state.guidanceState.PREPARING_GUIDANCE:
-							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-info';
-							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "PREPARING_GUIDANCE";
-							break;
-						case state.guidanceState.GUIDING:
-							document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-primary';
-							document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "GUIDING";
-							break;
-					}
+				case state.motorControlState.IDLE:
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "IDLE";
+					break;
+				case state.motorControlState.EXECUTING:
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "EXECUTING";
+					break;
+				case state.motorControlState.MANUAL_OVERRIDE:
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").className = 'badge bg-info';
+					document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML = "MANUAL_OVERRIDE";
+					break;
 			}
+			if (resp.target == 'athena')
+			{
+				athena.setSubState('motor_ctrl',document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML);
+			}
+			else if (resp.target == 'naiad')
+			{
+				naiad.setSubState('motor_ctrl',document.getElementById("system"+resp.target+"SubstateMotorCtrl").innerHTML);
+			}
+		});
+		this.socket.on('state/get/motor_driver', resp => {
+			switch(resp.intState)
+			{
+				case state.motorDriverState.IDLE:
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "IDLE";
+					break;
+				case state.motorDriverState.KILLED:
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-danger';
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "KILLED";
+					break;
+				case state.motorDriverState.MOTOR_OUTPUT_SILENCE:
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "MOTOR_OUTPUT_SILENCE";
+					break;
+				case state.motorDriverState.ACTIVE:
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateMotorDriver").innerHTML = "ACTIVE";
+					break;
+			}
+		});
+		this.socket.on('state/get/navigaton', resp => {
+			switch(resp.intState)
+			{
+				case state.navigationState.IDLE:
+					document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "IDLE";
+					break;
+				case state.navigationState.EXECUTING:
+					document.getElementById("system"+resp.target+"SubstateNavigation").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateNavigation").innerHTML = "EXECUTING";
+					break;
+			}
+		});
+		this.socket.on('state/get/mission_control', resp => {
+			switch(resp.intState)
+			{
+				case state.missionControlState.NO_MISSION:
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "NO_MISSION";
+					break;
+				case state.missionControlState.MISSION_LOADED:
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-info';
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_LOADED";
+					break;
+				case state.missionControlState.EXECUTING_MISSION:
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "EXECUTING_MISSION";
+					break;
+				case state.missionControlState.MISSION_FINISHED:
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").className = 'badge bg-success';
+					document.getElementById("system"+resp.target+"SubstateMissionCtrl").innerHTML = "MISSION_FINISHED";
+					break;
+			}
+		});
+		this.socket.on('state/get/position', resp => {
+			switch(resp.intState)
+			{
+				case state.guidanceState.IDLE:
+					document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "IDLE";
+					break;
+				case state.guidanceState.PREPARING_GUIDANCE:
+					document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-info';
+					document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "PREPARING_GUIDANCE";
+					break;
+				case state.guidanceState.GUIDING:
+					document.getElementById("system"+resp.target+"SubstatePosition").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstatePosition").innerHTML = "GUIDING";
+					break;
+			}
+		});
+		//If an error occured during get state service, display in logger.
+		this.socket.on('getStates/error', resp => {
+			printLoggerMain(resp.errMsg, 'red');
+		});
+	}
+
+	listenMissionStatus()
+	{
+		this.socket.on('mission/status', resp => {
+			if (resp.msgType == 'info')
+			{
+				printLoggerMain(resp.message);
+			}
+			else if (resp.msgType == 'error')
+			{
+				printLoggerMain(resp.message,'red');
+			}
+			else if (resp.msgType == 'success')
+			{
+				printLoggerMain(resp.message,'green');
+			}
+		});
+	}
+
+	listenState()
+	{
+		this.socket.on('state/athena', resp => {
+			var latlng = waypointMap.reverseXYpos(resp.data.x,resp.data.y);
+			athenaMarker.setRotationAngle(resp.data.heading);
+			athenaMarker.slideTo(latlng, {
+				duration: 500
+			});
+		});
+		this.socket.on('state/naiad', resp => {
+			var latlng = waypointMap.reverseXYpos(resp.data.x,resp.data.y);
+			naiadMarker.setRotationAngle(resp.data.heading);
+			naiadMarker.slideTo(latlng, {
+				duration: 500
+			});
 		});
 	}
 }
@@ -232,40 +285,12 @@ class Server {
 class Athena {
 	constructor() {
 		this.connected = false;
-		this.manualOverride = false;
-		this.mode = 'manual';
-		this.state = 'idle';
 		this.substate = {
 			mission_ctrl: 'idle',
 			navigation: 'idle',
 			motor_ctrl: 'idle',
 			position: 'idle',
 		};
-	}
-	
-	setManualOverride(bool)
-	{
-		this.manualOverride = bool;
-		document.getElementById("systemAthenaMO").classList.toggle("bg-info");
-		if (this.manualOverride)
-		{
-			document.getElementById("systemAthenaMO").innerHTML = "on";
-		}
-		else
-		{
-			document.getElementById("systemAthenaMO").innerHTML = "off";
-		}
-	}
-
-	setState(state)
-	{
-		if (state != this.state)
-		{
-			this.state = state;
-			document.getElementById("systemAthenaState").innerHTML = state;
-			document.getElementById("systemAthenaState").classList.remove('bg-secondary');
-			document.getElementById("systemAthenaState").classList.add('bg-primary');
-		}
 	}
 
 	setSubState(module,state)
@@ -295,39 +320,12 @@ class Athena {
 class Naiad {
 	constructor() {
 		this.connected = false;
-		this.mode = 'manual';
-		this.state = 'idle';
 		this.substate = {
 			mission_ctrl: 'idle',
 			navigation: 'idle',
 			motor_ctrl: 'idle',
 			position: 'idle',
 		};
-	}
-	
-	setManualOverride(bool)
-	{
-		this.manualOverride = bool;
-		document.getElementById("systemNaiadMO").classList.toggle("bg-info");
-		if (this.manualOverride)
-		{
-			document.getElementById("systemNaiadMO").innerHTML = "on";
-		}
-		else
-		{
-			document.getElementById("systemNaiadMO").innerHTML = "off";
-		}
-	}
-
-	setState(state)
-	{
-		if (state != this.state)
-		{
-			this.state = state;
-			document.getElementById("systemNaiadState").innerHTML = state;
-			document.getElementById("systemNaiadState").classList.remove('bg-secondary');
-			document.getElementById("systemNaiadState").classList.add('bg-primary');
-		}
 	}
 
 	setSubState(module,state)
@@ -393,13 +391,8 @@ var nullpointIcon = L.icon({
 
 var waypointMarker = new L.marker([waypointMap.relativeNullPoint.latitude,waypointMap.relativeNullPoint.longitude], {icon:nullpointIcon}).addTo(waypointMap.map);
 
-var athenaMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude+0.001], {icon:athenaIcon,rotationAngle:45}).addTo(waypointMap.map);
+var athenaMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude+0.001], {icon:athenaIcon}).addTo(waypointMap.map);
 var naiadMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude-0.001], {icon:naiadIcon}).addTo(waypointMap.map);
-console.log(athenaMarker);
-setTimeout(() => {
-	athenaMarker.setLatLng([waypointMap.relativeNullPoint.latitude-0.001,waypointMap.relativeNullPoint.longitude+0.001]);
-	athenaMarker.setRotationAngle(90);
-}, 1000);
 
 waypointMap.map.on('click', function(e) {
 	waypointMap.waypointCounter[waypointMap.waypointType] += 1;
@@ -581,6 +574,13 @@ async function sendPayload()
 		printLoggerMain("No target selected.","red");
 		return;
 	}
+	//Check if a payload has been selected
+	if (!payload)
+	{
+		printLoggerMain("No payload selected.","red");
+		return;
+	}
+
 	//Check if athena is connected, if selected
 	if (targets[0] && !athena.connected)
 	{
@@ -650,12 +650,14 @@ async function sendPayload()
 				var tmpBool = null;
 				if (tar == 'athena')
 				{
-					tmpBool = !athena.manualOverride;
+					if (athena.substate.motor_ctrl = 'MANUAL_OVERRIDE'){tmpBool=false;}
+					else {tmpBool=true}
 					
 				}
 				else if (tar == 'naiad')
 				{
-					tmpBool = !naiad.manualOverride;
+					if (naiad.substate.motor_ctrl = 'MANUAL_OVERRIDE'){tmpBool=false;}
+					else {tmpBool=true}
 				}
 				data = {function:payload, target:tar, bool:tmpBool};
 				break;
@@ -669,11 +671,31 @@ async function sendPayload()
 		var resp = await server.sendReq(data);
 		if (resp.data.success == true)
 		{
-			printLoggerMain("Sending payload "+payload+" to "+tar+" successful", "green");
+			printLoggerMain("Payload "+payload+" on "+tar+" successful", "green");
 		}
 		else
 		{
-			printLoggerMain("Sending payload "+payload+" to "+tar+" unsuccessful", "red");
+			printLoggerMain("Payload "+payload+" on "+tar+" unsuccessful", "red");
+		}
+	}
+}
+
+async function abort()
+{
+	var target = ['athena','naiad'];
+	for (tar of target)
+	{
+		data = {function:'abort',target:tar};
+		var server = new Server();
+		printLoggerMain("Sending abort to: " + tar);
+		var resp = await server.sendReq(data);
+		if (resp.data.success == true)
+		{
+			printLoggerMain("Payload abort on "+tar+" successful", "green");
+		}
+		else
+		{
+			printLoggerMain("Payload abort on "+tar+" unsuccessful", "red");
 		}
 	}
 }
@@ -682,6 +704,8 @@ $(document).ready(function(){
 	var server = new Server();
 	server.listenHeartbeat();
 	server.listenGetStates();
+	server.listenMissionStatus();
+	server.listenState();
 	//heartbeat();
 });
 

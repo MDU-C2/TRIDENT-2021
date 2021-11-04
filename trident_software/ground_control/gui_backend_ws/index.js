@@ -1,6 +1,3 @@
-
-
-
 const rclnodejs = require('./node_modules/rclnodejs/index.js')
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 
@@ -17,7 +14,7 @@ class Server
     this.express = require('express');
     //Setup express node and port
     this.app = this.express();
-    this.port = process.env.PORT || 8080;
+    this.port = process.env.PORT || 8081;
     this.server = null;
     this.io = null;
   }
@@ -59,9 +56,9 @@ class Server
     //Check for hearbeat every 1s
     setInterval(() => {
       this.io.emit('heartbeat',{'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
-      ROS2handle.heartbeatAthena.active = false;
-            ROS2handle.heartbeatNaiad.active = false;
-    },1000);
+        ROS2handle.heartbeatAthena.active = false;
+        ROS2handle.heartbeatNaiad.active = false;
+    },2000);
   }
 
   getStates(ROS2handle)
@@ -74,57 +71,57 @@ class Server
         Athena
       */
       //Get state from Athena mission control module
-      ROS2handle.getStatesAthena.missionControl.waitForService(1000).then((result) => {
+      ROS2handle.getStatesAthena.missionControl.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.missionControl._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.missionControl.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Athena',module:'missionControl',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/mission_control',{target:'Athena',module:'missionControl',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Athena navigation module
-      ROS2handle.getStatesAthena.navigation.waitForService(1000).then((result) => {
+      ROS2handle.getStatesAthena.navigation.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.missionControl._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.navigation.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Athena',module:'navigation',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/navigation',{target:'Athena',module:'navigation',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Athena motor control module
-      ROS2handle.getStatesAthena.motorControl.waitForService(1000).then((result) => {
+      ROS2handle.getStatesAthena.motorControl.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.motorControl._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.motorControl.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Athena',module:'motorControl',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/motor_control',{target:'Athena',module:'motorControl',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Athena motor driver module
-      ROS2handle.getStatesAthena.motorDriver.waitForService(1000).then((result) => {
+      ROS2handle.getStatesAthena.motorDriver.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.motorDriver._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.motorDriver.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Athena',module:'motorDriver',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/motor_driver',{target:'Athena',module:'motorDriver',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Athena position module
-      ROS2handle.getStatesAthena.position.waitForService(1000).then((result) => {
+      ROS2handle.getStatesAthena.position.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.position._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.position.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/position',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
         });
       });
 
@@ -132,60 +129,60 @@ class Server
         Naiad
       */
       //Get state from Athena mission control module
-      ROS2handle.getStatesNaiad.missionControl.waitForService(1000).then((result) => {
+      ROS2handle.getStatesNaiad.missionControl.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.missionControl._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesNaiad.missionControl.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Naiad',module:'missionControl',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/mission_control',{target:'Naiad',module:'missionControl',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Naiad navigation module
-      ROS2handle.getStatesNaiad.navigation.waitForService(1000).then((result) => {
+      ROS2handle.getStatesNaiad.navigation.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.navigation._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesNaiad.navigation.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Naiad',module:'navigation',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/navigation',{target:'Naiad',module:'navigation',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Naiad motor control module
-      ROS2handle.getStatesNaiad.motorControl.waitForService(1000).then((result) => {
+      ROS2handle.getStatesNaiad.motorControl.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.motorControl._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesNaiad.motorControl.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Naiad',module:'motorControl',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/motor_control',{target:'Naiad',module:'motorControl',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Naiad motor driver module
-      ROS2handle.getStatesNaiad.motorDriver.waitForService(1000).then((result) => {
+      ROS2handle.getStatesNaiad.motorDriver.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.motorDriver._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesNaiad.motorDriver.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Naiad',module:'motorDriver',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/motor_driver',{target:'Naiad',module:'motorDriver',state:response.state,intState:response.int_state})
         });
       });
 
       //Get state from Naiad position module
-      ROS2handle.getStatesNaiad.position.waitForService(1000).then((result) => {
+      ROS2handle.getStatesNaiad.position.waitForService(1900).then((result) => {
         if (!result) {
-          console.log('Error: service not available');
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.position._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesNaiad.position.sendRequest(request, (response) => {
-          this.io.emit('getStates',{target:'Naiad',module:'position',state:response.state,intState:response.int_state})
+          this.io.emit('state/get/position',{target:'Naiad',module:'position',state:response.state,intState:response.int_state})
         });
       });
-    },2000);
+    },500);
   }
 
   handleReq(ROS2handle)
@@ -228,23 +225,39 @@ class Server
               mission.waypoints.push(waypoint);
             }
             loadMission.mission = mission;
-            ROS2handle.loadMissionPlan._serviceName = prefixTopics+req.data.target+"/mission_control/mission/load";
-            ROS2handle.loadMissionPlan.waitForService(1000).then((result) => {
-              if (!result) {
-                console.log('Error: service not available');
-                return;
-              }
-              //console.log(`Sending: ${typeof loadMission}`, loadMission);
-              ROS2handle.loadMissionPlan.sendRequest(loadMission, (response) => {
-                //Send response back to client
-                socket.emit('response',{data:response});
-                //Close connection
-                socket.disconnect();
+            if (req.data.target == 'athena')
+            {
+              ROS2handle.loadMissionPlanAthena.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.loadMissionPlanAthena.sendRequest(loadMission, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
               });
-            });
+            }
+            else
+            {
+              ROS2handle.loadMissionPlanNaiad.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.loadMissionPlanNaiad.sendRequest(loadMission, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
+              });
+            }
             break;
           case 'start_mission_plan':
-            const client = new ActionClient(ROS2handle.node, req.data.target);
+            const client = new ActionClient(ROS2handle.node, req.data.target, this);
             client.sendMission();
             break;
           /*
@@ -252,40 +265,73 @@ class Server
           */
           case 'toggle_manual_override':
             var request = {data:req.data.bool};
-            ROS2handle.manualOverride._serviceName = prefixTopics+req.data.target+"/motor_control/manual_override";
-            ROS2handle.manualOverride.waitForService(1000).then((result) => {
-              if (!result) {
-                console.log('Error: service not available');
-                return;
-              }
-              ROS2handle.manualOverride.sendRequest(request, (response) => {
-                //Send response back to client
-                socket.emit('response',{data:response});
-                //Close connection
-                socket.disconnect();
+            if (req.data.target == 'athena')
+            {
+              ROS2handle.manualOverrideAthena.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.manualOverrideAthena.sendRequest(request, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
               });
-            });
+            }
+            else
+            {
+              ROS2handle.manualOverrideNaiad.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.manualOverrideNaiad.sendRequest(request, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
+              });
+            }
             break;
           /*
             Request to abort
           */
           case 'abort':
             var request = {};
-            ROS2handle.abort._serviceName = prefixTopics+req.data.target+"/abort";
-            ROS2handle.abort.waitForService(1000).then((result) => {
-              if (!result) {
-                console.log('Error: service not available');
-                return;
-              }
-              ROS2handle.abort.sendRequest(request, (response) => {
-                //Send response back to client
-                socket.emit('response',{data:response});
-                //Close connection
-                socket.disconnect();
+            if (req.data.target == 'athena')
+            {
+              ROS2handle.abortAthena.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.abortAthena.sendRequest(request, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
               });
-            });
+            }
+            else
+            {
+              ROS2handle.abortNaiad.waitForService(1000).then((result) => {
+                if (!result) {
+                  console.log('Error: service not available');
+                  return;
+                }
+                ROS2handle.abortNaiad.sendRequest(request, (response) => {
+                  //Send response back to client
+                  socket.emit('response',{data:response});
+                  //Close connection
+                  socket.disconnect();
+                });
+              });
+            }
         }
-        
       });
 
     });
@@ -301,13 +347,18 @@ class ROS2
     this.node = null;
     this.heartbeatAthena = {handle:null,active:false};
     this.heartbeatNaiad  = {handle:null,active:false};
-    this.manualOverride = null;
-    this.loadMissionPlan = null;
-    this.startMissionPlan = null;
-    this.abort = null;
+    this.manualOverrideAthena = null;
+    this.manualOverrideNaiad = null;
+    this.loadMissionPlanAthena = null;
+    this.startMissionPlanNaiad = null;
+    this.abortAthena = null;
+    this.abortNaiad = null;
     this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
     this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
-    this.startMission = null;
+    this.startMissionAthena = null;
+    this.startMissionNaiad = null;
+    this.stateAthena = null;
+    this.stateNaiad = null;
   }
 
   init()
@@ -317,29 +368,30 @@ class ROS2
     this.node = new this.rclnodejs.Node('ground_control');
   }
 
-  startInterfaces()
+  startInterfaces(serverHandle)
   {
-    //Create and start heartbeat listener Athena
-    this.heartbeatAthena.handle = this.node.createSubscription('trident_msgs/msg/Num',prefixTopics+'athena/heartbeat', (msg) => {
+
+    //Create and start state listener Athena
+    this.stateAthena = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'athena/position/state', (msg) => {
       this.heartbeatAthena.active = true;
+      serverHandle.io.emit('state/athena', {data:msg});
     });
 
-    //Create and start heartbeat listener Naiad
-    this.heartbeatNaiad.handle = this.node.createSubscription('trident_msgs/msg/Num',prefixTopics+'naiad/heartbeat', (msg) => {
+    //Create and start state listener Naiad
+    this.stateNaiad = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'naiad/position/state', (msg) => {
       this.heartbeatNaiad.active = true;
+      serverHandle.io.emit('state/naiad', {data:msg});
     });
 
-    //Create service: manual_override (athena)
-    this.manualOverride = this.node.createClient('std_srvs/srv/SetBool', prefixTopics+'athena/motor_control/manual_override');
-    //this.manualOverrideAthena._serviceName = 'naiad/motor_control_manual_override';
-    //console.log(this.manualOverrideAthena);
+    //Create service: manual_override
+    this.manualOverrideAthena = this.node.createClient('std_srvs/srv/SetBool', prefixTopics+'athena/motor_control/manual_override');
+    this.manualOverrideNaiad = this.node.createClient('std_srvs/srv/SetBool', prefixTopics+'naiad/motor_control/manual_override');
 
     //Create service: load_mission_plan
-    this.loadMissionPlan = this.node.createClient('trident_msgs/srv/LoadMission', prefixTopics+'athena/mission_control/mission/load');
+    this.loadMissionPlanAthena = this.node.createClient('trident_msgs/srv/LoadMission', prefixTopics+'athena/mission_control/mission/load');
+    this.loadMissionPlanNaiad = this.node.createClient('trident_msgs/srv/LoadMission', prefixTopics+'naiad/mission_control/mission/load');
 
-    /*
-      Create services to get states from Athena and Naiad
-    */
+    //Create services to get states from Athena and Naiad
     this.getStatesAthena.missionControl = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/mission_control/state/get');
     this.getStatesAthena.navigation     = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/navigation/state/get');
     this.getStatesAthena.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_control/state/get');
@@ -353,10 +405,8 @@ class ROS2
     this.getStatesNaiad.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/position/state/get');
 
     //Create service: abort
-    this.abort = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
-
-    //Create action: start_mission
-    //this.startMission = this.node.ActionClient('trident_msgs/action/StartMission', prefixTopics+'athena/mission_control/mission/start');
+    this.abortAthena = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
+    this.abortNaiad = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'naiad/abort');
 
     this.node.spin();
   }
@@ -366,9 +416,10 @@ class ROS2
   Action classes
 */
 class ActionClient {
-  constructor(node,target) {
+  constructor(node,target,serverHandle) {
     this._node = node;
     this.target = target;
+    this.serverHandle = serverHandle;
     this._actionClient = new rclnodejs.ActionClient(
       node,
       'trident_msgs/action/StartMission',
@@ -377,38 +428,37 @@ class ActionClient {
   }
 
   async sendMission() {
-    this._node.getLogger().info('Waiting for action server...');
-    await this._actionClient.waitForServer();
+    this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'info', message:'Waiting for action server...'});
 
     const mission = {};
 
-    this._node.getLogger().info('Sending goal request...');
+    this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'info', message:'Sending goal request...'});
     const goalHandle = await this._actionClient.sendGoal(mission, (feedback) =>
       this.feedbackCallback(feedback)
     );
 
     if (!goalHandle.isAccepted()) {
-      this._node.getLogger().info('Goal rejected');
+      this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'error', message:'Goal rejected'});
       return;
     }
 
-    this._node.getLogger().info('Goal accepted');
-
+    this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'success', message:'Goal accepted'});
+    
     const result = await goalHandle.getResult();
 
     if (goalHandle.isSucceeded()) {
-      this._node
-        .getLogger()
-        .info(`Goal suceeded with result: ${result}`);
+      this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'success', message:'Successful mission: '+JSON.stringify(result)});
+      this.serverHandle.io.emit('response',{data:{success:true}});
     } else {
-      this._node.getLogger().info(`Goal failed with status: ${status}`);
+      this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'error', message:'Goal not succeded'});
+      this.serverHandle.io.emit('response',{data:{success:false}});
     }
 
     //rclnodejs.shutdown();
   }
 
   feedbackCallback(feedback) {
-    this._node.getLogger().info(`Received feedback: ${feedback}`);
+    this.serverHandle.io.emit('mission/status',{target:this.target, msgType: 'info', message:'Feedback: '+JSON.stringify(feedback)});
   }
 }
 
@@ -424,7 +474,7 @@ function main()
 
   //Setup ros2 and serve messages/services/actions
   ros2.init();
-  ros2.startInterfaces();
+  ros2.startInterfaces(server);
   
 }
 

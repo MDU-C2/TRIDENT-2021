@@ -9,14 +9,17 @@ const Pose = rclnodejs.require('geometry_msgs/msg/Pose');
 const tridenStates = require('./tridentstates')
 
 let prefixTopics = "gc/";
-class ActionServer {
-  constructor(node) {
-    this._node = node;
+var data1 = {x:50,y:0,z:0,roll:0,pitch:0,heading: 45,velx:0,vely:0,velz:0,velroll:0,velpitch:0,velheading:0};
+var data2 = {x:-50,y:0,z:0,roll:0,pitch:0,heading: 45,velx:0,vely:0,velz:0,velroll:0,velpitch:0,velheading:0};
 
+class ActionServer {
+  constructor(node,target) {
+    this._node = node;
+    this.target = target;
     this._actionServer = new rclnodejs.ActionServer(
       node,
       'trident_msgs/action/StartMission',
-      prefixTopics+'athena/mission_control/mission/start',
+      prefixTopics+this.target+'/mission_control/mission/start',
       this.executeCallback.bind(this),
       this.goalCallback.bind(this),
       null,
@@ -28,26 +31,40 @@ class ActionServer {
     this._node.getLogger().info('Executing goal...');
 
     const feedbackMessage = new StartMission.Feedback();
-
     // Start executing the action
     if (missionHandle.isCancelRequested) {
       missionHandle.canceled();
       this._node.getLogger().info('Goal canceled');
       return new StartMission.Result();
     }
-
     feedbackMessage.status = 0;
     feedbackMessage.message = "executing";
-    feedbackMessage.waypoints_completed = 1;
-    this._node
-      .getLogger()
-      .info(`Publishing feedback: ${feedbackMessage}`);
+    feedbackMessage.waypoints_completed = 0;
+    
+    for (var i=0; i < 5 ; i++)
+    {
+      feedbackMessage.waypoints_completed += 1;
+      this._node
+        .getLogger()
+        .info(`Publishing feedback: ${feedbackMessage}`);
 
-    // Publish the feedback
-    missionHandle.publishFeedback(feedbackMessage);
+      // Publish the feedback
+      missionHandle.publishFeedback(feedbackMessage);
 
-    // Wait for 1 second
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (this.target == 'athena')
+      {
+        data1.heading = i*10;
+        data1.x = 50;
+      }
+      else if (this.target == 'naiad')
+      {
+        data2.heading = i*10;
+        data2.x = -50;
+      }
+
+      // Wait for 1 second
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
 
     missionHandle.succeed();
 
@@ -99,25 +116,29 @@ rclnodejs
     let count = 0;
     const states = new States();
 
-    //hearbeat tester
-    const heartbeatPublisherAthena = node.createPublisher('trident_msgs/msg/Num',prefixTopics+'athena/heartbeat');
-    let counter1 = 0;
-    setInterval(() => {
-      heartbeatPublisherAthena.publish({a:counter1++});
-    }, 100);
-    
-    const heartbeatPublisherNaiad = node.createPublisher('trident_msgs/msg/Num',prefixTopics+'naiad/heartbeat');
-    let counter2 = 0;
-    setInterval(() => {
-      heartbeatPublisherNaiad.publish({a:counter2++});
-    }, 100);
+    const statePublisherAthena = node.createPublisher('trident_msgs/msg/State',prefixTopics+'athena/position/state');
+    const statePublisherNaiad = node.createPublisher('trident_msgs/msg/State',prefixTopics+'naiad/position/state');
 
+     //Publish state
+    setInterval(function(){
+      statePublisherAthena.publish(data1);
+      statePublisherNaiad.publish(data2);
+    },1000);
+    
 
     //Manual override athena
     node.createService(
       'std_srvs/srv/SetBool',
       prefixTopics+'athena/motor_control/manual_override',
       (request, response) => {
+        if (states.athena.motorControl != tridenStates.motorControlState.MANUAL_OVERRIDE)
+        {
+          states.athena.motorControl = tridenStates.motorControlState.MANUAL_OVERRIDE;
+        }
+        else
+        {
+          states.athena.motorControl = tridenStates.motorControlState.IDLE;
+        }
         let result = response.template;
         result.success = true;
         result.message = "done";
@@ -130,6 +151,14 @@ rclnodejs
       'std_srvs/srv/SetBool',
       prefixTopics+'naiad/motor_control/manual_override',
       (request, response) => {
+        if (states.naiad.motorControl != tridenStates.motorControlState.MANUAL_OVERRIDE)
+        {
+          states.naiad.motorControl = tridenStates.motorControlState.MANUAL_OVERRIDE;
+        }
+        else
+        {
+          states.naiad.motorControl = tridenStates.motorControlState.IDLE;
+        }
         let result = response.template;
         result.success = true;
         result.message = "done";
@@ -212,6 +241,7 @@ rclnodejs
         result.success = true;
         result.state = "None";
         result.int_state = states.athena.motorControl;
+        //console.log('athena:'+JSON.stringify(result));
         response.send(result);
       }
     );
@@ -261,6 +291,7 @@ rclnodejs
         result.success = true;
         result.state = "None";
         result.int_state = states.naiad.motorControl;
+        //console.log('naiad:'+JSON.stringify(result));
         response.send(result);
       }
     );
@@ -283,22 +314,9 @@ rclnodejs
       }
     );
 
-    //toggle mode on naiad
-    /*
-    node.createService(
-      'trident_msgs/srv/ToggleControl',
-      'toggle_control_mode',
-      (request, response) => {
-        console.log('Request to toggle automatic on Athena');
-        let result = response.template;
-        result.success = true;
-        result.message = "automatic toggled";
-        console.log(`Sending response: ${typeof result}`, result, '\n--');
-        response.send(result);
-      }
-    );*/
-
-    new ActionServer(node);
+    //Setup start mission actions
+    new ActionServer(node,'athena');
+    new ActionServer(node,'naiad');
 
     console.log("Tester node started");
     rclnodejs.spin(node);
