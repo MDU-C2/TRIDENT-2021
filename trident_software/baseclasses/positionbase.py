@@ -145,13 +145,16 @@ class PosNode(Node, ABC):
                             self.covar),
                             np.transpose(state_trans_mat)
                          ) + self.proc_noise
-            
+
             # Here we go through all of the different sensors
             # TODO: none of this truly is implemented yet, since no sensors!
             for sensor in self.sensor_handles:
                 try:
                     # Get the values from the sensors
                     gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
+                    # Check for cheeky nans
+                    if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
+                        raise Exception("The sensor",sensor,"returned a NaN!")
                     # Update the state estimate
                     #print(gain, resid)
                     pred_state = pred_state + np.matmul(gain, resid)
@@ -162,7 +165,7 @@ class PosNode(Node, ABC):
                                         obs_mat),
                                     pred_covar)
                 except Exception as e:
-                    print("Skipping sensor due to failure!",e)
+                    self.get_logger().warn("Skipping sensor due to failure! " + e)
             
             # Finally, set the state and covariance to the new ones!
             self.state = pred_state

@@ -1,0 +1,44 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from trident_msgs/msg/NaiadState.msg
+// generated code does not contain a copyright notice
+
+
+module trident_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      " State for NAIAD will be the following" "\n"
+      " x y z roll pitch heading dx dy dz droll dpitch dheading")
+    struct NaiadState {
+      @verbatim (language="comment", text=
+        " The x y coords are in meters, relative to 59.6175336,16.5605033" "\n"
+        " (the position of C2 according to google maps) and sea level," "\n"
+        " with x going north, y going east, and z going down." "\n"
+        " roll and pitch are relative to down, and heading is relative to north." "\n"
+        " all rotations are in radians. The change variables (those starting with d*) are in" "\n"
+        " local coordinates, and are in base unit per second, while the others are global.")
+      double x;
+
+      double y;
+
+      double z;
+
+      float roll;
+
+      float pitch;
+
+      float heading;
+
+      float velx;
+
+      float vely;
+
+      float velz;
+
+      float velroll;
+
+      float velpitch;
+
+      float velheading;
+    };
+  };
+};

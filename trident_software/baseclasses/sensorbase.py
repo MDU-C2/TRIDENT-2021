@@ -31,6 +31,7 @@ class SensorNode(Node, ABC):
         
         # Perform the needed EKF steps
         # TODO: allow observation matrix OR function
+        #print(self.measure)
         residual = self.measure - np.matmul(self.obs_mat, state)
         residual_covar = np.matmul(np.matmul(
                              self.obs_mat,
@@ -46,9 +47,8 @@ class SensorNode(Node, ABC):
         response.gain              = kalman_gain.flatten().astype('float32').tolist()
         response.observationmatrix = self.obs_mat.flatten().astype('float32').tolist()
         #print("Request:",  request)
-        print(residual.flatten().astype('float32').tolist())
-        print("Response:", response)
-        print("First Gain Type:", type(response.gain[0]))
+        #self.get_logger().info("Request: %s" % request)
+        self.get_logger().info("Response: %s" % response)
 
         return response
     

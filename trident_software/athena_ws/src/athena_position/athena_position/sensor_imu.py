@@ -43,7 +43,7 @@ class IMUNode(sensbase.SensorNode):
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
         
-        super().SensorService(request, response)
+        return super().SensorService(request, response)
     
     def TakeMeasurement(self):
         # TODO: Maybe switch readings to follow north-east-down?

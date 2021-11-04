@@ -4,6 +4,11 @@ import serial #package is named "pyserial"!
 import io
 import pynmea2
 import numpy as np
+from math import sin, cos, sqrt, asin
+from math import radians as torad
+
+def hav(theta):
+    return (1-cos(theta))/2
 
 class GPSNode(sensbase.SensorNode):
     def __init__(self):
@@ -18,14 +23,15 @@ class GPSNode(sensbase.SensorNode):
         m_per_deg_lon = 2*earth_radius*asin(sqrt(
             hav(0.0) + cos(torad(origin[0]))**2 *hav(torad(1.0))
         ))
+        self.origin = origin
 
         init_obs_mat = np.array([
-            #x  y  yaw dx dy dyaw
+            #              x                y  yaw dx dy dyaw
             [1/m_per_deg_lat,               0,   0, 0, 0,   0],  #x (latitude)
             [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
-                         np.eye(2,6), 2, np.identity(2)*0.0001**2)
+                         init_obs_mat, 2, np.identity(2)*0.0001**2)
         # Change as needed
         self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
         self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
@@ -42,11 +48,9 @@ class GPSNode(sensbase.SensorNode):
                     deci_lon = int(msg.lon[:3]) + float(msg.lon[3:])/60
                     if(msg.lat_dir == 'S'): deci_lat *= -1
                     if(msg.lon_dir == 'W'): deci_lon *= -1
-                    ''' NOTE: It may be useful to change this to more useful
-                        units (like meters) later on. You may also want to
-                        swap them around (have longitude be x) '''
-                    self.measure[0,0] = deci_lat
-                    self.measure[1,0] = deci_lon
+                    ''' NOTE: This returns the distance in lat+long from the origin '''
+                    self.measure[0,0] = deci_lat-self.origin[0]
+                    self.measure[1,0] = deci_lon-self.origin[1]
         except serial.SerialException as e:
             print('Device error: {}'.format(e))
         except pynmea2.ParseError as e:
