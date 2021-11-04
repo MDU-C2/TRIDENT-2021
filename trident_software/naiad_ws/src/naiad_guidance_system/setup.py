@@ -1,11 +1,20 @@
 from setuptools import setup
+import os
 
 package_name = 'naiad_guidance_system'
+
+baseclasses_package_path = os.path.join(
+    os.path.abspath(__file__).split('trident_software')[0],
+    ('trident_software/baseclasses')
+)
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    package_dir={
+        'baseclasses': baseclasses_package_path,
+    },
+    packages=[package_name, 'baseclasses'],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -20,6 +29,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'guidance_system = naiad_guidance_system.guidancesystemmain:main'
         ],
     },
 )
