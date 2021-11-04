@@ -7,7 +7,7 @@ athena:
       pas_threshold: 0.0   # The threshold that decided if PaS orientation should be used instead of the goal orientation. Distance in meters from the goal.  
       goal_distance_slack: 0.2 # Meters
       goal_orientation_slack: 0.1 # Percent.
-      motor_config: >       #  x          y    z    roll    pitch    yaw
+      motor_config: >
         [ 
           {
            "id": 1,
@@ -75,7 +75,7 @@ athena:
     ros__parameters:
       motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
-      motor_config: >
+      motor_interface: >
         [
           {
             "id": 1,

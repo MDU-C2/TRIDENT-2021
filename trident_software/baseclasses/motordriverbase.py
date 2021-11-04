@@ -30,11 +30,11 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             namespace='',
             parameters=[
                 ('motor_output_silence_period',  0.3), # Seconds
-                ('motor_config',  [])
+                ('motor_interface',  "")
             ])
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
-        self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value)
+        self._motor_interface = json.loads(self.get_parameter('motor_interface').get_parameter_value().string_value)
 
         # Set default motor state to active
         self.motors_killed = False
@@ -89,7 +89,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """
         # motor_outputs = MotorOutputs()
         outputs = []
-        for motor in self._motor_config:
+        for motor in self._motor_interface:
             output = MotorOutput()
             output.id, output.value = motor["id"], 0.0
             outputs.append(output)
