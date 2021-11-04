@@ -28,10 +28,6 @@ find_package(action_msgs REQUIRED)
 
 find_package(rosidl_default_generators REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/KalmanSensorService.srv"
-)
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -55,6 +51,7 @@ set(msg_files
   "srv/GuidanceRequest.srv"
   "srv/GetGoalPose.srv"
   "srv/GetState.srv"
+  "srv/KalmanSensorService.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"
   "action/GotoPose.action"

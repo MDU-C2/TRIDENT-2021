@@ -1,6 +1,1 @@
-# The current state estimate (sent as a simple flat array and made into a column at the sensor node)
-float64[] state
-
-# The covariance of the state estimate (sent flat and reconstructed using reshape, since it always has as many rows and columns as state has elements/rows)
-float64[] covar
-
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/KalmanSensorService_Request.msg

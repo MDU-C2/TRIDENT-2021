@@ -1,13 +1,90 @@
 athena:
   motor_control:
     ros__parameters:
-      motor_update_frequency: 100.0
+      motor_update_frequency: 1.0     # Hz - The frequency at which the motor controller computes new motor output values and sends to the motor driver.
+      pas_orientation_update_freq: 0.5 # Hz - The frequency at which the motor controller computer a new point and shoot orientation. 
+                                       #      This doesn't need to happen that often.
+      pas_threshold: 0.0   # The threshold that decided if PaS orientation should be used instead of the goal orientation. Distance in meters from the goal.  
+      goal_distance_slack: 0.2 # Meters
+      goal_orientation_slack: 0.1 # Percent.
+      motor_config: >
+        [ 
+          {
+           "id": 1,
+           "descriptive_name": "rear_left",
+           "pose_effect": {
+                "x":     1.0,
+                "y":     0,
+                "z":     0,
+                "pitch": 0,
+                "yaw":   0.28,
+                "roll":  0
+            }
+          },
+          {
+            "id": 2,
+            "descriptive_name": "rear_right",
+            "pose_effect": {
+                "x":     1.0,
+                "y":     0,
+                "z":     0,
+                "pitch": 0,
+                "yaw":   -0.28,
+                "roll":  0
+            }
+          }
+        ]
+      pid_config: >
+        {
+          "p": {
+            "x":     2.0,
+            "y":     2.0,
+            "z":     0.0,
+            "pitch": 0.0,
+            "yaw":   1.0,
+            "roll":  0.0
+          }
+          "i": {
+            "x":     0.0,
+            "y":     0.0,
+            "z":     0.0,
+            "pitch": 0.0,
+            "yaw":   0.0,
+            "roll":  0.0
+          }
+          "d": {
+            "x":     0.5,
+            "y":     0.5
+            "z":     2.0
+            "pitch": 0.1
+            "yaw":   0.5,
+            "roll":  0.1
+          }
+        }
+
   navigation:
     ros__parameters:
-      placeholder: 0 # Placeholder since there are no params atm.
+      placeholder: 0 # Placeholder since there are no params for this node atm.
   mission_control:
     ros__parameters:
-      placeholder: 0
+      placeholder: 0 # Placeholder since there are no params for this node atm.
   position:
     ros__parameters:
-      placeholder: 0
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  motor_driver:
+    ros__parameters:
+      simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
+                              # environment or the real motors.
+      motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
+                                         # will operate without receiving a command from motor contorl.
+      motor_interface: >
+        [
+          {
+            "id": 1,
+            "gpio_pin": 42
+          },
+          {
+            "id": 2,
+            "gpio_pin": 42
+          }
+        ]          
