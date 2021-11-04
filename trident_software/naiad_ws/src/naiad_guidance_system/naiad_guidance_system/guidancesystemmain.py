@@ -102,12 +102,12 @@ class GuidanceSystemNode(Node):
             self._stop_guidance_timer = self.create_timer(guidance_duration, self._stop_guidance_timer_callback)
 
     def _stop_guidance_timer_callback(self):
-        """Callback for the stop_guidance_timer that is started whena guidance request
+        """Callback for the stop_guidance_timer that is started when a guidance request
         with guidance_duration > 0 is accepted.
         """
-        self.stop_guidance()
         self._stop_guidance_timer.cancel()
         self._stop_guidance_timer.destroy()
+        self.stop_guidance()
 
     def stop_guidance(self):
         """Sends a stop guidance request to the guidance server.
@@ -128,9 +128,6 @@ class GuidanceSystemNode(Node):
         self.update_state(NaiadGuidanceSystemState.IDLE)
 
         return response.success
-
-
-
 
     def update_reference_position(self, new_ref_pos):
         """Updates the reference position with the received reference position
