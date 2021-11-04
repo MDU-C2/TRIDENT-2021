@@ -7,6 +7,7 @@ import numpy as np
 from typing import List, Tuple
 from math import sqrt   # For Pythagorean theorem to calculate distance 
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
+from simple_pid import PID 
 import json
 import rclpy
 from rclpy.node import Node
@@ -39,6 +40,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 ('goal_distance_slack', 0.2), # Meters
                 ('goal_orientation_slack', 0.1), # Percent
                 ('motor_config', ""),
+                ('pid_config', ""),
             ])
 
         # LOAD PARAMETERS
@@ -47,6 +49,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._pas_orientation_update_freq = self.get_parameter('pas_orientation_update_freq').get_parameter_value().double_value # Hz
         # Motor config parameters, see config file for information about structure
         self._motor_config = json.loads(self.get_parameter('motor_config').get_parameter_value().string_value)
+        self._pid_config = json.loads(self.get_parameter('pid_config').get_parameter_value().string_value)
         # Motor control update frequency
         self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
         # Threshold for when to compute orientation internally instead of using goal orientation.
@@ -77,6 +80,24 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._agent_state.position = p
         self._agent_state.orientation = q
         ##########################################
+
+
+        # Create the PID objects
+        self._x_pid =     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"])
+        self._y_pid =     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"])
+        self._z_pid =     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"])
+        self._pitch_pid = PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"])
+        self._yaw_pid =   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"])
+        self._roll_pid =  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])
+        self._pids = {
+            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"]),
+            "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"]),
+            "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"]),
+            "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"]),
+            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"]),
+            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])   
+        }
+
 
         # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
@@ -162,6 +183,20 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         Returns:
             MotorOutputs: List of values to send to each motor (motor number, value)
         """
+        # Check if we have a goal pose
+        if self._goal_pose is None:
+            return None
+        # Retrieve goal positions
+        goal_x, goal_y, goal_z = goal.position.x, goal.position.y, goal.position.z
+        # TODO: Convert quaternion to euler 
+
+        # First update setpoint from goal pose for all pids
+        for key, pid in self.pids.items():
+            pid.setpoint = goal[key]
+
+        # https://pypi.org/project/simple-pid/
+        # https://simple-pid.readthedocs.io/en/latest/simple_pid.html#module-simple_pid.PID
+
 
     def distance_to_goal(self, current: Point, goal: Point) -> float:
         """Calculates the distance between the goal and the current state.
