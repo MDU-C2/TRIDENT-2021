@@ -110,7 +110,7 @@ class Server {
 				this.heartbeatStatus[0] = true;
 				document.getElementById("connStatusAthena").innerHTML = "online";
 				document.getElementById("connStatusAthena").style.color = "#4CAF50";
-				printLoggerMain("Connection established with Athena", "green");
+				logger.printLogger('loggerMainWindow',"Connection established with Athena", "green");
 			}
 			else if (resp.athena == false && resp.athena != this.heartbeatStatus[0])
 			{
@@ -118,7 +118,7 @@ class Server {
 				this.heartbeatStatus[0] = false;
 				document.getElementById("connStatusAthena").innerHTML = "offline";
 				document.getElementById("connStatusAthena").style.color = "rgb(201, 76, 76)";
-				printLoggerMain("Connection lost with Athena", "red");
+				logger.printLogger('loggerMainWindow',"Connection lost with Athena", "red");
 			}
 			if (resp.naiad == true && resp.naiad != this.heartbeatStatus[1])
 			{
@@ -126,7 +126,7 @@ class Server {
 				this.heartbeatStatus[1] = true;
 				document.getElementById("connStatusNaiad").innerHTML = "online";
 				document.getElementById("connStatusNaiad").style.color = "#4CAF50";
-				printLoggerMain("Connection established with Naiad", "green");
+				logger.printLogger('loggerMainWindow',"Connection established with Naiad", "green");
 			}
 			else if (resp.naiad == false && resp.naiad != this.heartbeatStatus[1])
 			{
@@ -134,7 +134,7 @@ class Server {
 				this.heartbeatStatus[1] = false;
 				document.getElementById("connStatusNaiad").innerHTML = "offline";
 				document.getElementById("connStatusNaiad").style.color = "rgb(201, 76, 76)";
-				printLoggerMain("Connection lost with Naiad", "red");
+				logger.printLogger('loggerMainWindow',"Connection lost with Naiad", "red");
 			}
 		});
 	}
@@ -241,7 +241,7 @@ class Server {
 		});
 		//If an error occured during get state service, display in logger.
 		this.socket.on('getStates/error', resp => {
-			printLoggerMain(resp.errMsg, 'red');
+			logger.printLogger('loggerMainWindow',resp.errMsg, 'red');
 		});
 	}
 
@@ -250,15 +250,15 @@ class Server {
 		this.socket.on('mission/status', resp => {
 			if (resp.msgType == 'info')
 			{
-				printLoggerMain(resp.message);
+				logger.printLogger('loggerMainWindow',resp.message);
 			}
 			else if (resp.msgType == 'error')
 			{
-				printLoggerMain(resp.message,'red');
+				logger.printLogger('loggerMainWindow',resp.message,'red');
 			}
 			else if (resp.msgType == 'success')
 			{
-				printLoggerMain(resp.message,'green');
+				logger.printLogger('loggerMainWindow',resp.message,'green');
 			}
 		});
 	}
@@ -352,10 +352,45 @@ class Naiad {
 	}
 }
 
+class Logger {
+	constructor()
+	{
+		this.freezeLogger = false;
+	}
+
+	printLogger(board,msg,color)
+	{
+		var today = new Date();
+		var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+		document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+		var objDiv = document.getElementById("loggerMainWindow");
+		if (!this.freezeLogger)
+		{
+			objDiv.scrollTop = objDiv.scrollHeight;
+		}
+	}
+
+	toggleFreezeLogger()
+	{
+		this.freezeLogger = !this.freezeLogger;
+		if (this.freezeLogger)
+		{
+			document.getElementById('toggleFreezeLogger').className = 'bi bi-lock-fill';
+		}
+		else
+		{
+			document.getElementById('toggleFreezeLogger').className = 'bi bi-unlock-fill';
+		}
+	}
+
+}
+
 //Setup class handlers
 var waypointMap = new WaypointMap();
 var athena = new Athena();
 var naiad = new Naiad();
+var logger = new Logger();
+
 
 /*
 	Map
@@ -551,15 +586,6 @@ function selectWaypointType(target)
 	}
 }
 
-function printLoggerMain(msg,color)
-{
-	var today = new Date();
-	var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-	document.getElementById("loggerMainWindow").innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
-	var objDiv = document.getElementById("loggerMainWindow");
-	objDiv.scrollTop = objDiv.scrollHeight;
-}
-
 /*
 	Send payload functionality
 */
@@ -571,20 +597,20 @@ async function sendPayload()
 	//Check if any target has been selected
 	if ($('input[name=target]:checked').length == 0)
 	{
-		printLoggerMain("No target selected.","red");
+		logger.printLogger('loggerMainWindow',"No target selected.","red");
 		return;
 	}
 	//Check if a payload has been selected
 	if (!payload)
 	{
-		printLoggerMain("No payload selected.","red");
+		logger.printLogger('loggerMainWindow',"No payload selected.","red");
 		return;
 	}
 
 	//Check if athena is connected, if selected
 	if (targets[0] && !athena.connected)
 	{
-		printLoggerMain("Can't send payload, not connected to"+targets[0], "red");
+		logger.printLogger('loggerMainWindow',"Can't send payload, not connected to"+targets[0], "red");
 		return;
 	}
 	else
@@ -597,7 +623,7 @@ async function sendPayload()
 	//CHeck if naiad is connected, if selected
 	if (targets[1] && !naiad.connected)
 	{
-		printLoggerMain("Can't send payload, not connected to"+targets[0], "red");
+		logger.printLogger('loggerMainWindow',"Can't send payload, not connected to"+targets[0], "red");
 		return;
 	}
 	else
@@ -619,7 +645,7 @@ async function sendPayload()
 				//If we don't have any waypoints added for target
 				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[0].length == 0))
 				{
-					printLoggerMain("No waypoints added for: " + tar, "red");
+					logger.printLogger('loggerMainWindow',"No waypoints added for: " + tar, "red");
 					continue;
 				}
 				if (tar == 'athena')
@@ -667,15 +693,15 @@ async function sendPayload()
 		}
 
 		var server = new Server();
-		printLoggerMain("Sending "+payload+" to: " + tar);
+		logger.printLogger('loggerMainWindow',"Sending "+payload+" to: " + tar);
 		var resp = await server.sendReq(data);
 		if (resp.data.success == true)
 		{
-			printLoggerMain("Payload "+payload+" on "+tar+" successful", "green");
+			logger.printLogger('loggerMainWindow',"Payload "+payload+" on "+tar+" successful", "green");
 		}
 		else
 		{
-			printLoggerMain("Payload "+payload+" on "+tar+" unsuccessful", "red");
+			logger.printLogger('loggerMainWindow',"Payload "+payload+" on "+tar+" unsuccessful", "red");
 		}
 	}
 }
@@ -687,15 +713,15 @@ async function abort()
 	{
 		data = {function:'abort',target:tar};
 		var server = new Server();
-		printLoggerMain("Sending abort to: " + tar);
+		logger.printLogger('loggerMainWindow',"Sending abort to: " + tar);
 		var resp = await server.sendReq(data);
 		if (resp.data.success == true)
 		{
-			printLoggerMain("Payload abort on "+tar+" successful", "green");
+			logger.printLogger('loggerMainWindow',"Payload abort on "+tar+" successful", "green");
 		}
 		else
 		{
-			printLoggerMain("Payload abort on "+tar+" unsuccessful", "red");
+			logger.printLogger('loggerMainWindow',"Payload abort on "+tar+" unsuccessful", "red");
 		}
 	}
 }
@@ -706,6 +732,5 @@ $(document).ready(function(){
 	server.listenGetStates();
 	server.listenMissionStatus();
 	server.listenState();
-	//heartbeat();
+	document.getElementById("toggleFreezeLogger").addEventListener('click',function(){logger.toggleFreezeLogger();});
 });
-

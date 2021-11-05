@@ -1,5 +1,6 @@
 const rclnodejs = require('./node_modules/rclnodejs/index.js')
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
+var fs = require('fs');
 
 waypointAction = {
   NO_ACTION:0,
@@ -359,6 +360,8 @@ class ROS2
     this.startMissionNaiad = null;
     this.stateAthena = null;
     this.stateNaiad = null;
+    this.logginAthena = null;
+    this.loggingNaiad = null;
   }
 
   init()
@@ -381,6 +384,22 @@ class ROS2
     this.stateNaiad = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'naiad/position/state', (msg) => {
       this.heartbeatNaiad.active = true;
       serverHandle.io.emit('state/naiad', {data:msg});
+    });
+
+    //Create and start logging listener Athena
+    this.logginAthena = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'athena/position/state', (msg) => {
+      fs.appendFile('logs/athena.log', JSON.stringify(msg)+'\n', function (err) {
+        if (err) throw err;
+      }); 
+      serverHandle.io.emit('logging/athena', {data:msg});
+    });
+
+    //Create and start logging listener Naiad
+    this.loggingNaiad = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'naiad/position/state', (msg) => {
+      fs.appendFile('logs/naiad.log', JSON.stringify(msg)+'\n', function (err) {
+        if (err) throw err;
+      }); 
+      serverHandle.io.emit('logging/naiad', {data:msg});
     });
 
     //Create service: manual_override
