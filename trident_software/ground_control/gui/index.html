@@ -81,11 +81,13 @@
                               <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#loggerNaiadWindow" type="button" role="tab" aria-controls="loggerNaiadWindow" aria-selected="false">Naiad</button>
                             </li>
                         </ul>
-                        <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:0.5rem;"><i id="toggleFreezeLogger" class="bi bi-unlock-fill" style="font-size: 1.8rem;"></i></button>
+                        <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:8.5rem;"><i id="openFullscreenLogger" class="bi bi-arrows-fullscreen" style="font-size: 1.8rem;"></i></button>
+                        <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:4.5rem;"><i id="toggleFreezeLogger" class="bi bi-unlock-fill" style="font-size: 1.8rem;"></i></button>
+                        <button style="border:none;background:transparent; position: absolute; top:0.6rem;right:0.5rem;"><i id="clearLoggerWindow" class="bi bi-trash-fill" style="font-size: 1.8rem;"></i></button>
                         <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="loggerMainWindow" role="tabpanel" aria-labelledby="home-tab"></div>
-                            <div class="tab-pane fade" id="loggerAthenaWindow" role="tabpanel" aria-labelledby="profile-tab">...</div>
-                            <div class="tab-pane fade" id="loggerNaiadWindow" role="tabpanel" aria-labelledby="contact-tab">...</div>
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade show active" id="loggerMainWindow" role="tabpanel" aria-labelledby="home-tab"></div>
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade" id="loggerAthenaWindow" role="tabpanel" aria-labelledby="profile-tab"></div>
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade" id="loggerNaiadWindow" role="tabpanel" aria-labelledby="contact-tab"></div>
                         </div>
                     </div>
                 </div>
@@ -103,24 +105,18 @@
                     <span class="pt-3 pb-1 px-0 fw-bold">Target:</span>
                     <div class="d-flex justify-content-between px-0">
                         <div>
-                            <div class="form-check">
-                                <input class="form-check-input checkboxTarget" type="checkbox" name="target" value="athena" id="checkboxTargetAthena">
-                                <label class="form-check-label" for="flexCheckDefault">
-                                  Athena
-                                </label>
+                            <div class="form-check px-0">
+                                <input type="checkbox" class="btn-check checkboxTarget" name="target" value="athena" id="checkboxTargetAthena" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="checkboxTargetAthena">Athena</label>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input checkboxTarget" type="checkbox" name="target" value="naiad" id="checkboxTargetNaiad">
-                                <label class="form-check-label" for="flexCheckChecked">
-                                  Naiad
-                                </label>
-                            </div>
-                            
-                        </div>
-                        
+                            <div class="form-check px-0 pt-2">
+                                <input type="checkbox" class="btn-check checkboxTarget" name="target" value="naiad" id="checkboxTargetNaiad" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="checkboxTargetNaiad">Naiad</label>
+                            </div>        
+                        </div> 
     
-                        <div class="px-0 py-2">
-                            <button class="btn btn-primary" onclick="sendPayload()">Send</button>
+                        <div class="px-0 py-4">
+                            <button class="btn btn-success" onclick="sendPayload()">Send</button>
                         </div>
                         <div></div>
                     </div>

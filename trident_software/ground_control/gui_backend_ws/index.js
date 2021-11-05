@@ -15,7 +15,7 @@ class Server
     this.express = require('express');
     //Setup express node and port
     this.app = this.express();
-    this.port = process.env.PORT || 8081;
+    this.port = process.env.PORT || 8080;
     this.server = null;
     this.io = null;
   }
@@ -32,7 +32,7 @@ class Server
     //Setup socket.io server
     this.io = require("socket.io")(this.server, {  
       cors: {
-        origin: "http://localhost:8080",
+        origin: "http://localhost:"+this.port,
         methods: ["GET", "POST"]  
       }
     });
@@ -391,7 +391,7 @@ class ROS2
       fs.appendFile('logs/athena.log', JSON.stringify(msg)+'\n', function (err) {
         if (err) throw err;
       }); 
-      serverHandle.io.emit('logging/athena', {data:msg});
+      serverHandle.io.emit('logger/athena', {data:msg});
     });
 
     //Create and start logging listener Naiad
@@ -399,7 +399,7 @@ class ROS2
       fs.appendFile('logs/naiad.log', JSON.stringify(msg)+'\n', function (err) {
         if (err) throw err;
       }); 
-      serverHandle.io.emit('logging/naiad', {data:msg});
+      serverHandle.io.emit('logger/naiad', {data:msg});
     });
 
     //Create service: manual_override

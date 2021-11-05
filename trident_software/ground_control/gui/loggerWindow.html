@@ -1,0 +1,126 @@
+<html>
+    <head>
+        <title>Ground control - logger</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/bootstrap-icons.css">
+    </head>
+    <body>
+        <div class="p-2" style="background: white; position: relative;">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#loggerMainWindow" type="button" role="tab" aria-controls="loggerMainWindow" aria-selected="true">Main</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#loggerAthenaWindow" type="button" role="tab" aria-controls="loggerAthenaWindow" aria-selected="false">Athena</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#loggerNaiadWindow" type="button" role="tab" aria-controls="loggerNaiadWindow" aria-selected="false">Naiad</button>
+                </li>
+            </ul>
+            <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:4.5rem;"><i id="toggleFreezeLogger" class="bi bi-unlock-fill" style="font-size: 1.8rem;"></i></button>
+            <button style="border:none;background:transparent; position: absolute; top:0.6rem;right:0.5rem;"><i id="clearLoggerWindow" class="bi bi-trash-fill" style="font-size: 1.8rem;"></i></button>
+            <div class="tab-content" id="myTabContent">
+                <div style="height: 93vh; overflow-y: scroll;" class="tab-pane fade show active" id="loggerMainWindow" role="tabpanel" aria-labelledby="home-tab"></div>
+                <div style="height: 93vh; overflow-y: scroll;" class="tab-pane fade" id="loggerAthenaWindow" role="tabpanel" aria-labelledby="profile-tab"></div>
+                <div style="height: 93vh; overflow-y: scroll;" class="tab-pane fade" id="loggerNaiadWindow" role="tabpanel" aria-labelledby="contact-tab"></div>
+            </div>
+        </div>
+
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+        <script src="js/socket.io.min.js"></script>
+        <script>
+            class Server {
+                constructor() {
+                    this.port = 8080;
+                    this.xhr = new XMLHttpRequest();
+                    this.socket = io("http://localhost:"+this.port);
+                    this.heartbeatStatus = [null,null]; //[athena,naiad]
+                }
+
+                listenMissionStatus()
+                {
+                    this.socket.on('mission/status', resp => {
+                        if (resp.msgType == 'info')
+                        {
+                            logger.printLogger('loggerMainWindow',resp.message);
+                        }
+                        else if (resp.msgType == 'error')
+                        {
+                            logger.printLogger('loggerMainWindow',resp.message,'red');
+                        }
+                        else if (resp.msgType == 'success')
+                        {
+                            logger.printLogger('loggerMainWindow',resp.message,'green');
+                        }
+                    });
+                }
+
+                listenLogger()
+                {
+                    this.socket.on('logger/athena', resp => {
+                        logger.printLogger('loggerAthenaWindow', JSON.stringify(resp.data));
+                    });
+                    this.socket.on('logger/naiad', resp => {
+                        logger.printLogger('loggerNaiadWindow', JSON.stringify(resp.data));
+                    });
+                }
+            }
+
+            class Logger {
+                constructor()
+                {
+                    this.freezeLogger = false;
+                }
+
+                printLogger(board,msg,color)
+                {
+                    var today = new Date();
+                    var hours = today.getHours();
+                    var minutes = today.getMinutes();
+                    var seconds = today.getSeconds();
+                    if (hours < 10){hours = '0'+hours;}
+                    if (minutes < 10){minutes = '0'+minutes;}
+                    if (seconds < 10){seconds = '0'+seconds;}
+                    var time = hours + ":" + minutes + ":" + seconds;
+                    document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+                    var objDiv = document.getElementById(board);
+                    if (!this.freezeLogger)
+                    {
+                        objDiv.scrollTop = objDiv.scrollHeight;
+                    }
+                }
+
+                toggleFreezeLogger()
+                {
+                    this.freezeLogger = !this.freezeLogger;
+                    if (this.freezeLogger)
+                    {
+                        document.getElementById('toggleFreezeLogger').className = 'bi bi-lock-fill';
+                    }
+                    else
+                    {
+                        document.getElementById('toggleFreezeLogger').className = 'bi bi-unlock-fill';
+                    }
+                }
+
+                clearLoggerWindow()
+                {
+                    document.getElementById('loggerMainWindow').innerHTML = "";
+                    document.getElementById('loggerAthenaWindow').innerHTML = "";
+                    document.getElementById('loggerNaiadWindow').innerHTML = "";
+                }
+
+            }
+            var logger = new Logger();
+            $(document).ready(function(){
+                var server = new Server();
+                server.listenMissionStatus();
+                server.listenLogger();
+                document.getElementById("toggleFreezeLogger").addEventListener('click',function(){logger.toggleFreezeLogger();});
+                document.getElementById("clearLoggerWindow").addEventListener('click',function(){logger.clearLoggerWindow();});
+            });
+        </script>
+    </body>
+</html>
