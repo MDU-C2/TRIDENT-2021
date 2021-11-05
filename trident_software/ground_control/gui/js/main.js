@@ -44,6 +44,8 @@ class WaypointMap {
 		this.depth = [[],[]];			// [[athena],[naiad]]
 		this.polyLines = [[],[]];		// [[athena],[naiad]]
 		this.waypointType = 0;			// 0 = Athena, 1 = Naiad
+		this.metersPerLat = null;
+		this.metersPerLon = null;
 		
 	}
 	asRadians(degrees)
@@ -51,32 +53,35 @@ class WaypointMap {
 		return degrees * Math.PI / 180
 	}
 
-	getXYpos(desiredPos)
+	hav(theta) // Calculate the haversine of an angle (radians)
 	{
-		// Calculates X and Y distances in meters.
-		var deltaLatitude = desiredPos.latitude - this.relativeNullPoint.latitude;
-		var deltaLongitude = desiredPos.longitude - this.relativeNullPoint.longitude;
-		//The circumference at the equator (latitude 0) is 40075160 meters
-		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude));
-		var resultX = deltaLongitude * latitudeCircumference / 360;
-		var resultY = deltaLatitude * 40008000 / 360;
-		return [resultX, resultY];
+		return (1-Math.cos(theta))/2;
 	}
 
-	reverseXYpos(x,y)
+	GenerateXYconversionParams()
 	{
-		//The circumference at the equator (latitude 0) is 40075160 meters
-		var latitudeCircumference = 40075160 * Math.cos(this.asRadians(this.relativeNullPoint.latitude));
+		// Calculate the "great circle" length of a degree latitude and longitude
+		var earthRadius = 6362257; // approximate radius at origin
+		this.metersPerLat = 2*earthRadius*Math.asin(Math.sqrt(
+			this.hav(this.asRadians(1.0)) + Math.cos(this.asRadians(this.relativeNullPoint.latitude))*Math.cos(this.asRadians(this.relativeNullPoint.latitude+1))*this.hav(0.0)
+			));
+		this.metersPerLon = 2*earthRadius*Math.asin(Math.sqrt(
+			this.hav(0.0) + Math.cos(this.asRadians(this.relativeNullPoint.latitude))*Math.cos(this.asRadians(this.relativeNullPoint.latitude))*this.hav(this.asRadians(1.0))
+			));
+	}
 
-		//Get delta latitude/longitude
-		var deltaLongitude = x * 360 / latitudeCircumference;
-		var deltaLatitude  = y * 360 / 40008000;
+	GetXYpos(desiredPos)
+	{
+		degreeDifference = [desiredPos.latitude - this.relativeNullPoint.latitude,
+							desiredPos.longitude - this.relativeNullPoint.longitude];
+		return [degreeDifference[0]*this.metersPerLat,
+				degreeDifference[1]*this.metersPerLon];
+	}
 
-		//Get actual latit
-		var latitude = deltaLatitude + this.relativeNullPoint.latitude;
-		var longitude = deltaLongitude + this.relativeNullPoint.longitude;
-
-		return [latitude, longitude];
+	GetLatLng(relativePos)
+	{
+		return [relativePos[0]/this.metersPerLat+this.relativeNullPoint.latitude,
+				relativePos[1]/this.metersPerLon+this.relativeNullPoint.longitude];
 	}
 }
 
@@ -85,7 +90,7 @@ class Server {
 	constructor() {
 		this.port = 8080;
 		this.xhr = new XMLHttpRequest();
-		this.socket = io("http://localhost:8081");
+		this.socket = io("http://localhost:"+this.port);
 		this.heartbeatStatus = [null,null]; //[athena,naiad]
 	}
 
@@ -266,18 +271,28 @@ class Server {
 	listenState()
 	{
 		this.socket.on('state/athena', resp => {
-			var latlng = waypointMap.reverseXYpos(resp.data.x,resp.data.y);
+			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
 			athenaMarker.setRotationAngle(resp.data.heading);
 			athenaMarker.slideTo(latlng, {
 				duration: 500
 			});
 		});
 		this.socket.on('state/naiad', resp => {
-			var latlng = waypointMap.reverseXYpos(resp.data.x,resp.data.y);
+			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
 			naiadMarker.setRotationAngle(resp.data.heading);
 			naiadMarker.slideTo(latlng, {
 				duration: 500
 			});
+		});
+	}
+
+	listenLogger()
+	{
+		this.socket.on('logger/athena', resp => {
+			logger.printLogger('loggerAthenaWindow', JSON.stringify(resp.data));
+		});
+		this.socket.on('logger/naiad', resp => {
+			logger.printLogger('loggerNaiadWindow', JSON.stringify(resp.data));
 		});
 	}
 }
@@ -361,9 +376,15 @@ class Logger {
 	printLogger(board,msg,color)
 	{
 		var today = new Date();
-		var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+		var hours = today.getHours();
+		var minutes = today.getMinutes();
+		var seconds = today.getSeconds();
+		if (hours < 10){hours = '0'+hours;}
+		if (minutes < 10){minutes = '0'+minutes;}
+		if (seconds < 10){seconds = '0'+seconds;}
+		var time = hours + ":" + minutes + ":" + seconds;
 		document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
-		var objDiv = document.getElementById("loggerMainWindow");
+		var objDiv = document.getElementById(board);
 		if (!this.freezeLogger)
 		{
 			objDiv.scrollTop = objDiv.scrollHeight;
@@ -383,10 +404,23 @@ class Logger {
 		}
 	}
 
+	clearLoggerWindow()
+	{
+		document.getElementById('loggerMainWindow').innerHTML = "";
+		document.getElementById('loggerAthenaWindow').innerHTML = "";
+		document.getElementById('loggerNaiadWindow').innerHTML = "";
+	}
+
+	openFullscreenLogger()
+	{
+		window.open('loggerWindow.html', '_blank');
+	}
+
 }
 
 //Setup class handlers
 var waypointMap = new WaypointMap();
+waypointMap.GenerateXYconversionParams();
 var athena = new Athena();
 var naiad = new Naiad();
 var logger = new Logger();
@@ -591,6 +625,7 @@ function selectWaypointType(target)
 */
 async function sendPayload()
 {
+	console.log(document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked);
 	var payload = document.getElementById("payloadSelectBox").value;
 	var targets = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked]; // [athena,naiad]
 	var tmpTargerArr = [];
@@ -732,5 +767,8 @@ $(document).ready(function(){
 	server.listenGetStates();
 	server.listenMissionStatus();
 	server.listenState();
+	server.listenLogger();
 	document.getElementById("toggleFreezeLogger").addEventListener('click',function(){logger.toggleFreezeLogger();});
+	document.getElementById("clearLoggerWindow").addEventListener('click',function(){logger.clearLoggerWindow();});
+	document.getElementById("openFullscreenLogger").addEventListener('click',function(){logger.openFullscreenLogger();});
 });
