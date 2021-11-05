@@ -171,10 +171,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._motor_control_state_publisher.publish(msg)
 
 
-    @abstractmethod
     def pid(self, current: Pose, goal: Pose) -> MotorOutputs:
-        """This abstract method should be implemented individually by the deriving class in Athena and NAIAD since
-        the PID and configs
+        """Computes the output value for each motor by PID:ing the position and orientation (x,y,z,roll,pitch,yaw)
 
         Args:
             current (Pose): Current pose (position and orientation)
@@ -184,18 +182,54 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             MotorOutputs: List of values to send to each motor (motor number, value)
         """
         # Check if we have a goal pose
-        if self._goal_pose is None:
+        if current is None or goal is None:
             return None
         # Retrieve goal positions
-        goal_x, goal_y, goal_z = goal.position.x, goal.position.y, goal.position.z
-        # TODO: Convert quaternion to euler 
+        # goal_x, goal_y, goal_z = goal.position.x, goal.position.y, goal.position.z
+        goal_orientation = SQuaternion(goal.orientation.w, goal.orientation.x, goal.orientation.y, goal.orientation.z).to_euler(degrees=True)
+        current_orientation = SQuaternion(current.orientation.w, current.orientation.x, current.orientation.y, current.orientation.z).to_euler(degrees=True)
 
+        goals = {
+            "x":     goal.position.x,
+            "y":     goal.position.y,
+            "z":     goal.position.z,
+            "roll":  goal_orientation[0],
+            "pitch": goal_orientation[1],
+            "yaw":   goal_orientation[2]
+        }
+        currents = {
+            "x":     goal.position.x,
+            "y":     goal.position.y,
+            "z":     goal.position.z,
+            "roll":  current_orientation[0],
+            "pitch": current_orientation[1],
+            "yaw":   current_orientation[2]
+        }
+
+        # Create the motor outputs list
+        motor_outputs = []
+        # ... and the control values list
+        control_values = []
         # First update setpoint from goal pose for all pids
-        for key, pid in self.pids.items():
-            pid.setpoint = goal[key]
+        # and then calculate the control value and store it in the list
+        for key, pid_ in self.pids.items():
+            pid_.setpoint = goals[key]
+            control_values.append(key, pid_(currents[key]))
 
-        # https://pypi.org/project/simple-pid/
-        # https://simple-pid.readthedocs.io/en/latest/simple_pid.html#module-simple_pid.PID
+        # Compute the output for each motor
+        for motor in self._motor_config:
+            # Create the motor output msg
+            output = MotorOutput()
+            output.id = motor["id"]
+            # Compute the output value for the motor by multiplying the control value with the pose_effect value for each key (x,y,z,roll,pitch,yaw)
+            output.value = sum([motor["pose_effect"][key] * control_value for key, control_value in control_values])
+            motor_outputs.append(output)
+
+        outputs_msg = MotorOutputs()
+        outputs_msg.motor_outputs = motor_outputs
+        self.get_logger().debug(f"PID computed motor outputs: {outputs_msg}")
+
+        return outputs_msg
 
 
     def distance_to_goal(self, current: Point, goal: Point) -> float:
