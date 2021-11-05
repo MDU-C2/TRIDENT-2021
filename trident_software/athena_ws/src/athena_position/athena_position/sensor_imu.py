@@ -5,6 +5,8 @@ import busio
 import adafruit_bno055
 from time import time
 import numpy as np
+from sensor_msgs.msg import Imu
+from squaternion import Quaternion
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
@@ -23,13 +25,23 @@ class IMUNode(sensbase.SensorNode):
         # TODO: couldn't find any real noise values, but these should be fine?
         (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
         
-        super().__init__('imu', 0.25,
+        super().__init__('imu', 'athena', 0.25,
                          init_obs_mat, 4, np.identity(4)*0.1**2)
         
         self.prev_state = np.zeros((6,1))
         self.prev_state_time = time()
-        self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
+
+        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # Otherwise, default is False and it will act like normal.
+        self.declare_parameter('is_simulated', False)
+        if(self.get_parameter('is_simulated').value):
+            self.simul_sensor = self.create_subscription(
+                                Imu, '/athena/simulated/imu',
+                                self.SimulatedMeasurement)
+            self.timer.destroy() # Stop the original timed sensor from running
+        else:
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
     
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
@@ -51,6 +63,13 @@ class IMUNode(sensbase.SensorNode):
         self.measure[1,0] = self.sensor.linear_acceleration[1] # Y Accel
         self.measure[2,0] = self.sensor.euler[0]               # Yaw (heading)
         self.measure[3,0] = self.sensor.gyro[2]                # Rotation
+
+    def SimulatedMeasurement(self, msg):
+        self.measure[0,0] = msg.linear_acceleration.x
+        self.measure[1,0] = msg.linear_acceleration.y
+        q = Quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z)
+        self.measure[2,0] = q.to_euler[2]
+        self.measure[3,0] = msg.angular_velocity.z
 
 def main(args=None):
     rclpy.init(args=args)

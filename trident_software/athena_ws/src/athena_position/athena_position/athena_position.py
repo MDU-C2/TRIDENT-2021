@@ -3,7 +3,7 @@ import numpy as np
 from baseclasses import positionbase
 from trident_msgs.msg import State
 from math import sin, cos
-import squaternion
+from squaternion import Quaternion
 
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):

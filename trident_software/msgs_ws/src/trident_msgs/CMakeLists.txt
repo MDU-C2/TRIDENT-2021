@@ -21,12 +21,16 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_typesupport_c REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/KalmanSensorService.srv"
-  "msg/NaiadState.msg"
-  "msg/AthenaState.msg"
+  "msg/State.msg"
+  DEPENDENCIES builtin_interfaces geometry_msgs
 )
 
 if(BUILD_TESTING)

@@ -6,6 +6,7 @@ import pynmea2
 import numpy as np
 from math import sin, cos, sqrt, asin
 from math import radians as torad
+from sensor_msgs.msg import NavSatFix
 
 def hav(theta):
     return (1-cos(theta))/2
@@ -30,11 +31,19 @@ class GPSNode(sensbase.SensorNode):
             [1/m_per_deg_lat,               0,   0, 0, 0,   0],  #x (latitude)
             [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
-        super().__init__('gps', 0,
+        super().__init__('gps', 'athena', 0,
                          init_obs_mat, 2, np.identity(2)*0.0001**2)
-        # Change as needed
-        self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
-        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
+        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # Otherwise, default is False and it will act like normal.
+        self.declare_parameter('is_simulated', False)
+        if(self.get_parameter('is_simulated').value):
+            self.simul_sensor = self.create_subscription(
+                                NavSatFix, '/athena/simulated/gps',
+                                self.SimulatedMeasurement)
+            self.timer.destroy() # Stop the original timed sensor from running
+        else:
+            self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
+            self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
     
     def TakeMeasurement(self):
         try:
@@ -55,6 +64,10 @@ class GPSNode(sensbase.SensorNode):
             print('Device error: {}'.format(e))
         except pynmea2.ParseError as e:
             print('Parse error: {}'.format(e))
+
+    def SimulatedMeasurement(self, msg):
+        self.measure[0,0] = msg.latitude  - self.origin[0]
+        self.measure[1,0] = msg.longitude - self.origin[1]
 
 def main(args=None):
     rclpy.init(args=args)
