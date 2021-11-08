@@ -1,3 +1,7 @@
+/*
+	Trident states class
+	 - Contains states for each submodule in Athena and Naiad
+*/
 class TridenStates {
 	constructor()
 	{
@@ -34,6 +38,11 @@ class TridenStates {
 	}
 }
 
+/*
+	Class for waypoints and map
+	 - Contains the functionality needed to setup waypoints and have a
+	   graphical view of athena and naiad.
+*/
 class WaypointMap {
 	constructor(){
 		this.relativeNullPoint = {latitude:59.6175191,longitude:16.5609992}; //Null point from where to measure [x,y] distance, set at MDH C2
@@ -46,6 +55,37 @@ class WaypointMap {
 		this.waypointType = 0;			// 0 = Athena, 1 = Naiad
 		this.metersPerLat = null;
 		this.metersPerLon = null;
+
+		L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+			maxZoom: 20,
+			attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+				'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+			id: 'mapbox/streets-v11',
+			tileSize: 512,
+			zoomOffset: -1
+		}).addTo(this.map);
+
+		this.athenaIcon = L.icon({
+			iconUrl: 'img/athena-marker.png',
+			iconSize: [52,69],
+			iconAnchor: [26,35]
+		});
+	
+		this.naiadIcon = L.icon({
+			iconUrl: 'img/naiad-marker.png',
+			iconSize: [52,69],
+			iconAnchor: [26,35]
+		});
+	
+		this.nullpointIcon = L.icon({
+			iconUrl: 'img/nullpoint.png',
+			iconSize: [52,52],
+			iconAnchor: [26,26]
+		});
+
+		this.waypointMarker = new L.marker([this.relativeNullPoint.latitude,this.relativeNullPoint.longitude], {icon:this.nullpointIcon}).addTo(this.map);
+		this.athenaMarker = new L.marker([this.relativeNullPoint.latitude+0.001,this.relativeNullPoint.longitude+0.001], {icon:this.athenaIcon}).addTo(this.map);
+		this.naiadMarker = new L.marker([this.relativeNullPoint.latitude+0.001,this.relativeNullPoint.longitude-0.001], {icon:this.naiadIcon}).addTo(this.map);
 		
 	}
 	asRadians(degrees)
@@ -85,11 +125,13 @@ class WaypointMap {
 	}
 }
 
-
+/*
+	Server class
+	 - Handles the communication between the GUI and server
+*/
 class Server {
 	constructor() {
 		this.port = 8080;
-		this.xhr = new XMLHttpRequest();
 		this.socket = io("http://localhost:"+this.port);
 		this.heartbeatStatus = [null,null]; //[athena,naiad]
 	}
@@ -268,19 +310,19 @@ class Server {
 		});
 	}
 
-	listenState()
+	listenPosState()
 	{
 		this.socket.on('state/athena', resp => {
 			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
-			athenaMarker.setRotationAngle(resp.data.heading);
-			athenaMarker.slideTo(latlng, {
+			waypointMap.athenaMarker.setRotationAngle(resp.data.heading);
+			waypointMap.athenaMarker.slideTo(latlng, {
 				duration: 500
 			});
 		});
 		this.socket.on('state/naiad', resp => {
 			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
-			naiadMarker.setRotationAngle(resp.data.heading);
-			naiadMarker.slideTo(latlng, {
+			waypointMap.naiadMarker.setRotationAngle(resp.data.heading);
+			waypointMap.naiadMarker.slideTo(latlng, {
 				duration: 500
 			});
 		});
@@ -297,6 +339,9 @@ class Server {
 	}
 }
 
+/*
+	Class for Athena
+*/
 class Athena {
 	constructor() {
 		this.connected = false;
@@ -332,6 +377,9 @@ class Athena {
 	}
 }
 
+/*
+	Class for Naiad
+*/
 class Naiad {
 	constructor() {
 		this.connected = false;
@@ -367,6 +415,9 @@ class Naiad {
 	}
 }
 
+/*
+	Class for the logging functionality
+*/
 class Logger {
 	constructor()
 	{
@@ -425,47 +476,13 @@ var athena = new Athena();
 var naiad = new Naiad();
 var logger = new Logger();
 
-
 /*
 	Map
-	- setup map layer
-	- setup marker functionality
+	- Listen on click event on map, which will add marker to selected target
 */
-L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-		maxZoom: 20,
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		id: 'mapbox/streets-v11',
-		tileSize: 512,
-		zoomOffset: -1
-	}).addTo(waypointMap.map);
-
-var athenaIcon = L.icon({
-	iconUrl: 'img/athena-marker.png',
-	iconSize: [52,69],
-	iconAnchor: [26,35]
-});
-
-var naiadIcon = L.icon({
-	iconUrl: 'img/naiad-marker.png',
-	iconSize: [52,69],
-	iconAnchor: [26,35]
-});
-
-var nullpointIcon = L.icon({
-	iconUrl: 'img/nullpoint.png',
-	iconSize: [52,52],
-	iconAnchor: [26,26]
-});
-
-var waypointMarker = new L.marker([waypointMap.relativeNullPoint.latitude,waypointMap.relativeNullPoint.longitude], {icon:nullpointIcon}).addTo(waypointMap.map);
-
-var athenaMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude+0.001], {icon:athenaIcon}).addTo(waypointMap.map);
-var naiadMarker = new L.marker([waypointMap.relativeNullPoint.latitude+0.001,waypointMap.relativeNullPoint.longitude-0.001], {icon:naiadIcon}).addTo(waypointMap.map);
-
 waypointMap.map.on('click', function(e) {
 	waypointMap.waypointCounter[waypointMap.waypointType] += 1;
-    var waypointMarker = new L.marker(e.latlng, {draggable:'true', waypointType: waypointMap.waypointType, waypointNum: waypointMap.waypointCounter[waypointMap.waypointType]})
+	var waypointMarker = new L.marker(e.latlng, {draggable:'true', waypointType: waypointMap.waypointType, waypointNum: waypointMap.waypointCounter[waypointMap.waypointType]})
 	.on('drag', function(){
 		document.getElementById("waypointLat-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lat.toFixed(7);
 		document.getElementById("waypointLng-"+waypointMap.waypointType+"-"+waypointMarker.options.waypointNum).innerHTML = waypointMarker.getLatLng().lng.toFixed(7);
@@ -527,6 +544,7 @@ waypointMap.map.on('click', function(e) {
 	//Set number of waypoint items in list
 	document.getElementById("waypointNumCounter").innerHTML = document.querySelectorAll('.waypoint-item-'+waypointMap.waypointType).length;
 });
+
 
 //Remove waypoints on the map
 function removeWaypoint(type, counter)
@@ -741,6 +759,9 @@ async function sendPayload()
 	}
 }
 
+/*
+	Send abort command to both Athena and Naiad
+*/
 async function abort()
 {
 	var target = ['athena','naiad'];
@@ -763,11 +784,13 @@ async function abort()
 
 $(document).ready(function(){
 	var server = new Server();
-	server.listenHeartbeat();
-	server.listenGetStates();
-	server.listenMissionStatus();
-	server.listenState();
-	server.listenLogger();
+	server.listenHeartbeat();		//Listen for heartbeat
+	server.listenGetStates();		//Listen on substate updates on Athena and Naiad
+	server.listenMissionStatus();	//Listen on mission status (feedback/result) from mission
+	server.listenPosState();		//Listen on the position state (i.e. where Naiad/Athena are on the map)
+	server.listenLogger();			//Listen on the logging topics (main + Athena + Naiad)
+	
+	//Add eventlistener for logging buttons: toggle freeze mode, clear logging window, open logger full screen
 	document.getElementById("toggleFreezeLogger").addEventListener('click',function(){logger.toggleFreezeLogger();});
 	document.getElementById("clearLoggerWindow").addEventListener('click',function(){logger.clearLoggerWindow();});
 	document.getElementById("openFullscreenLogger").addEventListener('click',function(){logger.openFullscreenLogger();});
