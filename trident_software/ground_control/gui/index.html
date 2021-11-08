@@ -15,24 +15,9 @@
         
     </head>
     <div class="body">
-        <div class="d-flex bd-highlight py-2 px-2" style="background: darkslategray;">
-            <div class="dropdown mx-2 bd-highlight">
-                <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span>Athena: </span> <span id="connStatusAthena" style="font-weight: bold;">...</span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                  <li><button class="dropdown-item" href="#">Logger</button></li>
-                </ul>
-            </div>
-
-            <div class="dropdown mr-2 bd-highlight">
-                <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span>Naiad: </span> <span id="connStatusNaiad" style="font-weight: bold;">...</span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                  <li><button class="dropdown-item" href="#">Logger</button></li>
-                </ul>
-            </div>
+        <div class="d-flex bd-highlight align-items-center px-2" style="background: darkslategray; height: 3.5rem;">
+            <div class="connection-status shadow-sm d-flex align-items-center"><span class="mx-auto">Athena: <span id="connStatusAthena" style="font-weight: bold;">...</span></span></div>
+            <div class="connection-status shadow-sm d-flex align-items-center mx-2"><span class="mx-auto">Naiad: <span id="connStatusNaiad" style="font-weight: bold;">...</span></span></div>
             <div class="ms-auto bd-highlight">
                 <button class="btn btn-danger mr-2 pr-2 fw-bold" type="button" onclick="abort()">
                     Abort
@@ -103,19 +88,17 @@
                     </select>
 
                     <span class="pt-3 pb-1 px-0 fw-bold">Target:</span>
-                    <div class="d-flex justify-content-between px-0">
-                        <div>
-                            <div class="form-check px-0">
-                                <input type="checkbox" class="btn-check checkboxTarget" name="target" value="athena" id="checkboxTargetAthena" autocomplete="off">
-                                <label class="btn btn-outline-primary" for="checkboxTargetAthena">Athena</label>
-                            </div>
-                            <div class="form-check px-0 pt-2">
-                                <input type="checkbox" class="btn-check checkboxTarget" name="target" value="naiad" id="checkboxTargetNaiad" autocomplete="off">
-                                <label class="btn btn-outline-primary" for="checkboxTargetNaiad">Naiad</label>
-                            </div>        
-                        </div> 
+                    <div class="d-flex bd-highlight px-0">
+                        <div class="bd-highlight form-check px-0">
+                            <input type="checkbox" class="btn-check checkboxTarget" name="target" value="athena" id="checkboxTargetAthena" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="checkboxTargetAthena">Athena</label>
+                        </div>
+                        <div class="bd-highlight form-check mx-2">
+                            <input type="checkbox" class="btn-check checkboxTarget" name="target" value="naiad" id="checkboxTargetNaiad" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="checkboxTargetNaiad">Naiad</label>
+                        </div>  
     
-                        <div class="px-0 py-4">
+                        <div class="ms-auto bd-highlight mx-5">
                             <button class="btn btn-success" onclick="sendPayload()">Send</button>
                         </div>
                         <div></div>

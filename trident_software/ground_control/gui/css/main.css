@@ -16,3 +16,11 @@
 span.badge {
     font-size: 1rem;
 }
+
+.connection-status {
+    background: white;
+    border-radius: 0.3rem;
+    border:none;
+    width: 8rem;
+    height:2.5rem;
+}

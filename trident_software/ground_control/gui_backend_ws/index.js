@@ -1,19 +1,15 @@
-const rclnodejs = require('./node_modules/rclnodejs/index.js')
+const rclnodejs = require('./node_modules/rclnodejs/index.js'); //ROS2 javascript library
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
-var fs = require('fs');
+var fs = require('fs'); //File system library
 
-waypointAction = {
-  NO_ACTION:0,
-  HOLD:1
-}
-let prefixTopics = "gc/";
+let prefixTopics = "gc/"; //Prefix used during testing
 
 class Server
 {
   constructor()
   {
-    this.express = require('express');
     //Setup express node and port
+    this.express = require('express');
     this.app = this.express();
     this.port = process.env.PORT || 8080;
     this.server = null;
@@ -45,7 +41,7 @@ class Server
     this.getStates(ROS2handle); //Get states handler
     this.server.listen(this.port);
     console.log('Server started at http://localhost:' + this.port);
-
+    //Shutdown program on Ctrl + C
     process.on('SIGINT', function() {
       console.log('Shutting down server.');
       process.exit();
@@ -54,7 +50,8 @@ class Server
 
   heartbeat(ROS2handle)
   {
-    //Check for hearbeat every 1s
+    //Send connection status to gui every 2s and reset status bools.
+    //These staus bools are set to true when a new message is received
     setInterval(() => {
       this.io.emit('heartbeat',{'athena':ROS2handle.heartbeatAthena.active, 'naiad':ROS2handle.heartbeatNaiad.active});
         ROS2handle.heartbeatAthena.active = false;
@@ -344,7 +341,6 @@ class ROS2
   constructor()
   {
     this.rclnodejs = rclnodejs;
-    //Require interfaces
     this.node = null;
     this.heartbeatAthena = {handle:null,active:false};
     this.heartbeatNaiad  = {handle:null,active:false};
@@ -360,8 +356,7 @@ class ROS2
     this.startMissionNaiad = null;
     this.stateAthena = null;
     this.stateNaiad = null;
-    this.logginAthena = null;
-    this.loggingNaiad = null;
+    this.logging = null;
   }
 
   init()
@@ -373,7 +368,6 @@ class ROS2
 
   startInterfaces(serverHandle)
   {
-
     //Create and start state listener Athena
     this.stateAthena = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'athena/position/state', (msg) => {
       this.heartbeatAthena.active = true;
@@ -386,20 +380,20 @@ class ROS2
       serverHandle.io.emit('state/naiad', {data:msg});
     });
 
-    //Create and start logging listener Athena
-    this.logginAthena = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'athena/position/state', (msg) => {
-      fs.appendFile('logs/athena.log', JSON.stringify(msg)+'\n', function (err) {
-        if (err) throw err;
-      }); 
-      serverHandle.io.emit('logger/athena', {data:msg});
-    });
-
-    //Create and start logging listener Naiad
-    this.loggingNaiad = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'naiad/position/state', (msg) => {
-      fs.appendFile('logs/naiad.log', JSON.stringify(msg)+'\n', function (err) {
-        if (err) throw err;
-      }); 
-      serverHandle.io.emit('logger/naiad', {data:msg});
+    //Create and start logging listener Athena & Naiad
+    this.logging = this.node.createSubscription('rcl_interfaces/msg/Log', '/rosout', (msg) => {
+      //Check that log message contains the parameters we're interested in
+      if (typeof msg.stamp !== 'undefined' && typeof msg.level !== 'undefined' && 
+          typeof msg.name !== 'undefined' && typeof msg.msg !== 'undefined' && 
+          typeof msg.file !== 'undefined' && typeof msg.function !== 'undefined' && 
+          typeof msg.line !== 'undefined')
+      {
+        var logTarget = msg.name.substr(0, msg.name.indexOf('.')); //Get target device name
+        fs.appendFile('logs/'+logTarget+'.log', JSON.stringify(msg)+'\n', function (err) {
+          if (err) throw err;
+        }); 
+        serverHandle.io.emit('logger/'+logTarget, {data:msg});
+      }
     });
 
     //Create service: manual_override
@@ -436,6 +430,7 @@ class ROS2
 */
 class ActionClient {
   constructor(node,target,serverHandle) {
+    //Setup node for sending load_mission action
     this._node = node;
     this.target = target;
     this.serverHandle = serverHandle;
@@ -447,24 +442,23 @@ class ActionClient {
   }
 
   async sendMission() {
+    //Notify gui that we're waiting for the server
     this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'info', message:'Waiting for action server...'});
-
     const mission = {};
-
+    //Send goal request to server
     this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'info', message:'Sending goal request...'});
     const goalHandle = await this._actionClient.sendGoal(mission, (feedback) =>
       this.feedbackCallback(feedback)
     );
-
+    //Notify gui if goal isn't accepted
     if (!goalHandle.isAccepted()) {
       this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'error', message:'Goal rejected'});
       return;
     }
-
+    //Notify gui if goas is accepted
     this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'success', message:'Goal accepted'});
-    
     const result = await goalHandle.getResult();
-
+    //When action iscomplete, send result to gui
     if (goalHandle.isSucceeded()) {
       this.serverHandle.io.emit('mission/status',{target:this.target, msgType:'success', message:'Successful mission: '+JSON.stringify(result)});
       this.serverHandle.io.emit('response',{data:{success:true}});
@@ -473,9 +467,8 @@ class ActionClient {
       this.serverHandle.io.emit('response',{data:{success:false}});
     }
 
-    //rclnodejs.shutdown();
   }
-
+  //Feedback function that send the feedback from the server to gui
   feedbackCallback(feedback) {
     this.serverHandle.io.emit('mission/status',{target:this.target, msgType: 'info', message:'Feedback: '+JSON.stringify(feedback)});
   }
@@ -491,7 +484,7 @@ function main()
   server.start(ros2);
   server.handleReq(ros2);
 
-  //Setup ros2 and serve messages/services/actions
+  //Setup ros2
   ros2.init();
   ros2.startInterfaces(server);
   
