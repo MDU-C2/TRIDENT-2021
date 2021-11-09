@@ -83,12 +83,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
 
         # Create the PID objects
-        self._x_pid =     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"])
-        self._y_pid =     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"])
-        self._z_pid =     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"])
-        self._pitch_pid = PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"])
-        self._yaw_pid =   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"])
-        self._roll_pid =  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])
         self._pids = {
             "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"]),
             "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"]),
@@ -98,10 +92,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])   
         }
 
-
         # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
-        self._motor_update_rate2 = self.create_rate(self._motor_update_frequency)
 
         # Subscriptions
         # -------------
@@ -184,8 +176,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Check if we have a goal pose
         if current is None or goal is None:
             return None
-        # Retrieve goal positions
-        # goal_x, goal_y, goal_z = goal.position.x, goal.position.y, goal.position.z
+        # Retrieve goal orientations in euler angles
         goal_orientation = SQuaternion(goal.orientation.w, goal.orientation.x, goal.orientation.y, goal.orientation.z).to_euler(degrees=True)
         current_orientation = SQuaternion(current.orientation.w, current.orientation.x, current.orientation.y, current.orientation.z).to_euler(degrees=True)
 
@@ -198,9 +189,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             "yaw":   goal_orientation[2]
         }
         currents = {
-            "x":     goal.position.x,
-            "y":     goal.position.y,
-            "z":     goal.position.z,
+            "x":     current.position.x,
+            "y":     current.position.y,
+            "z":     current.position.z,
             "roll":  current_orientation[0],
             "pitch": current_orientation[1],
             "yaw":   current_orientation[2]
@@ -212,9 +203,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         control_values = []
         # First update setpoint from goal pose for all pids
         # and then calculate the control value and store it in the list
-        for key, pid_ in self.pids.items():
+        for key, pid_ in self._pids.items():
             pid_.setpoint = goals[key]
-            control_values.append(key, pid_(currents[key]))
+            control_values.append((key, pid_(currents[key])))
+            self.get_logger().info(f"Tunings: {pid_.tunings}")
+        self.get_logger().info(f"Control values: {control_values}")
 
         # Compute the output for each motor
         for motor in self._motor_config:
@@ -227,7 +220,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         outputs_msg = MotorOutputs()
         outputs_msg.motor_outputs = motor_outputs
-        self.get_logger().debug(f"PID computed motor outputs: {outputs_msg}")
+        self.get_logger().info(f"PID computed motor outputs: {outputs_msg}")
 
         return outputs_msg
 
@@ -599,7 +592,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Loop as long as the goal isn't reached.
         i = 0 # For testing
-        while(i < 2):
+        while(i < 5):
             i+=1
         # while(not self._goto_pose_goal_reached(goal_handle.request)):
             current_pos = self._agent_state.position
