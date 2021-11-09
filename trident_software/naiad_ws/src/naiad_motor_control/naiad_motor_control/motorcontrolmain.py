@@ -11,19 +11,6 @@ class MotorControlNode(MotorControlBase):
         super().__init__(node_name)
         self.get_logger().info("Created motor control node.")
 
-    def pid(self, current: Pose, goal: Pose) -> MotorOutputs:
-        # TODO: Replace this debug code
-        temp = MotorOutputs()
-        outputs = []
-        for motor in self._motor_config:
-            output = MotorOutput()
-            output.id = motor["id"]
-            output.value = 0.0
-            outputs.append(output)
-        temp.motor_outputs = outputs
-        self.get_logger().info(f"PID returning Motor ouputs: {temp}")
-        return temp
-
 
 def main(args=None):
     rclpy.init(args=args)

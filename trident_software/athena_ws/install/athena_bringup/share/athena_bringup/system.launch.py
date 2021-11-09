@@ -36,4 +36,20 @@ def generate_launch_description():
             name='motor_control',
             parameters=[config]
         ),
+        Node(
+            package='athena_driver',
+            namespace='athena',
+            executable='motor_driver',
+            output='screen',
+            name='motor_driver',
+            parameters=[config]
+        ),
+        Node(
+            package='athena_guidance_system',
+            namespace='athena',
+            executable='guidance_system',
+            output='screen',
+            name='guidance_system',
+            parameters=[config]
+        ),
     ])

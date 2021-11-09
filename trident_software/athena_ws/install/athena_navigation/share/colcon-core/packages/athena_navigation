@@ -1,1 +1,1 @@
-geometry_msgs:rclpy:std_srvs:trident_msgs
+geometry_msgs:rclpy:squaternion:std_srvs:trident_msgs

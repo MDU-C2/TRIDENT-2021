@@ -91,7 +91,7 @@ naiad:
             "pitch": 9.5,
             "yaw":   15.0,
             "roll":  9.5
-          }
+          },
           "i": {
             "x":     0.0,
             "y":     0.0,
@@ -99,12 +99,12 @@ naiad:
             "pitch": 0.5,
             "yaw":   0.2,
             "roll":  0.5
-          }
+          },
           "d": {
             "x":     0.5,
-            "y":     0.5
-            "z":     20.0
-            "pitch": 3.0
+            "y":     0.5,
+            "z":     20.0,
+            "pitch": 3.0,
             "yaw":   3.0,
             "roll":  3.0
           }
@@ -117,7 +117,8 @@ naiad:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   position:
     ros__parameters:
-      placeholder: 0 # Placeholder since there are no params for this node atm.
+      simulation_env: True    # Specifies if the position node should use the sensors in the simulator or 
+                              # the real sensors 
   motor_driver:
     ros__parameters:
       simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
