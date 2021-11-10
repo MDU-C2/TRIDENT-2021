@@ -1,1 +1,0 @@
-/home/andreas/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_cmake/srv/KalmanSensorService_Response.msg

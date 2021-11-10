@@ -1,1 +1,0 @@
-/home/andreas/TRIDENT-2021/trident_software/ros1_bridge/resource/get_mappings.cpp.em
