@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 rclcpp;std_msgs;builtin_interfaces;geometry_msgs;action_msgs;nav_msgs;rosidl_default_runtime;ament_lint_auto;ament_lint_common
+=======
+rclcpp;geometry_msgs;builtin_interfaces;rosidl_default_runtime;ament_lint_auto;ament_lint_common
+>>>>>>> origin/feature/full_positioning

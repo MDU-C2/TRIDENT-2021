@@ -2,7 +2,11 @@
 
 # since this file is sourced use either the provided AMENT_CURRENT_PREFIX
 # or fall back to the destination set at configure time
+<<<<<<< HEAD
 : ${AMENT_CURRENT_PREFIX:="/home/johannes/TRIDENT-2021/trident_software/msgs_ws/install/trident_msgs"}
+=======
+: ${AMENT_CURRENT_PREFIX:="/home/ubuntu/TRIDENT-2021/trident_software/msgs_ws/install/trident_msgs"}
+>>>>>>> origin/feature/full_positioning
 if [ ! -d "$AMENT_CURRENT_PREFIX" ]; then
   if [ -z "$COLCON_CURRENT_PREFIX" ]; then
     echo "The compile time prefix path '$AMENT_CURRENT_PREFIX' doesn't " \

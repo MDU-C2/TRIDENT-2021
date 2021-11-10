@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 action/GotoPose.action
 action/GotoPose.idl
 action/GotoWaypoint.action
@@ -16,3 +17,11 @@ srv/LoadMission.idl
 srv/LoadMission.srv
 srv/LoadMission_Request.msg
 srv/LoadMission_Response.msg
+=======
+msg/State.idl
+msg/State.msg
+srv/KalmanSensorService.idl
+srv/KalmanSensorService.srv
+srv/KalmanSensorService_Request.msg
+srv/KalmanSensorService_Response.msg
+>>>>>>> origin/feature/full_positioning

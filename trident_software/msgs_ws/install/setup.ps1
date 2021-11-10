@@ -23,6 +23,10 @@ function _colcon_prefix_chain_powershell_source_script {
 
 # source chained prefixes
 _colcon_prefix_chain_powershell_source_script "/opt/ros/foxy\local_setup.ps1"
+<<<<<<< HEAD
+=======
+_colcon_prefix_chain_powershell_source_script "/home/ubuntu/TRIDENT-2021/trident_software/athena_ws/install\local_setup.ps1"
+>>>>>>> origin/feature/full_positioning
 
 # source this prefix
 $env:COLCON_CURRENT_PREFIX=(Split-Path $PSCommandPath -Parent)

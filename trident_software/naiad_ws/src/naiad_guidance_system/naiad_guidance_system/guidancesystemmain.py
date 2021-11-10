@@ -170,9 +170,6 @@ class GuidanceSystemNode(Node):
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
 
-
-
-
 def main(args=None):
     rclpy.init(args=args)
     guidance_system_node = GuidanceSystemNode("guidance_system")

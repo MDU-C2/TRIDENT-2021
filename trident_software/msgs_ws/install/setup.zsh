@@ -20,6 +20,12 @@ _colcon_prefix_chain_zsh_source_script() {
 # source chained prefixes
 # setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
 COLCON_CURRENT_PREFIX="/opt/ros/foxy"
+<<<<<<< HEAD
+=======
+_colcon_prefix_chain_zsh_source_script "$COLCON_CURRENT_PREFIX/local_setup.zsh"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/ubuntu/TRIDENT-2021/trident_software/athena_ws/install"
+>>>>>>> origin/feature/full_positioning
 _colcon_prefix_chain_zsh_source_script "$COLCON_CURRENT_PREFIX/local_setup.zsh"
 
 # source this prefix

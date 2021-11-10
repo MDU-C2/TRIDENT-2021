@@ -16,7 +16,7 @@ from std_msgs.msg import String
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from trident_msgs.action import GotoPose, HoldPose
-from trident_msgs.msg import MotorOutputs, MotorOutput
+from trident_msgs.msg import MotorOutputs, MotorOutput, State
 from trident_msgs.srv import GetState
 from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorControlState
 
@@ -63,7 +63,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Boolean that controls the manual override, if manual override is True, the motor control will not send any output values to the motor driver.
         self._manual_override = False
         # The last known state of the agent.
-        self._agent_state: Pose = Pose()
+        self._agent_state: State = State()
         # The current goal pose received from either GotoPose action or HoldPose action.
         self._goal_pose = None
         # Boolean that keeps track on whether the HoldPose time has been reached.
@@ -76,9 +76,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         p = Point()
         p.x, p.y, p.z = (1.0, 1.0, 1.0)
         q = Quaternion()
-        q.x ,q.y, q.z, q.w = (0.0, 0.0, 0.0, 1.0)
-        self._agent_state.position = p
-        self._agent_state.orientation = q
+        q.x ,q.y, q.z, q.w = (0.2, 0.3, 0.1, 1.0)
+        self._agent_state.pose.position = p
+        self._agent_state.pose.orientation = q
         ##########################################
 
 
@@ -98,7 +98,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Subscriptions
         # -------------
         self._state_subscription = self.create_subscription(
-            Pose,
+            State,
             'position/state',
             self._state_listener_callback,
             1 # History depth, only keep the last received message
@@ -254,7 +254,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         Returns:
             bool: Boolean that indicates whether the goal is reached or not.
         """
-        current = self._agent_state
+        current = self._agent_state.pose
         dist = self.distance_to_goal(current.position, goal.position)
         self.get_logger().info(f"Distance to goal: {dist}")
         orientation_errors = [(goal.orientation.x - current.orientation.x) / goal.orientation.x,
@@ -305,6 +305,15 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         base_speed = 100 # TODO: This needs to be discussed.
         motor_outputs = []
+        # PID the pitch and roll so the agents stay level during teleop
+        self._pids["pitch"].setpoint = 0
+        self._pids["roll"].setpoint = 0
+        curr_orientation = SQuaternion(w=self._agent_state.pose.orientation.w,
+                            x=self._agent_state.pose.orientation.x,
+                            y=self._agent_state.pose.orientation.y,
+                            z=self._agent_state.pose.orientation.z).to_euler(degrees=True)
+        roll_control = self._pids["roll"](curr_orientation[0])
+        pitch_control = self._pids["pitch"](curr_orientation[1])
 
         self.get_logger().info("Converting twist_msg to motor outputs.")
         for motor in self._motor_config:
@@ -314,7 +323,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             output.value = (motor["pose_effect"]["x"] * twist_msg.linear.x +
                             motor["pose_effect"]["y"] * twist_msg.linear.y +
                             motor["pose_effect"]["z"] * twist_msg.linear.z +
-                            motor["pose_effect"]["yaw"] * twist_msg.angular.z)
+                            motor["pose_effect"]["yaw"] * twist_msg.angular.z +
+                            motor["pose_effect"]["roll"] * roll_control +
+                            motor["pose_effect"]["pitch"] * pitch_control)
 
             output.value *= base_speed
             motor_outputs.append(output)
@@ -374,7 +385,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         Returns:
             Quaternion: Orientation needed to "shoot".
         """
-        current = self._agent_state.position
+        current = self._agent_state.pose.position
         
         goal = self._goal_pose.position
         # Create vector from the two points
@@ -475,8 +486,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         pas_orientation_timer = self.create_timer(1/self._pas_orientation_update_freq, self._update_pas_orientation)
 
         # Variables that tracks the mean pose deviation
-        mean_pose = [self._agent_state.position.x, self._agent_state.position.y, self._agent_state.position.z,
-                    self._agent_state.orientation.x, self._agent_state.orientation.y, self._agent_state.orientation.y, self._agent_state.orientation.z]
+        mean_pose = [self._agent_state.pose.position.x, self._agent_state.pose.position.y, self._agent_state.pose.position.z,
+                    self._agent_state.pose.orientation.x, self._agent_state.pose.orientation.y, self._agent_state.pose.orientation.y, self._agent_state.pose.orientation.z]
         mean_pose_m2 = [0] * 7
         mean_pose_count = 1
         # pose_variance = []
@@ -488,9 +499,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         hold_start_time = self.get_clock().now().seconds_nanoseconds()[0]
         # Loop as long as the time goal hasn't been reached
         while(not self._hold_pose_time_reached):
-            current_pos = self._agent_state.position
+            current_pos = self._agent_state.pose.position
             desired_pos = goal_handle.request.pose.position
-            current_orientation = self._agent_state.orientation
+            current_orientation = self._agent_state.pose.orientation
             desired_orientation = goal_handle.request.pose.orientation
             # Calculate distance between desired position and current position.
             distance_to_goal = self.distance_to_goal(current_pos, desired_pos)
@@ -511,7 +522,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
             else:
-                motor_outputs_msg = self.pid(self._agent_state, desired_pose)
+                motor_outputs_msg = self.pid(self._agent_state.pose, desired_pose)
                 self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
                 self._motor_outputs_publisher.publish(motor_outputs_msg)
                 feedback_msg.status = HoldPoseStatus.HOLDING
@@ -595,9 +606,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         while(i < 5):
             i+=1
         # while(not self._goto_pose_goal_reached(goal_handle.request)):
-            current_pos = self._agent_state.position
+            current_pos = self._agent_state.pose.position
             desired_pos = goal_handle.request.pose.position
-            current_orientation = self._agent_state.orientation
+            current_orientation = self._agent_state.pose.orientation
             desired_orientation = goal_handle.request.pose.orientation
             # Calculate distance between desired position and current position.
             distance_to_goal = self.distance_to_goal(current_pos, desired_pos)
@@ -653,7 +664,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result = GotoPose.Result()
         result.status = GotoPoseStatus.FINISHED
         result.message = "Arrived at the goal pose. Goal finished."
-        result.distance_to_goal = 0.0 # TODO: self.distance_to_goal(self.agent_state.position, goal_handle.request.pose.position) # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
+        result.distance_to_goal = 0.0 # TODO: self.distance_to_goal(self.agent_state.pose.position, goal_handle.request.pose.position) # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
 
         self.get_logger().info(f'Returning result: {result}')
 
