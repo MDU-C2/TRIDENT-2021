@@ -1,1 +1,0 @@
-/home/johannes/TRIDENT-2021/trident_software/bridge_ws/src/ros1_bridge/resource/pkg_factories.cpp.em

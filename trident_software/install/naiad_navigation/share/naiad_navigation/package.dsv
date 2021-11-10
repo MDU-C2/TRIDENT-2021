@@ -1,9 +1,0 @@
-source;share/naiad_navigation/hook/pythonpath.ps1
-source;share/naiad_navigation/hook/pythonpath.dsv
-source;share/naiad_navigation/hook/pythonpath.sh
-source;share/naiad_navigation/hook/ament_prefix_path.ps1
-source;share/naiad_navigation/hook/ament_prefix_path.dsv
-source;share/naiad_navigation/hook/ament_prefix_path.sh
-source;../../build/naiad_navigation/share/naiad_navigation/hook/pythonpath_develop.ps1
-source;../../build/naiad_navigation/share/naiad_navigation/hook/pythonpath_develop.dsv
-source;../../build/naiad_navigation/share/naiad_navigation/hook/pythonpath_develop.sh
