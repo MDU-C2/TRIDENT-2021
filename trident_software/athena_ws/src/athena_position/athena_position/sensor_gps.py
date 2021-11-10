@@ -1,8 +1,5 @@
 import baseclasses.sensorbase as sensbase
 import rclpy
-import serial #package is named "pyserial"!
-import io
-import pynmea2
 import numpy as np
 from math import sin, cos, sqrt, asin
 from math import radians as torad
@@ -32,16 +29,19 @@ class GPSNode(sensbase.SensorNode):
             [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
-                         init_obs_mat, 2, np.identity(2)*0.0001**2)
+                         init_obs_mat, 2, np.identity(2)*0.5**2)
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('is_simulated', False)
         if(self.get_parameter('is_simulated').value):
             self.simul_sensor = self.create_subscription(
-                                NavSatFix, '/athena/simulated/gps',
-                                self.SimulatedMeasurement)
+                                NavSatFix, '/athena/simulation/gps',
+                                self.SimulatedMeasurement, 10)
             self.timer.destroy() # Stop the original timed sensor from running
         else:
+            import serial #package is named "pyserial"!
+            import io
+            import pynmea2
             self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
             self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
     

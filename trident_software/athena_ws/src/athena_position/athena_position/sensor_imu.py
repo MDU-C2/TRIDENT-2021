@@ -1,8 +1,5 @@
 import baseclasses.sensorbase as sensbase
 import rclpy
-import board
-import busio
-import adafruit_bno055
 from time import time
 import numpy as np
 from sensor_msgs.msg import Imu
@@ -23,10 +20,10 @@ class IMUNode(sensbase.SensorNode):
             [0,0,       0, 0, 0,   1]])# dyaw
         
         # TODO: couldn't find any real noise values, but these should be fine?
-        (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
+        noise_mat = (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
         
         super().__init__('imu', 'athena', 0.25,
-                         init_obs_mat, 4, np.identity(4)*0.1**2)
+                         init_obs_mat, 4, noise_mat)
         
         self.prev_state = np.zeros((6,1))
         self.prev_state_time = time()
@@ -36,12 +33,16 @@ class IMUNode(sensbase.SensorNode):
         self.declare_parameter('is_simulated', False)
         if(self.get_parameter('is_simulated').value):
             self.simul_sensor = self.create_subscription(
-                                Imu, '/athena/simulated/imu',
-                                self.SimulatedMeasurement)
+                                Imu, '/athena/simulation/imu',
+                                self.SimulatedMeasurement, 10)
             self.timer.destroy() # Stop the original timed sensor from running
         else:
+            
             self.i2c = busio.I2C(board.SCL, board.SDA)
             self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
+            import board
+            import busio
+            import adafruit_bno055
     
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
@@ -65,10 +66,16 @@ class IMUNode(sensbase.SensorNode):
         self.measure[3,0] = self.sensor.gyro[2]                # Rotation
 
     def SimulatedMeasurement(self, msg):
+        #self.get_logger().info("Message: %s" % msg)
+        '''self.measure[0,0] = msg.linear_acceleration.x/100 + 99*self.measure[0,0]/100
+        self.measure[1,0] = msg.linear_acceleration.y/100 + 99*self.measure[1,0]/100
+        q = Quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z)
+        self.measure[2,0] = q.to_euler()[2]/100 + 99*self.measure[2,0]/100
+        self.measure[3,0] = msg.angular_velocity.z/100 + 99*self.measure[3,0]/100'''
         self.measure[0,0] = msg.linear_acceleration.x
         self.measure[1,0] = msg.linear_acceleration.y
         q = Quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z)
-        self.measure[2,0] = q.to_euler[2]
+        self.measure[2,0] = q.to_euler()[2]
         self.measure[3,0] = msg.angular_velocity.z
 
 def main(args=None):

@@ -13,9 +13,10 @@ class AthenaPosNode(positionbase.PosNode):
         init_noise = (np.array([0.5, 0.5, 0.4, 0.2, 0.2, 0.1])*np.identity(6))**2 # These are just guesses!
             
         super().__init__("athena_position_node", "state", 0.5,
-                         init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"])
+                         init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
+                         2, "/athena/simulation/thruster_setpoints")
     
-    def state_trans(self, prev, control_vec, dt):
+    def state_trans(self, prev, dt):
         h = prev[2,0]
         trans_mat = np.array([
             #x  y  h         dx         dy  dh
@@ -26,7 +27,15 @@ class AthenaPosNode(positionbase.PosNode):
             [0, 0, 0,         0,         1,  0], #dy
             [0, 0, 0,         0,         0,  1]])#dh
         # TODO: add the contol vector, using the motor config.
-        transition = np.matmul(trans_mat,prev)
+        ctrl_mat = np.array([
+            # Motor 1 Motor 2
+            [     0.0,    0.0],  #x
+            [     0.0,    0.0],  #y
+            [     0.0,    0.0],  #h
+            [     1.1,    1.1],  #dx
+            [     0.0,    0.0],  #dy
+            [     5.2,   -5.2]]) #dh
+        transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)
         return transition
     
     def state_publish(self):
