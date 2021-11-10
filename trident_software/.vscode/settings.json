@@ -1,0 +1,15 @@
+{
+  "python.autoComplete.extraPaths": [
+    "~/TRIDENT-2021",
+    "/opt/ros"
+      
+],
+"python.analysis.extraPaths": [
+  "~/TRIDENT-2021",
+  "/opt/ros"
+],
+"ros.distro": "foxy",
+"python.linting.pylintEnabled": true,
+"python.linting.enabled": true,
+"cmake.configureOnOpen": false,
+}

@@ -1,0 +1,6 @@
+source;share/faux_sensor_n_unit/hook/pythonpath.ps1
+source;share/faux_sensor_n_unit/hook/pythonpath.dsv
+source;share/faux_sensor_n_unit/hook/pythonpath.sh
+source;share/faux_sensor_n_unit/hook/ament_prefix_path.ps1
+source;share/faux_sensor_n_unit/hook/ament_prefix_path.dsv
+source;share/faux_sensor_n_unit/hook/ament_prefix_path.sh
