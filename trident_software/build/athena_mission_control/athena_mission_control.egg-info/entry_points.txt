@@ -1,3 +1,0 @@
-[console_scripts]
-mission_control = athena_mission_control.missioncontrolmain:main
-

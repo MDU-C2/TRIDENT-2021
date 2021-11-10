@@ -1,5 +1,0 @@
-[console_scripts]
-gps_node = athena_position.sensor_gps:main
-imu_node = athena_position.sensor_imu:main
-position_node = athena_position.athena_position:main
-

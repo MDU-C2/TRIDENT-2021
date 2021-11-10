@@ -1,3 +1,0 @@
-[console_scripts]
-motor_driver = athena_driver.motordrivermain:main
-

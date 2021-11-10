@@ -1,3 +1,0 @@
-[console_scripts]
-motor_control = naiad_motor_control.motorcontrolmain:main
-

@@ -1,4 +1,0 @@
-
-bool success # Indicates the status of the request
-string state # The string representation of the state
-int64 int_state -1 # Integer representation (Optional)

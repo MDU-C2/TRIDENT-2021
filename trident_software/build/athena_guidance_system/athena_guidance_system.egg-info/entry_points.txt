@@ -1,3 +1,0 @@
-[console_scripts]
-guidance_system = athena_guidance_system.guidancesystemmain:main
-

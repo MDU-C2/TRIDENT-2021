@@ -1,3 +1,0 @@
-[console_scripts]
-navigation = naiad_navigation.navigationmain:main
-

@@ -1,3 +1,0 @@
-[console_scripts]
-mission_control = naiad_mission_control.missioncontrolmain:main
-

@@ -1,3 +1,0 @@
-[console_scripts]
-navigation = athena_navigation.navigationmain:main
-

@@ -1,9 +1,0 @@
-source;share/athena_navigation/hook/pythonpath.ps1
-source;share/athena_navigation/hook/pythonpath.dsv
-source;share/athena_navigation/hook/pythonpath.sh
-source;share/athena_navigation/hook/ament_prefix_path.ps1
-source;share/athena_navigation/hook/ament_prefix_path.dsv
-source;share/athena_navigation/hook/ament_prefix_path.sh
-source;../../build/athena_navigation/share/athena_navigation/hook/pythonpath_develop.ps1
-source;../../build/athena_navigation/share/athena_navigation/hook/pythonpath_develop.dsv
-source;../../build/athena_navigation/share/athena_navigation/hook/pythonpath_develop.sh

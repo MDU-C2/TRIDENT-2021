@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/johannes/TRIDENT-2021/trident_software/build/cola2_msgs/rosidl_generator_py/cola2_msgs/cola2_msgs_s__rosidl_typesupport_introspection_c.cpython-38-x86_64-linux-gnu.so" "TARGETS" "cola2_msgs__rosidl_typesupport_introspection_c__pyext" "DESTINATION" "lib/python3.8/site-packages/cola2_msgs")

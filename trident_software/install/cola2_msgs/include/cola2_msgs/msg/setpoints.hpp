@@ -1,1 +1,0 @@
-/home/johannes/TRIDENT-2021/trident_software/build/cola2_msgs/rosidl_generator_cpp/cola2_msgs/msg/setpoints.hpp

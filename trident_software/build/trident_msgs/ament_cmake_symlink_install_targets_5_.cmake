@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_generator_py/trident_msgs/libtrident_msgs__python.so" "TARGETS" "trident_msgs__python" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "bin")

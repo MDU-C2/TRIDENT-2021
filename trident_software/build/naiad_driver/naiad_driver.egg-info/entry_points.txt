@@ -1,3 +1,0 @@
-[console_scripts]
-motor_driver = naiad_driver.motordrivermain:main
-
