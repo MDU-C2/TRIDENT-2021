@@ -15,6 +15,7 @@ from rclpy.action import ActionClient, ActionServer, GoalResponse, CancelRespons
 from std_msgs.msg import String
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
+from nav_msgs.msg import Odometry
 from trident_msgs.action import GotoPose, HoldPose
 from trident_msgs.msg import MotorOutputs, MotorOutput, State
 from trident_msgs.srv import GetState
@@ -97,9 +98,16 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Subscriptions
         # -------------
+        # self._state_subscription = self.create_subscription(
+        #     State,
+        #     'position/state',
+        #     self._state_listener_callback,
+        #     1 # History depth, only keep the last received message
+        # )
+
         self._state_subscription = self.create_subscription(
-            State,
-            'position/state',
+            Odometry,
+            'simulation/odometry',
             self._state_listener_callback,
             1 # History depth, only keep the last received message
         )
@@ -413,7 +421,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._pas_orientation = pas_q
 
     # State listener callback
-    def _state_listener_callback(self, msg: Pose):
+    def _state_listener_callback(self, msg: State):
         """Callback for the subscribtion to the position/state topic that contains state messages with the msg type Pose.
         The callback reads the state and updates the agent_state property.
         """
