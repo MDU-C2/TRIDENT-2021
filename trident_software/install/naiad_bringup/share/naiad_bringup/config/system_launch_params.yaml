@@ -1,0 +1,155 @@
+naiad:
+  motor_control:
+    ros__parameters:
+      motor_update_frequency: 1.0     # Hz - The frequency at which the motor controller computes new motor output values and sends to the motor driver.
+      pas_orientation_update_freq: 0.5 # Hz - The frequency at which the motor controller computer a new point and shoot orientation. 
+                                       #      This doesn't need to happen that often.
+      pas_threshold: 0.0   # The threshold that decides if PaS orientation should be used instead of the goal orientation. Distance in meters from the goal.  
+      goal_distance_slack: 0.2 # Meters
+      goal_orientation_slack: 0.1 # Percent.
+      motor_config: >
+        [ 
+          {
+            "id": 1,
+            "descriptive_name": "middle_right",
+            "pose_effect": {
+                "x":     -0.7070,
+                "y":     0,
+                "z":     0,
+                "pitch": 0,
+                "yaw":   1.0,
+                "roll":  0
+            }
+          },
+          {
+            "id": 2,
+            "descriptive_name": "middle_left",
+            "pose_effect": {
+                "x":     -0.7070,
+                "y":     0,
+                "z":     0,
+                "pitch": 0,
+                "yaw":   -1.0,
+                "roll":  0
+            }
+          },
+          {
+            "id": 3,
+            "descriptive_name": "front_left",
+            "pose_effect": {
+                "x":     0.0,
+                "y":     0.0,
+                "z":     -1.0,
+                "pitch": 0.6,
+                "yaw":   0.0,
+                "roll":  0.8
+            }
+          },
+          {
+            "id": 4,
+            "descriptive_name": "front_right",
+            "pose_effect": {
+                "x":     0.0,
+                "y":     0.0,
+                "z":     -1.0,
+                "pitch": 0.6,
+                "yaw":   0.0,
+                "roll":  -0.8
+            }
+          },        
+          {
+            "id": 5,
+            "descriptive_name": "rear_left",
+            "pose_effect": {
+                "x":     0.0,
+                "y":     0.0,
+                "z":     -1.0,
+                "pitch": -0.6,
+                "yaw":   0.0,
+                "roll":  0.8
+            }
+          },
+          {
+            "id": 6,
+            "descriptive_name": "rear_right",
+            "pose_effect": {
+                "x":     0.0,
+                "y":     0.0,
+                "z":     -1.0,
+                "pitch": -0.6,
+                "yaw":   0.0,
+                "roll":  -0.8
+            }
+          }
+        ]
+      pid_config: >
+        {
+          "p": {
+            "x":     1.0,
+            "y":     1.0,
+            "z":     270.0,
+            "pitch": 9.5,
+            "yaw":   15.0,
+            "roll":  9.5
+          },
+          "i": {
+            "x":     0.0,
+            "y":     0.0,
+            "z":     10.0,
+            "pitch": 0.5,
+            "yaw":   0.2,
+            "roll":  0.5
+          },
+          "d": {
+            "x":     0.5,
+            "y":     0.5,
+            "z":     20.0,
+            "pitch": 3.0,
+            "yaw":   3.0,
+            "roll":  3.0
+          }
+        }
+  navigation:      
+    ros__parameters:
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  mission_control:
+    ros__parameters:
+      placeholder: 0 # Placeholder since there are no params for this node atm.
+  position:
+    ros__parameters:
+      simulation_env: True    # Specifies if the position node should use the sensors in the simulator or 
+                              # the real sensors 
+  motor_driver:
+    ros__parameters:
+      simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
+                              # environment or the real motors.
+      motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
+                                         # will operate without receiving a command from motor contorl.
+      motor_interface: >  # The gpio pins that each motor are connected to.
+        [
+          {
+            "id": 1,
+            "gpio_pin": 42
+          },
+          {
+            "id": 2,
+            "gpio_pin": 42
+          },
+          {
+            "id": 3,
+            "gpio_pin": 42
+          },
+          {
+            "id": 4,
+            "gpio_pin": 42
+          },
+          {
+            "id": 5,
+            "gpio_pin": 42
+          },
+          {
+            "id": 6,
+            "gpio_pin": 42
+          }
+        ]
+          

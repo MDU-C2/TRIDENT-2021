@@ -1,0 +1,23 @@
+running develop
+running egg_info
+creating athena_navigation.egg-info
+writing athena_navigation.egg-info/PKG-INFO
+writing dependency_links to athena_navigation.egg-info/dependency_links.txt
+writing entry points to athena_navigation.egg-info/entry_points.txt
+writing requirements to athena_navigation.egg-info/requires.txt
+writing top-level names to athena_navigation.egg-info/top_level.txt
+writing manifest file 'athena_navigation.egg-info/SOURCES.txt'
+reading manifest file 'athena_navigation.egg-info/SOURCES.txt'
+writing manifest file 'athena_navigation.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/lib/python3.8/site-packages/site.py
+Creating /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/lib/python3.8/site-packages/athena-navigation.egg-link (link to .)
+Installing navigation script to /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/lib/athena_navigation
+
+Installed /home/johannes/TRIDENT-2021/trident_software/build/athena_navigation
+running install_data
+creating /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/share/ament_index
+creating /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/share/ament_index/resource_index
+creating /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/share/ament_index/resource_index/packages
+copying resource/athena_navigation -> /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/share/ament_index/resource_index/packages
+copying package.xml -> /home/johannes/TRIDENT-2021/trident_software/install/athena_navigation/share/athena_navigation

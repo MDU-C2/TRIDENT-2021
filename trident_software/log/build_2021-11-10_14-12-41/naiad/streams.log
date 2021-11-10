@@ -1,0 +1,24 @@
+[2.333s] Invoking command in '/home/johannes/TRIDENT-2021/trident_software/build/naiad': PYTHONPATH=/home/johannes/TRIDENT-2021/trident_software/install/naiad/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/johannes/TRIDENT-2021/trident_software/install/naiad --editable --build-directory /home/johannes/TRIDENT-2021/trident_software/build/naiad/build --no-deps install_data --install-dir /home/johannes/TRIDENT-2021/trident_software/install/naiad
+[2.836s] running develop
+[3.116s] running egg_info
+[3.116s] creating naiad.egg-info
+[3.117s] writing naiad.egg-info/PKG-INFO
+[3.117s] writing dependency_links to naiad.egg-info/dependency_links.txt
+[3.117s] writing entry points to naiad.egg-info/entry_points.txt
+[3.118s] writing requirements to naiad.egg-info/requires.txt
+[3.118s] writing top-level names to naiad.egg-info/top_level.txt
+[3.120s] writing manifest file 'naiad.egg-info/SOURCES.txt'
+[3.188s] reading manifest file 'naiad.egg-info/SOURCES.txt'
+[3.189s] writing manifest file 'naiad.egg-info/SOURCES.txt'
+[3.264s] running build_ext
+[3.265s] Creating /home/johannes/TRIDENT-2021/trident_software/install/naiad/lib/python3.8/site-packages/site.py
+[3.267s] Creating /home/johannes/TRIDENT-2021/trident_software/install/naiad/lib/python3.8/site-packages/naiad.egg-link (link to .)
+[3.269s] 
+[3.269s] Installed /home/johannes/TRIDENT-2021/trident_software/build/naiad
+[3.270s] running install_data
+[3.270s] creating /home/johannes/TRIDENT-2021/trident_software/install/naiad/share/ament_index
+[3.270s] creating /home/johannes/TRIDENT-2021/trident_software/install/naiad/share/ament_index/resource_index
+[3.271s] creating /home/johannes/TRIDENT-2021/trident_software/install/naiad/share/ament_index/resource_index/packages
+[3.271s] copying resource/naiad -> /home/johannes/TRIDENT-2021/trident_software/install/naiad/share/ament_index/resource_index/packages
+[3.271s] copying package.xml -> /home/johannes/TRIDENT-2021/trident_software/install/naiad/share/naiad
+[3.384s] Invoked command in '/home/johannes/TRIDENT-2021/trident_software/build/naiad' returned '0': PYTHONPATH=/home/johannes/TRIDENT-2021/trident_software/install/naiad/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/johannes/TRIDENT-2021/trident_software/install/naiad --editable --build-directory /home/johannes/TRIDENT-2021/trident_software/build/naiad/build --no-deps install_data --install-dir /home/johannes/TRIDENT-2021/trident_software/install/naiad

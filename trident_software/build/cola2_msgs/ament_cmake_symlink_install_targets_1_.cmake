@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/johannes/TRIDENT-2021/trident_software/build/cola2_msgs/libcola2_msgs__rosidl_typesupport_fastrtps_cpp.so" "TARGETS" "cola2_msgs__rosidl_typesupport_fastrtps_cpp" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "bin")

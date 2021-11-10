@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/libtrident_msgs__rosidl_typesupport_fastrtps_c.so" "TARGETS" "trident_msgs__rosidl_typesupport_fastrtps_c" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "bin")

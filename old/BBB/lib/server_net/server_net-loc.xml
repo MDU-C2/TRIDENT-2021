@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file />
+    <file_marker column=" 6" line=" 4" >
+      <vfs_file>/home/grek/ada/TCP/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 67" >
+      <vfs_file>/home/grek/ada/TCP/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/at90can_handler_BBB1/at90can_usart_to_can.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/TCP/tcp.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/at90can_usart_to_can.gpr</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 26" line=" 87" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 10" line=" 89" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 39" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 72" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 37" line=" 73" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 17" line=" 75" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 76" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 76" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 33" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 22" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 39" line=" 36" >
+      <vfs_file>/home/grek/ada/software/at90can_usart_to_can/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 14" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 402" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 290" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 290" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 290" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 30" line=" 289" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 30" line=" 289" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 290" >
+      <vfs_file>/home/grek/ada/firmware/avr/avr-at90can128-usart/src/avr-at90can128-usart.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/motioncontrol/main/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 50" line=" 67" >
+      <vfs_file>/home/grek/ada/software/motioncontrol/main/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 85" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 151" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 31" line=" 153" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 27" line=" 85" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 151" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 153" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 144" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 4" line=" 50" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 46" >
+      <vfs_file>/usr/lib/gcc/i686-linux-gnu/4.6/adainclude/a-reatim.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 10" line=" 87" >
+      <vfs_file>/home/grek/ada/software/motioncontrol/main/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can_main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 34" line=" 65" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 47" line=" 342" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 181" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 30" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 55" line=" 36" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 36" line=" 181" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 36" line=" 30" >
+      <vfs_file>/home/grek/ada/software/ins_card/src/at90can_usart_to_can.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 721" >
+      <vfs_file>/home/grek/ada/MsgServer3/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 579" >
+      <vfs_file>/home/grek/ada/MsgServer3/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 8" line=" 766" >
+      <vfs_file>/home/grek/ada/MsgServer3/src/main.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_file />
+    </file_marker>
+  </Project>
+</Locations>

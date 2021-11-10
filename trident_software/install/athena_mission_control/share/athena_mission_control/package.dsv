@@ -1,0 +1,9 @@
+source;share/athena_mission_control/hook/pythonpath.ps1
+source;share/athena_mission_control/hook/pythonpath.dsv
+source;share/athena_mission_control/hook/pythonpath.sh
+source;share/athena_mission_control/hook/ament_prefix_path.ps1
+source;share/athena_mission_control/hook/ament_prefix_path.dsv
+source;share/athena_mission_control/hook/ament_prefix_path.sh
+source;../../build/athena_mission_control/share/athena_mission_control/hook/pythonpath_develop.ps1
+source;../../build/athena_mission_control/share/athena_mission_control/hook/pythonpath_develop.dsv
+source;../../build/athena_mission_control/share/athena_mission_control/hook/pythonpath_develop.sh

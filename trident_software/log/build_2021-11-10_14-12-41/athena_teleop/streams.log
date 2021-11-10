@@ -1,0 +1,24 @@
+[2.338s] Invoking command in '/home/johannes/TRIDENT-2021/trident_software/build/athena_teleop': PYTHONPATH=/home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop --editable --build-directory /home/johannes/TRIDENT-2021/trident_software/build/athena_teleop/build --no-deps install_data --install-dir /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop
+[2.814s] running develop
+[3.120s] running egg_info
+[3.120s] creating athena_teleop.egg-info
+[3.121s] writing athena_teleop.egg-info/PKG-INFO
+[3.121s] writing dependency_links to athena_teleop.egg-info/dependency_links.txt
+[3.121s] writing entry points to athena_teleop.egg-info/entry_points.txt
+[3.122s] writing requirements to athena_teleop.egg-info/requires.txt
+[3.122s] writing top-level names to athena_teleop.egg-info/top_level.txt
+[3.125s] writing manifest file 'athena_teleop.egg-info/SOURCES.txt'
+[3.193s] reading manifest file 'athena_teleop.egg-info/SOURCES.txt'
+[3.194s] writing manifest file 'athena_teleop.egg-info/SOURCES.txt'
+[3.268s] running build_ext
+[3.268s] Creating /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/lib/python3.8/site-packages/site.py
+[3.273s] Creating /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/lib/python3.8/site-packages/athena-teleop.egg-link (link to .)
+[3.274s] 
+[3.275s] Installed /home/johannes/TRIDENT-2021/trident_software/build/athena_teleop
+[3.275s] running install_data
+[3.275s] creating /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/share/ament_index
+[3.276s] creating /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/share/ament_index/resource_index
+[3.276s] creating /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/share/ament_index/resource_index/packages
+[3.277s] copying resource/athena_teleop -> /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/share/ament_index/resource_index/packages
+[3.277s] copying package.xml -> /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/share/athena_teleop
+[3.380s] Invoked command in '/home/johannes/TRIDENT-2021/trident_software/build/athena_teleop' returned '0': PYTHONPATH=/home/johannes/TRIDENT-2021/trident_software/install/athena_teleop/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop --editable --build-directory /home/johannes/TRIDENT-2021/trident_software/build/athena_teleop/build --no-deps install_data --install-dir /home/johannes/TRIDENT-2021/trident_software/install/athena_teleop

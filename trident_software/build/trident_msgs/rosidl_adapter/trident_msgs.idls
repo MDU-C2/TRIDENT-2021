@@ -1,0 +1,15 @@
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/Waypoint.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/WaypointAction.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/Mission.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/MotorOutput.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/MotorOutputs.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:msg/State.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:srv/LoadMission.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:srv/GuidanceRequest.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:srv/GetGoalPose.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:srv/GetState.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:srv/KalmanSensorService.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:action/StartMission.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:action/GotoWaypoint.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:action/GotoPose.idl
+/home/johannes/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_adapter/trident_msgs:action/HoldPose.idl

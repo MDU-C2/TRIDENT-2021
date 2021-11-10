@@ -1,0 +1,3 @@
+[console_scripts]
+guidance_system = naiad_guidance_system.guidancesystemmain:main
+

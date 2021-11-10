@@ -1,0 +1,3 @@
+[console_scripts]
+motor_control = athena_motor_control.motorcontrolmain:main
+

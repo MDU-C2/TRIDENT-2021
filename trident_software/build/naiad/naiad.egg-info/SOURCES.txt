@@ -1,0 +1,12 @@
+package.xml
+setup.cfg
+setup.py
+naiad/__init__.py
+naiad.egg-info/PKG-INFO
+naiad.egg-info/SOURCES.txt
+naiad.egg-info/dependency_links.txt
+naiad.egg-info/entry_points.txt
+naiad.egg-info/requires.txt
+naiad.egg-info/top_level.txt
+naiad.egg-info/zip-safe
+resource/naiad

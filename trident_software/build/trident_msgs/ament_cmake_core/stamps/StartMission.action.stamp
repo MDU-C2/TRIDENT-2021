@@ -1,0 +1,9 @@
+
+---
+bool success    # Indicates the status of the request
+string message  # Informational message
+---
+int16 status                # Status that indicates the current state of the mission
+                            # 0=Executing, 1=waiting, 2=Finished
+string message              # Informational message about the status
+int16 waypoints_completed   # Number of mission waypoints completed
