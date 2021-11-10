@@ -1,5 +1,1 @@
-# The device's position and orientation, in world coordinates
-geometry_msgs/Pose  pose
-# The device's linear and rotational velocities, in local coordinates
-geometry_msgs/Twist twist
-
+/home/andreas/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/State.msg

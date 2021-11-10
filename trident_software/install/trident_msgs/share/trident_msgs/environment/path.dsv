@@ -1,1 +1,1 @@
-prepend-non-duplicate-if-exists;PATH;bin
+/home/andreas/TRIDENT-2021/trident_software/build/trident_msgs/ament_cmake_environment_hooks/path.dsv

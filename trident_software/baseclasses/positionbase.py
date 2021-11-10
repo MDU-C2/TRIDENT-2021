@@ -7,10 +7,11 @@ from abc import ABC, abstractmethod
 
 from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
+from cola2_msgs.msg import Setpoints
 
 class PosNode(Node, ABC):
     def __init__(self, name, pub_topic_name, interval,
-                 start_state, start_covar, proc_noise, sensor_list):
+                 start_state, start_covar, proc_noise, sensor_list, ctrl_v_size, ctrl_v_top_name):
                  
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
@@ -18,12 +19,16 @@ class PosNode(Node, ABC):
         self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
         #timer_period = interval
         #self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.last_state_time = time()
+        self.get_logger().info("If this shows up, the simulation messages are still being used for control vector")
+        self.ctrl_vec_sub_ = self.create_subscription(cola2_msgs/Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
         
         # Inits for all the Kalman-related variables #
         #-------------------------------------------#
         self.state = np.copy(start_state)
         self.covar = np.copy(start_covar)
         self.proc_noise = np.copy(proc_noise)
+        self.control_vec = np.zeros((ctrl_v_size,1))
         
         # Error detection on the different variables #
         #--------------------------------------------#
@@ -81,8 +86,14 @@ class PosNode(Node, ABC):
     # The state transition function (predicting the next step)
     # This is only a placeholder, and should be changed in every implementation!
     @abstractmethod
-    def state_trans(self, prev, control_vec, dt):
+    def state_trans(self, prev, dt):
         return prev
+
+    # This is the control vector retreival function
+    # Naturally, change in every implementation
+    @abstractmethod
+    def get_ctrl_vec(self, msg):
+        pass
     
     # The topic publisher function
     # This too should be changed to an appropriate message!
@@ -119,8 +130,8 @@ class PosNode(Node, ABC):
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
     # Jacobian through complex step differentiation
     # Source: https://se.mathworks.com/matlabcentral/fileexchange/18189-learning-the-extended-kalman-filter?s_tid=mwa_osa_a
-    def jacobian_csd(self, func, state, control, dt):
-        new_state = func(state, control, dt) 
+    def jacobian_csd(self, func, state, dt):
+        new_state = func(state, dt)
         n = state.shape[0]
         m = new_state.shape[0]
         A = np.zeros((m,n))
@@ -128,15 +139,16 @@ class PosNode(Node, ABC):
         for k in range(n):
             state1 = state.astype('complex64')
             state1[k, 0] = complex(state1[k, 0], h)
-            A[:, k] = np.transpose((func(state1, control, dt)).imag/h) 
+            A[:, k] = np.transpose((func(state1, dt)).imag/h) 
         return (new_state, A)
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
     def spin(self):
         while True:
             # Predict new state (and get the state transition matrix thru Jacobian)
-            # TODO: add control vector
-            pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, 0, 1)
+            dt = time() - self.last_state_time
+            self.last_state_time = time()
+            pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, dt)
             # Add noise
             pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
             # Predict covariance of new state
