@@ -52,7 +52,11 @@ _colcon_prepend_unique_value() {
 # since a plain shell script can't determine its own path when being sourced
 # either use the provided COLCON_CURRENT_PREFIX
 # or fall back to the build time prefix (if it exists)
+<<<<<<< HEAD
 _colcon_package_sh_COLCON_CURRENT_PREFIX="/home/johannes/TRIDENT-2021/trident_software/install/athena_bringup"
+=======
+_colcon_package_sh_COLCON_CURRENT_PREFIX="/home/ubuntu/TRIDENT-2021/trident_software/install/athena_bringup"
+>>>>>>> origin/feature/full_positioning
 if [ -z "$COLCON_CURRENT_PREFIX" ]; then
   if [ ! -d "$_colcon_package_sh_COLCON_CURRENT_PREFIX" ]; then
     echo "The build time path \"$_colcon_package_sh_COLCON_CURRENT_PREFIX\" doesn't exist. Either source a script for a different shell or set the environment variable \"COLCON_CURRENT_PREFIX\" explicitly." 1>&2
@@ -80,7 +84,10 @@ _colcon_package_sh_source_script() {
 # source sh hooks
 _colcon_package_sh_source_script "$COLCON_CURRENT_PREFIX/share/athena_bringup/hook/pythonpath.sh"
 _colcon_package_sh_source_script "$COLCON_CURRENT_PREFIX/share/athena_bringup/hook/ament_prefix_path.sh"
+<<<<<<< HEAD
 _colcon_package_sh_source_script "$COLCON_CURRENT_PREFIX/../../build/athena_bringup/share/athena_bringup/hook/pythonpath_develop.sh"
+=======
+>>>>>>> origin/feature/full_positioning
 
 unset _colcon_package_sh_source_script
 unset COLCON_CURRENT_PREFIX

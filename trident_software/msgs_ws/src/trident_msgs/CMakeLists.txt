@@ -26,7 +26,12 @@ find_package(action_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_typesupport_c REQUIRED)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -47,6 +52,7 @@ set(msg_files
   "msg/Mission.msg"
   "msg/MotorOutput.msg"
   "msg/MotorOutputs.msg"
+  "msg/State.msg"
   "srv/LoadMission.srv"
   "srv/GuidanceRequest.srv"
   "srv/GetGoalPose.srv"

@@ -2,19 +2,20 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from random import gauss
-from time import sleep
+from time import time, sleep
+from abc import ABC, abstractmethod
 
-from example_interfaces.msg import String
+from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
 
-class MainNode(Node):
-    def __init__(self, name, pub_topic_type, pub_topic_name, interval,
+class PosNode(Node, ABC):
+    def __init__(self, name, pub_topic_name, interval,
                  start_state, start_covar, proc_noise, sensor_list):
                  
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
         super().__init__(name)
-        self.publisher_ = self.create_publisher(pub_topic_type, pub_topic_name, 10)
+        self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
         #timer_period = interval
         #self.timer = self.create_timer(timer_period, self.timer_callback)
         
@@ -79,11 +80,13 @@ class MainNode(Node):
     
     # The state transition function (predicting the next step)
     # This is only a placeholder, and should be changed in every implementation!
+    @abstractmethod
     def state_trans(self, prev, control_vec, dt):
         return prev
     
     # The topic publisher function
     # This too should be changed to an appropriate message!
+    @abstractmethod
     def state_publish(self):
         msg = String()
         msg.data = "Change to a good message type, then put state here!"
@@ -98,6 +101,7 @@ class MainNode(Node):
         try:
             future = sensor_handle.call_async(req)
             #rclpy.spin_until_future_complete(self, future)
+            start_time = time()
             while rclpy.ok():
                 rclpy.spin_once(self)
                 if future.done():
@@ -107,6 +111,8 @@ class MainNode(Node):
                     return(np.reshape(resp.gain,               (x_size, y_size)),
                            np.reshape(resp.residual,           (-1,1)          ),
                            np.reshape(resp.observationmatrix,  (y_size, x_size)))
+                elif time() - start_time > 3:
+                    raise Exception("Service took too long (more than three seconds)!")
         except Exception as e:
                 print("Couldn't get values from a service:",e)
     
@@ -139,13 +145,16 @@ class MainNode(Node):
                             self.covar),
                             np.transpose(state_trans_mat)
                          ) + self.proc_noise
-            
+
             # Here we go through all of the different sensors
             # TODO: none of this truly is implemented yet, since no sensors!
             for sensor in self.sensor_handles:
                 try:
                     # Get the values from the sensors
                     gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
+                    # Check for cheeky nans
+                    if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
+                        raise Exception("The sensor",sensor,"returned a NaN!")
                     # Update the state estimate
                     #print(gain, resid)
                     pred_state = pred_state + np.matmul(gain, resid)
@@ -156,7 +165,7 @@ class MainNode(Node):
                                         obs_mat),
                                     pred_covar)
                 except Exception as e:
-                    print("Skipping sensor due to failure!",e)
+                    self.get_logger().warn("Skipping sensor due to failure! " + e)
             
             # Finally, set the state and covariance to the new ones!
             self.state = pred_state
@@ -170,12 +179,12 @@ class MainNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     
-    main_node = MainNode("unnamed_position_node", "unnamed_current_state", 1)
+    pos_node = PosNode("unnamed_position_node", "unnamed_current_state", 1)
     
     #rclpy.spin(main_node)
-    main_node.spin()
+    pos_node.spin()
     
-    main_node.destroy_node()
+    pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
