@@ -32,12 +32,13 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             parameters=[
                 ('motor_output_silence_period',  0.3), # Seconds
                 ('motor_interface',  ""),
-                ('simulation_env', True)
-            ])
+                ('simulation', False) # Specifies if the motor driver should send motor ouputs to the simulation
+            ])                        # environment or the real motors. Defaults to False, and is set to True in the simulation
+                                      # launch file.
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
         self._motor_interface = json.loads(self.get_parameter('motor_interface').get_parameter_value().string_value)
-        self._simulation_env = self.get_parameter('simulation_env').get_parameter_value().bool_value
+        self._simulation_env = self.get_parameter('simulation').get_parameter_value().bool_value
         # Check if we are supposed to run in the simulation environment
         if self._simulation_env:
             self._send_motor_outputs_fn = self._send_to_simulation
