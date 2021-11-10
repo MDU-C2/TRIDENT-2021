@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-action_msgs:builtin_interfaces:geometry_msgs:nav_msgs:rclcpp:rosidl_default_runtime:std_msgs
-=======
-builtin_interfaces:geometry_msgs:rclcpp:rosidl_default_runtime
->>>>>>> origin/feature/full_positioning
