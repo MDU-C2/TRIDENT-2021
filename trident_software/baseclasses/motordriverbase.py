@@ -67,7 +67,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             # Publisher for the motors in stonefish simulator
             self._sim_motor_publisher = self.create_publisher(
                 Setpoints,
-                'thruster_setpoints',
+                'simulation/thruster_setpoints',
                 10
             )
 
@@ -133,7 +133,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             output.id, output.value = motor["id"], 0.0
             outputs.append(output)
         # motor_outputs.motor_outputs = outputs
-        self._send_motor_outputs(outputs)
+        self._send_motor_outputs_fn(outputs)
 
     #                   Callbacks
     # -----------------------------------------        
