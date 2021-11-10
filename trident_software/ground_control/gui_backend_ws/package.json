@@ -1,0 +1,24 @@
+{
+  "name": "gui_backend_ws",
+  "version": "1.0.0",
+  "description": "Ground control for Trident",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProjectMDH/TRIDENT-2021.git"
+  },
+  "author": "Valentin Johansson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProjectMDH/TRIDENT-2021/issues"
+  },
+  "homepage": "https://github.com/ProjectMDH/TRIDENT-2021#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "rclnodejs": "^0.20.1",
+    "socket.io": "^4.3.1"
+  }
+}

@@ -1,0 +1,200 @@
+<html>
+    <head>
+        <title>Ground control</title>
+        <link rel="icon" type="image/png" href="img/TridentLogoAlpha.png">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/bootstrap-icons.css">
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+        
+    </head>
+    <div class="body">
+        <div class="d-flex bd-highlight align-items-center px-2" style="background: darkslategray; height: 3.5rem;">
+            <div class="connection-status shadow-sm d-flex align-items-center"><span class="mx-auto">Athena: <span id="connStatusAthena" style="font-weight: bold;">...</span></span></div>
+            <div class="connection-status shadow-sm d-flex align-items-center mx-2"><span class="mx-auto">Naiad: <span id="connStatusNaiad" style="font-weight: bold;">...</span></span></div>
+            <div class="ms-auto bd-highlight">
+                <button class="btn btn-danger mr-2 pr-2 fw-bold" type="button" onclick="abort()">
+                    Abort
+                </button>
+            </div>
+        </div>
+        <div class="row mx-1">
+            <div class="col-md-8 py-2" style="position: relative;">
+                <div id="map1" style="z-index: 1;"></div>
+
+                <!--Waypoint list-->
+                <div style="position: absolute; z-index: 2; top: 1rem; right: 1rem; width: 16rem;">
+                    <div class="card">
+                        <div class="card-header" id="headingOne" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            <div class="d-flex justify-content-between">
+                                <span>Waypoints: <span id="waypointTypeTarget">Athena</span></span>
+                                <span class="badge rounded-pill bg-primary" id="waypointNumCounter" style="font-size: 1rem;">0</span>
+                            </div>
+                          
+                        </div>
+                        <div class="collapse" id="collapseExample">
+                            <ul class="list-group list-group-flush" id="waypointList-0" style="height: 52vh; overflow-y: scroll;"></ul>
+                            <ul class="list-group list-group-flush" id="waypointList-1" style="display: none; height: 52vh; overflow-y: scroll;"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Naiad/athena waypoint selector-->
+                <div style="position: absolute; z-index: 3; top: 55vh; left: 1rem;">
+                    <div class="d-flex justify-content-left shadow p-2" style="background: white; border-radius: 0.3rem;">
+                        <button id="waypointSelectorAthena" type="button" class="btn btn-primary mx-2" style="width: 6rem;" onclick="selectWaypointType(0)">Athena</button>
+                        <button id="waypointSelectorNaiad" type="button" class="btn btn-outline-primary mx-2" style="width: 6rem;" onclick="selectWaypointType(1)">Naiad</button>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <div class="p-2" style="background: white;height: 32vh; position: relative;">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#loggerMainWindow" type="button" role="tab" aria-controls="loggerMainWindow" aria-selected="true">Main</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#loggerAthenaWindow" type="button" role="tab" aria-controls="loggerAthenaWindow" aria-selected="false">Athena</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#loggerNaiadWindow" type="button" role="tab" aria-controls="loggerNaiadWindow" aria-selected="false">Naiad</button>
+                            </li>
+                        </ul>
+                        <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:8.5rem;"><i id="openFullscreenLogger" class="bi bi-arrows-fullscreen" style="font-size: 1.8rem;"></i></button>
+                        <button style="border:none;background:transparent; position: absolute; top:0.5rem;right:4.5rem;"><i id="toggleFreezeLogger" class="bi bi-unlock-fill" style="font-size: 1.8rem;"></i></button>
+                        <button style="border:none;background:transparent; position: absolute; top:0.6rem;right:0.5rem;"><i id="clearLoggerWindow" class="bi bi-trash-fill" style="font-size: 1.8rem;"></i></button>
+                        <div class="tab-content" id="myTabContent">
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade show active" id="loggerMainWindow" role="tabpanel" aria-labelledby="home-tab"></div>
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade" id="loggerAthenaWindow" role="tabpanel" aria-labelledby="profile-tab"></div>
+                            <div style="height: 26vh; overflow-y: scroll;" class="tab-pane fade" id="loggerNaiadWindow" role="tabpanel" aria-labelledby="contact-tab"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 py-2">
+                <div class="row p-2" style="background: white;">
+                    <span class="pb-1 px-0 fw-bold">Payload type:</span>
+                    <select id="payloadSelectBox" class="form-select" size="6">
+                        <option value="load_mission_plan">Load mission plan</option>
+                        <option value="start_mission_plan">Start mission plan</option>
+                        <option value="toggle_manual_override">Toggle manual override</option>
+                        <option value="abort">Abort</option>
+                    </select>
+
+                    <span class="pt-3 pb-1 px-0 fw-bold">Target:</span>
+                    <div class="d-flex bd-highlight px-0">
+                        <div class="bd-highlight form-check px-0">
+                            <input type="checkbox" class="btn-check checkboxTarget" name="target" value="athena" id="checkboxTargetAthena" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="checkboxTargetAthena">Athena</label>
+                        </div>
+                        <div class="bd-highlight form-check mx-2">
+                            <input type="checkbox" class="btn-check checkboxTarget" name="target" value="naiad" id="checkboxTargetNaiad" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="checkboxTargetNaiad">Naiad</label>
+                        </div>  
+    
+                        <div class="ms-auto bd-highlight mx-5">
+                            <button class="btn btn-success" onclick="sendPayload()">Send</button>
+                        </div>
+                        <div></div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="row mx-0 px-0">
+                        <div class="col-md-6 text-center px-0">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="my-0">Athena</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group pt-2  shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Substates</h6>
+                                        </div>
+                                        <li class="list-group-item">
+                                            <span>Mission ctrl: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMissionCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Navigation: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateNavigation" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor ctrl: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMotorCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor driver: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstateMotorDriver" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Position: </span>
+                                            <br>
+                                            <span id="systemAthenaSubstatePosition" class="badge bg-secondary">None</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-center px-0">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="my-0">Naiad</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group pt-2  shadow-sm">
+                                        <div class="card-header">
+                                            <h6 class="my-0">Substates</h6>
+                                        </div>
+                                        <li class="list-group-item">
+                                            <span>Mission ctrl: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMissionCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Navigation: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateNavigation" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor ctrl: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMotorCtrl" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Motor driver: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstateMotorDriver" class="badge bg-secondary">None</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <span>Position: </span>
+                                            <br>
+                                            <span id="systemNaiadSubstatePosition" class="badge bg-secondary">None</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="js/socket.io.min.js"></script>
+    <script src="js/leaflet-rotatedMarker.js"></script> <!-- Enables rotation of markers in leaflet (https://github.com/bbecquet/Leaflet.RotatedMarker) -->
+    <script src="js/Leaflet.Marker.SlideTo.js"></script> <!-- Enables markers to move smoothly in leaflet (https://gitlab.com/IvanSanchez/Leaflet.Marker.SlideTo) -->
+    <script src="js/main.js" type="text/javascript"></script>
+
+</html>
