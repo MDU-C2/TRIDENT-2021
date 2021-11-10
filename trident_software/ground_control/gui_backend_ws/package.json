@@ -19,6 +19,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "rclnodejs": "^0.20.1",
-    "socket.io": "^4.3.1"
+    "socket.io": "^4.3.1",
+    "three": "^0.134.0"
   }
 }
