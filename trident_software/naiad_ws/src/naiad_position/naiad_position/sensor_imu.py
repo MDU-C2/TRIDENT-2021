@@ -11,16 +11,19 @@ class IMUNode(sensbase):
            heading and delta_heading can be copied over directly (after conversion)'''
         todeg = 180/3.14
         init_obs_mat = np.array([
-            #x y z     p     y     r dx dy dz dp dy dr 
-            [0,0,0,    0,todeg,    0, 0, 0, 0, 0, 0, 0], #y
-            [0,0,0,todeg,    0,    0, 0, 0, 0, 0, 0, 0], #p
-            [0,0,0,    0,    0,todeg, 0, 0, 0, 0, 0, 0], #r
+            #x y z     r     p     y dx dy dz dr dp dh 
+            #[0,0,0,todeg,    0,    0, 0, 0, 0, 0, 0, 0], #r
+            #[0,0,0,    0,todeg,    0, 0, 0, 0, 0, 0, 0], #p
+            #[0,0,0,    0,    0,todeg, 0, 0, 0, 0, 0, 0], #h
+            [0,0,0,    1,    0,    0, 0, 0, 0, 0, 0, 0], #r ###
+            [0,0,0,    0,    1,    0, 0, 0, 0, 0, 0, 0], #p # modded for simulation 
+            [0,0,0,    0,    0,    1, 0, 0, 0, 0, 0, 0], #h ###
             [0,0,0,    0,    0,    0, 1, 0, 0, 0, 0, 0], #ddx
             [0,0,0,    0,    0,    0, 0, 1, 0, 0, 0, 0], #ddy
             [0,0,0,    0,    0,    0, 0, 0, 1, 0, 0, 0], #ddz
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1], #dr
-            [0,0,0,    0,    0,    0, 0, 0, 0, 1, 0, 0], #dp
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0]])#dy
+            [0,0,0,    0,    0,    0, 0, 0, 0, 1, 0, 0], #dr
+            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0], #dp
+            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]])#dh
         
         noise_mat = (np.array([[2, .5, .5, .0001, .0001, .0001, .17, .17, .17]])*np.identity(9))**2
         
@@ -59,9 +62,9 @@ class IMUNode(sensbase):
             type_list = ("yaw", "pitch", "roll", "magx", "magy", "magz",
                          "accelx", "accely", "accelz", "gyrox", "gyroy", "gyroz")
             imu_dict = dict(zip(type_list, line))
-            self.measure[0,0] = imu_dict["yaw"]
+            self.measure[0,0] = imu_dict["roll"]
             self.measure[1,0] = imu_dict["pitch"]
-            self.measure[2,0] = imu_dict["roll"]
+            self.measure[2,0] = imu_dict["yaw"]
             self.measure[3,0] = imu_dict["accelx"]
             self.measure[4,0] = imu_dict["accely"]
             self.measure[5,0] = imu_dict["accelz"]

@@ -13,10 +13,11 @@ class NaiadPosNode(PosNode):
         init_noise = (np.array([0.5, 0.5, 0.5, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1])*np.identity(12))**2 # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,
-                         init_state, init_covar, init_noise, ["/naiad/sensor/imu"])
+                         init_state, init_covar, init_noise, ["/naiad/sensor/imu"],
+                         6, "/naiad/simulation/thruster_setpoints")
     
     def state_trans(self, prev, control_vec, dt):
-        h = prev[5,0]
+        '''h = prev[5,0]
         trans_mat = np.array([
             #x  y  z  r  p  h         dx         dy dz dr dp dh
             [1, 0, 0, 0, 0, 0, dt*sin(h), dt*cos(h),  0,  0,  0,  0], #x
@@ -32,7 +33,23 @@ class NaiadPosNode(PosNode):
             [0, 0, 0, 0, 0, 0,         0,         0,  0,  0,  1,  0], #dp
             [0, 0, 0, 0, 0, 0,         0,         0,  0,  0,  0,  1]])#dh
         # TODO: add the contol vector, using the motor config.
-        transition = np.matmul(trans_mat,prev)
+        transition = np.matmul(trans_mat,prev)'''
+        x, y, z, r, p, h, dx, dy, dz, dr, dp, dh = prev.flatten().tolist()
+        # This transition func assumes the NAIAD is level.
+        transition = np.array([[
+            x+dx*cos(h)*dt+dy*sin(h)*dt,
+            y+dy*sin(h)*dt+dy*cos(h)*dt,
+            z+dz*dt,
+            r+dr*dt,
+            p+dp*dt,
+            h+dh*dt,
+            dx,
+            dy,
+            dz,
+            dr,
+            dp,
+            dh]])
+        transition = np.transpose(transition)
         return transition
     
     def state_publish(self):
