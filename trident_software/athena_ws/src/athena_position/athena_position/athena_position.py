@@ -17,7 +17,7 @@ class AthenaPosNode(positionbase.PosNode):
                          2, "/athena/simulation/thruster_setpoints")
     
     def state_trans(self, prev, dt):
-        h = prev[2,0]
+        '''h = prev[2,0]
         trans_mat = np.array([
             #x  y  h         dx         dy  dh
             [1, 0, 0, dt*sin(h), dt*cos(h),  0], #x
@@ -35,14 +35,29 @@ class AthenaPosNode(positionbase.PosNode):
             [     1.1,    1.1],  #dx
             [     0.0,    0.0],  #dy
             [     5.2,   -5.2]]) #dh
-        transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)
+        transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)'''
+        x, y, h, dx, dy, dh = prev.flatten().tolist()
+        transition = np.array([[
+            x+dx*cos(h)*dt+dy*sin(h)*dt,
+            y+dy*sin(h)*dt+dy*cos(h)*dt,
+            h+dh*dt,
+            dx+1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
+            dy,
+            dh+5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]]])
+        transition = np.transpose(transition)
         return transition
+    
+    def get_ctrl_vec(self, msg):
+        self.get_logger().info("Control vector: %s" % msg)
+        self.control_vec[0,0] = msg.setpoints[0]
+        self.control_vec[1,0] = msg.setpoints[1]
     
     def state_publish(self):
         msg = State()
         msg.pose.position.x = self.state[0,0]
         msg.pose.position.y = self.state[1,0]
         msg.pose.position.z = 0.0
+        self.get_logger().info("Heading:%s" % self.state[2,0])
         q = Quaternion.from_euler(0, 0, self.state[2,0])
         msg.pose.orientation.x = q.x
         msg.pose.orientation.y = q.y
