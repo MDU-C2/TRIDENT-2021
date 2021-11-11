@@ -105,7 +105,8 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         outputs = []
         for motor_output in motor_outputs:
             # Scale the output value to stonefish values (-1, 1)
-            val = float(motor_output.value / 100)
+            val = float(motor_output.value / 10)
+
             outputs.append(val)
         msg.setpoints = outputs
         self.get_logger().info(f"Publishing motor outputs to simulation. Outputs: {msg}")
@@ -200,7 +201,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         # Check if the motors are supposed to be killed
         if not self.motors_killed:
             motor_outputs = msg.motor_outputs
-            self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
+            # self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
             self._motor_driver_state = MotorDriverState.ACTIVE
             # for motor_num, value in motor_outputs:
             self.__send_motor_outputs(motor_outputs)

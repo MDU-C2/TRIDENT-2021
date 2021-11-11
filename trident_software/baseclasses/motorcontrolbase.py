@@ -4,8 +4,7 @@ Author: Johannes Deivard 2021-10
 """
 from abc import ABCMeta, abstractmethod
 import numpy as np
-from typing import List, Tuple
-from math import sqrt   # For Pythagorean theorem to calculate distance 
+from math import sqrt # For Pythagorean theorem to calculate distance
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
 from simple_pid import PID 
 import json
@@ -42,6 +41,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 ('goal_orientation_slack', 0.1), # Percent
                 ('motor_config', ""),
                 ('pid_config', ""),
+                ('use_sim_odom', False),
             ])
 
         # LOAD PARAMETERS
@@ -54,10 +54,12 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Motor control update frequency
         self._motor_update_frequency = self.get_parameter('motor_update_frequency').get_parameter_value().double_value # Hz
         # Threshold for when to compute orientation internally instead of using goal orientation.
-        self._pas_threshold: float = self.get_parameter('pas_threshold').get_parameter_value().double_value # Hz
+        self._pas_threshold = self.get_parameter('pas_threshold').get_parameter_value().double_value # Hz
         # The accepted slack for considering the GotoPose goal finished
         self._goto_pose_goal_distance_slack = self.get_parameter('goal_distance_slack').get_parameter_value().double_value # Hz
         self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
+        # Get the use_sim_odom parameter that determines if we should use the simulation real odom values instead of the position modules state
+        self._use_sim_odom = self.get_parameter('use_sim_odom').get_parameter_value().bool_value
 
         # Set initial motor control state to IDLE
         self._motor_control_state = MotorControlState.IDLE
@@ -98,19 +100,20 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Subscriptions
         # -------------
-        # self._state_subscription = self.create_subscription(
-        #     State,
-        #     'position/state',
-        #     self._state_listener_callback,
-        #     1 # History depth, only keep the last received message
-        # )
-
-        self._state_subscription = self.create_subscription(
-            Odometry,
-            'simulation/odometry',
-            self._state_listener_callback,
-            1 # History depth, only keep the last received message
-        )
+        if self._use_sim_odom:
+            self._state_subscription = self.create_subscription(
+                Odometry,
+                'simulation/odometry',
+                self._sim_odom_listener_callback,
+                1 # History depth, only keep the last received message
+            )
+        else:
+            self._state_subscription = self.create_subscription(
+                State,
+                'position/state',
+                self._state_listener_callback,
+                1 # History depth, only keep the last received message
+            )
         self._teleop_twist_subscription = self.create_subscription(
             Twist,
             'motor_control/teleop/cmd_vel',
@@ -185,8 +188,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         if current is None or goal is None:
             return None
         # Retrieve goal orientations in euler angles
-        goal_orientation = SQuaternion(goal.orientation.w, goal.orientation.x, goal.orientation.y, goal.orientation.z).to_euler(degrees=True)
-        current_orientation = SQuaternion(current.orientation.w, current.orientation.x, current.orientation.y, current.orientation.z).to_euler(degrees=True)
+        goal_orientation = SQuaternion(w=goal.orientation.w, x=goal.orientation.x, y=goal.orientation.y, z=goal.orientation.z).to_euler(degrees=False)
+        current_orientation = SQuaternion(w=current.orientation.w, x=current.orientation.x, y=current.orientation.y, z=current.orientation.z).to_euler(degrees=False)
 
         goals = {
             "x":     goal.position.x,
@@ -205,6 +208,10 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             "yaw":   current_orientation[2]
         }
 
+
+        # goals["x"] = 0
+        # currents["x"] = - self.distance_to_goal(current.position, goal.position)
+
         # Create the motor outputs list
         motor_outputs = []
         # ... and the control values list
@@ -214,7 +221,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         for key, pid_ in self._pids.items():
             pid_.setpoint = goals[key]
             control_values.append((key, pid_(currents[key])))
-            self.get_logger().info(f"Tunings: {pid_.tunings}")
         self.get_logger().info(f"Control values: {control_values}")
 
         # Compute the output for each motor
@@ -265,13 +271,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         current = self._agent_state.pose
         dist = self.distance_to_goal(current.position, goal.position)
         self.get_logger().info(f"Distance to goal: {dist}")
-        orientation_errors = [(goal.orientation.x - current.orientation.x) / goal.orientation.x,
-                              (goal.orientation.y - current.orientation.y) / goal.orientation.y,
-                              (goal.orientation.z - current.orientation.z) / goal.orientation.y,
-                              (goal.orientation.w - current.orientation.w) / goal.orientation.y
+        orientation_errors = [(goal.orientation.x - current.orientation.x),# / goal.orientation.x,
+                              (goal.orientation.y - current.orientation.y),# / goal.orientation.y,
+                              (goal.orientation.z - current.orientation.z),# / goal.orientation.y,
+                              (goal.orientation.w - current.orientation.w) #/ goal.orientation.y
                             ]
 
-        return dist <= self.goto_pose_goal_distance_slack and max(orientation_errors) <= self.goto_pose_goal_orientation_slack
+        return dist <= self._goto_pose_goal_distance_slack and max(orientation_errors) <= self._goto_pose_goal_orientation_slack
 
     def calculate_delta_pose(self, pose_a: Pose, pose_b: Pose) -> Pose:
         """Calculates the difference between two Poses: pose_a and pose_b.
@@ -319,7 +325,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         curr_orientation = SQuaternion(w=self._agent_state.pose.orientation.w,
                             x=self._agent_state.pose.orientation.x,
                             y=self._agent_state.pose.orientation.y,
-                            z=self._agent_state.pose.orientation.z).to_euler(degrees=True)
+                            z=self._agent_state.pose.orientation.z).to_euler(degrees=False)
         roll_control = self._pids["roll"](curr_orientation[0])
         pitch_control = self._pids["pitch"](curr_orientation[1])
 
@@ -406,11 +412,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # pas_north_dot = sum(x_i*y_i for x_i, y_i in zip(pas_vec_unit, north_vec_unit))
 
         pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
-        north_vec_unit = (1,0,0) # North vector since heading uses north as reference.
-        pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
+        # self.get_logger().info(f"Computed PAS_VEC_UNIT: {pas_vec_unit}")
+        north_vec_unit = [0,1,0]  # North vector since heading uses north as reference.
+        # pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
+        pas_yaw_angle = np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0))
         self.get_logger().info(f"Computed new PaS yaw angle: {pas_yaw_angle}")
         # TODO: Account for all angles, not only yaw.
-        q_temp = SQuaternion.from_euler(0,0,pas_yaw_angle, degrees=True)
+        q_temp = SQuaternion.from_euler(0,pas_yaw_angle,0, degrees=False)
 
         pas_q = Quaternion()
         pas_q.x = q_temp.x
@@ -418,6 +426,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         pas_q.z = q_temp.z
         pas_q.w = q_temp.w
         self.get_logger().info(f"Updating point and shoot orientation: {pas_q}")
+        current_angles = SQuaternion(w=self._agent_state.pose.orientation.w, x=self._agent_state.pose.orientation.x,y=self._agent_state.pose.orientation.y,z=self._agent_state.pose.orientation.z,).to_euler(degrees=True)
+        self.get_logger().info(f"Agent current angles in degrees: {current_angles}")
         self._pas_orientation = pas_q
 
     # State listener callback
@@ -427,6 +437,17 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
         self._agent_state = msg
+
+    # Sim odom listener callback
+    def _sim_odom_listener_callback(self, msg: Odometry):
+        """Callback for the subscribtion to the simulation odom topic that contains state messages
+        with the msg type nav_msgs/Odom. The callback reads the state and updates the agent_state property.
+        """
+        temp_state = State()
+        temp_state.pose = msg.pose.pose
+        temp_state.twist = msg.twist.twist
+        # self.get_logger().info(f"Received odom update. New state of the agent is: {temp_state}")
+        self._agent_state = temp_state
 
     def _running_std_update(self, existing_aggregate, new_values):
         """Algorithm for computing variance in a single pass to save memory and computational power.
@@ -531,13 +552,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
             else:
                 motor_outputs_msg = self.pid(self._agent_state.pose, desired_pose)
-                self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
+                # self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
                 self._motor_outputs_publisher.publish(motor_outputs_msg)
                 feedback_msg.status = HoldPoseStatus.HOLDING
                 feedback_msg.message = "Holding pose."
 
             # Calculate pose mean and variance
-            mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state)
+            mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state.pose)
             means, variance, _ = self._finalize_running_std((mean_pose_count, mean_pose, mean_pose_m2))
             feedback_msg.pose_mean = self.pose_from_list(means)
             feedback_msg.pose_variance = self.pose_from_list(variance)
@@ -574,7 +595,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result.duration = hold_end_time - hold_start_time
         result.message = f"Finished holding pose for {result.duration} seconds. Goal finished."
         # Calculate the final mean and variance
-        mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state)
+        mean_pose_count, mean_pose, mean_pose_m2 = self._running_std_update((mean_pose_count, mean_pose, mean_pose_m2), self._agent_state.pose)
         means, variance, _ = self._finalize_running_std((mean_pose_count, mean_pose, mean_pose_m2))
         result.pose_mean = self.pose_from_list(means)
         result.pose_variance = self.pose_from_list(variance)
@@ -610,10 +631,10 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Loop as long as the goal isn't reached.
-        i = 0 # For testing
-        while(i < 5):
-            i+=1
-        # while(not self._goto_pose_goal_reached(goal_handle.request)):
+        # i = 0 # For testing
+        # while(i < 5):
+            # i+=1
+        while(not self._goto_pose_goal_reached(goal_handle.request.pose)):
             current_pos = self._agent_state.pose.position
             desired_pos = goal_handle.request.pose.position
             current_orientation = self._agent_state.pose.orientation
@@ -637,14 +658,14 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
             else:
-                motor_outputs_msg = self.pid(self._agent_state, desired_pose)
-                self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
+                motor_outputs_msg = self.pid(self._agent_state.pose, desired_pose)
+                # self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
                 self._motor_outputs_publisher.publish(motor_outputs_msg)
                 feedback_msg.status = GotoPoseStatus.MOVING_TO_POSE
                 feedback_msg.message = "Moving to pose."
 
             feedback_msg.distance_to_goal = distance_to_goal
-            feedback_msg.delta_pose = self.calculate_delta_pose(self._agent_state, goal_handle.request.pose)
+            feedback_msg.delta_pose = self.calculate_delta_pose(self._agent_state.pose, goal_handle.request.pose)
             # Publish the feedback message
             goal_handle.publish_feedback(feedback_msg)
 

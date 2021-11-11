@@ -6,7 +6,7 @@ naiad:
                                        #      This doesn't need to happen that often.
       pas_threshold: 0.0   # The threshold that decides if PaS orientation should be used instead of the goal orientation. Distance in meters from the goal.  
       goal_distance_slack: 0.2 # Meters
-      goal_orientation_slack: 0.1 # Percent.
+      goal_orientation_slack: 1.0 # Percent.
       motor_config: >
         [ 
           {
@@ -87,7 +87,7 @@ naiad:
           "p": {
             "x":     1.0,
             "y":     1.0,
-            "z":     270.0,
+            "z":     1.0,
             "pitch": 9.5,
             "yaw":   15.0,
             "roll":  9.5
