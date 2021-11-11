@@ -58,5 +58,5 @@ FILE *excel;
 uint32_t C[8];      //config values from PROM
 uint32_t D1; 	//uncompensated pressure value from ADC
 uint32_t D2;		//uncompensated temperature value from ADC
-uint32_t TEMP;	//Temperature 
-uint32_t P; 		//pressure  (mbar)
+int32_t TEMP;	//Temperature | Changed to int32_t from uint32_t since the datasheet says so https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5837-30BA%7FB1%7Fpdf%7FEnglish%7FENG_DS_MS5837-30BA_B1.pdf%7FCAT-BLPS0017 2021-11-11
+int32_t P; 		//pressure  (mbar) | Changed to int32_t from uint32_t since the datasheet says so https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5837-30BA%7FB1%7Fpdf%7FEnglish%7FENG_DS_MS5837-30BA_B1.pdf%7FCAT-BLPS0017 2021-11-11

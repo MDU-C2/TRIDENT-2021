@@ -22,6 +22,7 @@ int init()
 	#endif
 	file = i2c_init();  
 	i2c_read_prom(file);	
+	return 0;
 }
 
 void request_calc()
@@ -224,8 +225,9 @@ void i2c_read_temperature(int file)
 
 void i2c_read(int file, uint8_t bytestoread)
 {
-    float data;
-    char channel;
+    /* Unused variables */
+    //float data;
+    //char channel;
 
         if (read(file,buffer,bytestoread) != bytestoread) 
 		{

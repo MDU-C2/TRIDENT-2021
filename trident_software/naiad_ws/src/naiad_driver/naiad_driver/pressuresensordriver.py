@@ -1,7 +1,7 @@
 import ctypes
 import numpy as np
 
-so_file = "../../../../install/naiad_pressure_sensor/lib/libi2cdepth.so"
+so_file = "../../../../../install/naiad_driver/lib/libi2cdepth.so"
 
 class depth_sensor:
 	def __init__(self):
