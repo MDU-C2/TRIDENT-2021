@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(naiad_pressure_sensor)
+project(naiad_depth_sensor)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -22,13 +22,13 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 set (CMAKE_SHARED_LINKER_FLAGS "-fPIC")
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/naiad_pressure_sensor)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/naiad_depth_sensor)
 add_library(i2cdepth SHARED src/i2cdepth.c)
 
 ament_export_targets(i2cdepth HAS_LIBRARY_TARGET)
 
 install(
-  DIRECTORY include/naiad_pressure_sensor
+  DIRECTORY include/naiad_depth_sensor
   DESTINATION include
 )
 

@@ -14,6 +14,7 @@
 
   <exec_depend>trident_msgs</exec_depend>
   <exec_depend>cola2_msgs</exec_depend>
+  <exec_depend>naiad_depth_sensor</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
