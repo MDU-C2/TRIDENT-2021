@@ -11,7 +11,7 @@
 #include <inttypes.h>
 
 //i2c commands:
-#define MS5837_ADDR               0x76  		
+#define MS5837_ADDR               0x76
 #define MS5837_ADDR_WRITE		  0xEC
 #define MS5837_RESET              0x1E
 #define MS5837_ADC_READ           0x00			//Reads from the ADC after a convert call
@@ -25,11 +25,11 @@
 
 //#define DEBUG								//Enable debug messages for memory allocation
 //#define PRINT_OUTPUT							//Enable result and error print commands
-//#define SAVE_TO_FILE							//Enable results and errors saved to text file 
+//#define SAVE_TO_FILE							//Enable results and errors saved to text file
 
 char buffer[BUFFER_SIZE]; 						//i2c buffer for read and write
 uint8_t bufferlength;							//keeps track of expected length of buffer.
-int file; 										//File handler for i2c 
+int file; 										//File handler for i2c
 
 const float Pa = 100.0f;
 const float Fluid_Density = 997.0f;			//997 freshwater, 1029 for seawater

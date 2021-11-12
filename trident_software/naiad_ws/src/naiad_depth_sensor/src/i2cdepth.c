@@ -20,8 +20,8 @@ int init()
 	#ifdef SAVE_TO_FILE
 	excel = fopen("sensorOutput.txt", "w");
 	#endif
-	file = i2c_init();  
-	i2c_read_prom(file);	
+	file = i2c_init();
+	i2c_read_prom(file);
 	return 0;
 }
 
@@ -80,14 +80,14 @@ char* request_calc_values()
 
 /*
 	In the original configuration of the BBB, what is called i2c-2 in the BBB ref manual is referred to as i2c-1 in Linux.
-	If the second (technically third) i2c bus is enabled, this may change. If there are problems, check the addresses of 
+	If the second (technically third) i2c bus is enabled, this may change. If there are problems, check the addresses of
 	the i2c buses with command:
 	ls -l /sys/bus/i2c/devices/i2c-*
 	The addresses are i2c0: 0x44E0_B000, i2c1: 0x4802_A000, i2c2: 0x4819_C000.
 	By default, i2c-1 according to linux will have address 0x4819_C000, which will be i2c2 in the ref manual and header explanations etc.
 */
 
-int i2c_init() 
+int i2c_init()
 {
     if ((file = open("/dev/i2c-1",O_RDWR)) < 0) {
 		#ifdef PRINT_OUTPUT
@@ -111,7 +111,7 @@ int i2c_init()
         /* ERROR HANDLING; you can check errno to see what went wrong */
         exit(1);
     }
-	
+
 	i2c_write(file, MS5837_RESET);
 	usleep(10000); //Wait for reset.
 	#ifdef PRINT_OUTPUT
@@ -137,7 +137,7 @@ void i2c_read_prom(int file)
 		fprintf(excel, "C%d: %d \t", i, C[i]);
 		#endif
 		bufferlength = 0;
-		
+
 	}
 	#ifdef SAVE_TO_FILE
 	fprintf(excel, "\n");
@@ -147,7 +147,7 @@ void i2c_read_prom(int file)
 	uint8_t crcRead = C[0] >> 12;
 	uint8_t crcCalculated = crc4();
 
-	if ( crcCalculated == crcRead ) {   
+	if ( crcCalculated == crcRead ) {
 		#ifdef PRINT_OUTPUT
 		printf("CRC check succeeded. \n");
 		#endif
@@ -168,7 +168,7 @@ void i2c_read_prom(int file)
 	}
 }
 
-uint8_t crc4() 
+uint8_t crc4()
 {
 	uint16_t n_rem = 0;
 
@@ -189,7 +189,7 @@ uint8_t crc4()
 			}
 		}
 	}
-	
+
 	n_rem = ((n_rem >> 12) & 0x000F);
 
 	return n_rem ^ 0x00;
@@ -204,7 +204,7 @@ void i2c_read_pressure(int file)
 	i2c_read(file, 3);
 	for(i = 0; i < bufferlength ; ++i)
 	{
-		D1 = (D1 << 8) | buffer[i];	
+		D1 = (D1 << 8) | buffer[i];
 	}
 	bufferlength = 0;
 }
@@ -229,7 +229,7 @@ void i2c_read(int file, uint8_t bytestoread)
     //float data;
     //char channel;
 
-        if (read(file,buffer,bytestoread) != bytestoread) 
+        if (read(file,buffer,bytestoread) != bytestoread)
 		{
             /* ERROR HANDLING: i2c transaction failed */
 			#ifdef PRINT_OUTPUT
@@ -247,7 +247,7 @@ void i2c_read(int file, uint8_t bytestoread)
 }
 
 void i2c_write(int file, uint8_t cmd)
-{ 
+{
 	buffer[0] = cmd;
 
     if (write(file,buffer,1) != 1) {
@@ -266,26 +266,26 @@ void calculate() {
 	// Given C1-C6 and D1, D2, calculate TEMP and P
 	// Do conversion first and then second order temp compensation
 	// This code was stolen from the example code provided for sensor
-	
+
 	int32_t dT = 0;
 	int64_t SENS = 0;
 	int64_t OFF = 0;
 	int32_t SENSi = 0;
-	int32_t OFFi = 0;  
-	int32_t Ti = 0;    
+	int32_t OFFi = 0;
+	int32_t Ti = 0;
 	int64_t OFF2 = 0;
 	int64_t SENS2 = 0;
-	
+
 	// Terms called
 	dT = D2-(uint32_t)C[5]*256l;
 
 		SENS = (int64_t)C[1]*32768l+((int64_t)C[3]*dT)/256l;
 		OFF = (int64_t)C[2]*65536l+((int64_t)C[4]*dT)/128l;
 		P = (D1*SENS/(2097152l)-OFF)/(8192l);
-	
+
 	// Temp conversion
 	TEMP = 2000l+(int64_t)dT*C[6]/8388608LL;
-	
+
 	//Second order compensation
 		if((TEMP/100)<20){         //Low temp
 			Ti = (3*(int64_t)dT*(int64_t)dT)/(8589934592LL);
@@ -301,10 +301,10 @@ void calculate() {
 			OFFi = (1*(TEMP-2000)*(TEMP-2000))/16;
 			SENSi = 0;
 		}
-	
+
 	OFF2 = OFF-OFFi;           //Calculate pressure and temp second order
 	SENS2 = SENS-SENSi;
-	
+
 
 		TEMP = (TEMP-Ti);
 		P = (((D1*SENS2)/2097152l-OFF2)/8192l)/10;

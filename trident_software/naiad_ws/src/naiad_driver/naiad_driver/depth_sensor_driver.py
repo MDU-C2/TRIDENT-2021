@@ -1,7 +1,15 @@
 import ctypes
 import numpy as np
+import os
+import sys
+from rospkg import RosPack
 
-so_file = "../../../../../install/naiad_driver/lib/libi2cdepth.so"
+
+so_file = "../../../../install/naiad_depth_sensor/lib/libi2cdepth.so"
+so_file = os.path.abspath(so_file)
+
+if not os.path.exists(so_file):
+    sys.exit("Error: cannot find library file: %s" % (so_file))
 
 class depth_sensor:
 	def __init__(self):
