@@ -4,7 +4,7 @@ Author: Johannes Deivard 2021-10
 """
 from abc import ABCMeta, abstractmethod
 import numpy as np
-from math import sqrt # For Pythagorean theorem to calculate distance
+from math import sqrt, pi, atan2, log # For Pythagorean theorem to calculate distance
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
 from simple_pid import PID 
 import json
@@ -87,11 +87,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Create the PID objects
         self._pids = {
-            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"]),
+            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"], output_limits=(-0.4,0.4)),
             "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"]),
             "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"]),
             "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"]),
-            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"]),
+            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip),
             "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])   
         }
 
@@ -163,6 +163,16 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             self._get_state_callback
         )
 
+    @staticmethod
+    def pi_clip(angle):
+        if angle > 0:
+            if angle > pi:
+                return angle - 2*pi
+        else:
+            if angle < -pi:
+                return angle + 2*pi
+        return angle
+
 
     def _update_node_state(self, new_state):
         """Updates the node's state and publish the new state to the state topic.
@@ -209,19 +219,38 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         }
 
 
-        # goals["x"] = 0
-        # currents["x"] = - self.distance_to_goal(current.position, goal.position)
+        goals["x"] = 0
+        currents["x"] = - self.distance_to_goal(current.position, goal.position)
 
         # Create the motor outputs list
         motor_outputs = []
-        # ... and the control values list
-        control_values = []
+        # ... and the control values dict
+        control_values = {}
+
         # First update setpoint from goal pose for all pids
         # and then calculate the control value and store it in the list
         for key, pid_ in self._pids.items():
             pid_.setpoint = goals[key]
-            control_values.append((key, pid_(currents[key])))
+            control_values[key] = pid_(currents[key])
+            self.get_logger().info(f"{key} PID components: {pid_.components}")
         self.get_logger().info(f"Control values: {control_values}")
+        
+        # Scale the x/y pid control values based on the current velocity
+        # to avoid jerky acceleration
+        linear_vel_log_fn = lambda linear_vel: log(5*linear_vel + 1.1)
+        total_vel = sqrt(self._agent_state.twist.linear.x**2 + self._agent_state.twist.linear.y**2) # + self._agent_state.twist.linear.z**2)
+        self.get_logger().info(f"VELOCITY: {total_vel}")
+        # Clip the value to 0,1
+        linear_thruster_scaling = min(linear_vel_log_fn(total_vel), 1.0)
+        # control_values["x"] *= linear_thruster_scaling
+        # control_values["y"] *= linear_thruster_scaling
+
+        delta_yaw = abs(goals["yaw"] - currents["yaw"])
+        # Set the x to 0 if our yaw error is larger than ~10 degrees
+        if delta_yaw > 0.1745:
+            control_values["x"] = 0
+            control_values["y"] = 0
+
 
         # Compute the output for each motor
         for motor in self._motor_config:
@@ -229,7 +258,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             output = MotorOutput()
             output.id = motor["id"]
             # Compute the output value for the motor by multiplying the control value with the pose_effect value for each key (x,y,z,roll,pitch,yaw)
-            output.value = sum([motor["pose_effect"][key] * control_value for key, control_value in control_values])
+            output.value = sum([motor["pose_effect"][key] * control_value for key, control_value in control_values.items()])
             motor_outputs.append(output)
 
         outputs_msg = MotorOutputs()
@@ -252,6 +281,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Unpack the positions
         x1, y1, z1 = (current.x, current.y, current.z)
         x2, y2, z2 = (goal.x, goal.y, goal.z)
+        # TODO: Check motor config if thruster that can affect x,y,z exist, if not dont include in distance
 
         # Pythagorean theorem
         return sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
@@ -413,12 +443,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
         # self.get_logger().info(f"Computed PAS_VEC_UNIT: {pas_vec_unit}")
-        north_vec_unit = [0,1,0]  # North vector since heading uses north as reference.
+        north_vec_unit = [1,0,0]  # North vector since heading uses north as reference.
         # pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
         pas_yaw_angle = np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0))
+        pas_yaw_angle = atan2(pas_vec[1], pas_vec[0])
         self.get_logger().info(f"Computed new PaS yaw angle: {pas_yaw_angle}")
         # TODO: Account for all angles, not only yaw.
-        q_temp = SQuaternion.from_euler(0,pas_yaw_angle,0, degrees=False)
+        q_temp = SQuaternion.from_euler(0,0,pas_yaw_angle, degrees=False)
 
         pas_q = Quaternion()
         pas_q.x = q_temp.x
@@ -642,7 +673,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             # Calculate distance between desired position and current position.
             distance_to_goal = self.distance_to_goal(current_pos, desired_pos)
             # Check if the distance is within the point_and_shoot_threshold.
-            if distance_to_goal < self._pas_threshold:
+            if distance_to_goal > self._pas_threshold:
                 # Set the desired orientation to the point and shoot orientation.
                 desired_orientation = self._pas_orientation
 

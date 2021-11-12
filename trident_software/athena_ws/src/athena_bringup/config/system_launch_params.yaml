@@ -14,7 +14,7 @@ athena:
            "descriptive_name": "rear_left",
            "pose_effect": {
                 "x":     1.0,
-                "y":     1.0,
+                "y":     0.0,
                 "z":     0,
                 "pitch": 0,
                 "yaw":   0.5,
@@ -26,7 +26,7 @@ athena:
             "descriptive_name": "rear_right",
             "pose_effect": {
                 "x":     1.0,
-                "y":     1.0,
+                "y":     0.0,
                 "z":     0,
                 "pitch": 0,
                 "yaw":   -0.5,
@@ -37,27 +37,27 @@ athena:
       pid_config: >
         {
           "p": {
-            "x":     0.2,
-            "y":     0.2,
+            "x":     0.1,
+            "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.5,
+            "yaw":   0.3,
             "roll":  0.0
           },
           "i": {
-            "x":     0.0,
+            "x":     0.5,
             "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.0,
+            "yaw":   0.05,
             "roll":  0.0
           },
           "d": {
-            "x":     0.0,
+            "x":     0.4,
             "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.0,
+            "yaw":   0.3,
             "roll":  0.0
           }
         }
@@ -75,6 +75,7 @@ athena:
     ros__parameters:
       motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
+      motor_output_scale: 0.1 # Scales the motor output values to limit maximum thrust
       motor_interface: >
         [
           {

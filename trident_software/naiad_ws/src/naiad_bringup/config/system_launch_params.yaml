@@ -125,6 +125,7 @@ naiad:
                               # environment or the real motors.
       motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
+      motor_output_scale: 0.1 # Scales the motor output values to limit maximum thrust
       motor_interface: >  # The gpio pins that each motor are connected to.
         [
           {

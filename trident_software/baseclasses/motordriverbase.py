@@ -32,11 +32,13 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             parameters=[
                 ('motor_output_silence_period',  0.3), # Seconds
                 ('motor_interface',  ""),
+                ('motor_output_scale', 0.1),
                 ('simulation', False) # Specifies if the motor driver should send motor ouputs to the simulation
             ])                        # environment or the real motors. Defaults to False, and is set to True in the simulation
                                       # launch file.
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
+        self._motor_output_scale = self.get_parameter('motor_output_scale').get_parameter_value().double_value # Percentage
         self._motor_interface = json.loads(self.get_parameter('motor_interface').get_parameter_value().string_value)
         self._simulation_env = self.get_parameter('simulation').get_parameter_value().bool_value
         # Check if we are supposed to run in the simulation environment
@@ -98,6 +100,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """Converts motor_outputs to Setpoints and sends the values
         to the simulation topic.
         """
+        max_value = 0.5
         # Reset the motor output silence watchdog timer.
         self._motor_output_silence_watchdog_timer.reset()
         # Create the thruster Setpoints message
@@ -105,7 +108,11 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         outputs = []
         for motor_output in motor_outputs:
             # Scale the output value to stonefish values (-1, 1)
-            val = float(motor_output.value / 10)
+            if motor_output.value > max_value:
+                motor_output.value = max_value
+            elif motor_output.value < -max_value:
+                motor_output.value = -max_value
+            val = float(motor_output.value)
 
             outputs.append(val)
         msg.setpoints = outputs

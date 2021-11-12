@@ -56,6 +56,79 @@ class MissionControlBase(Node):
         # self.get_logger().info('GotoWaypoint action client created.')
 
 
+        # Load the debug mission
+        mission = Mission()
+        wp_list = []
+            
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = 3
+        pose = Pose()
+        pose.position.x = 0.0
+        pose.position.y = 10.0
+        pose.position.z = 0.0
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 0.0
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        wp_list.append(waypoint)
+
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = 3
+        pose = Pose()
+        pose.position.x = 10.0
+        pose.position.y = 10.0
+        pose.position.z = 0.0
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 0.0
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        wp_list.append(waypoint)
+
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = 3
+        pose = Pose()
+        pose.position.x = 10.0
+        pose.position.y = 0.0
+        pose.position.z = 0.0
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 0.0
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        wp_list.append(waypoint)
+
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = 3
+        pose = Pose()
+        pose.position.x = 0.0
+        pose.position.y = 0.0
+        pose.position.z = 0.0
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 0.0
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        wp_list.append(waypoint)
+
+        self.get_logger().info("Loaded debug mission.")
+        mission.waypoints = wp_list
+        self.mission = mission
+
+
     #                   Callbacks
     # -----------------------------------------
     def _get_state_callback(self, _, response):
