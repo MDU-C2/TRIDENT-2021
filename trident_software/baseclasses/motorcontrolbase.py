@@ -16,7 +16,7 @@ from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from nav_msgs.msg import Odometry
 from trident_msgs.action import GotoPose, HoldPose
-from trident_msgs.msg import MotorOutputs, MotorOutput, State
+from trident_msgs.msg import MotorOutputs, MotorOutput, State, PidParam
 from trident_msgs.srv import GetState
 from baseclasses.tridentstates import HoldPoseStatus, GotoPoseStatus, MotorControlState
 
@@ -120,6 +120,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             self._teleop_twist_callback,
             2 # Keep 2 messages to act as a tiny buffer
         )
+        self._pid_param_set_subscription = self.create_subscription(
+            PidParam,
+            'motor_control/param/pid/set',
+            self._pid_param_set_callback,
+            10
+        )
+
         # Publishers
         # ----------
         self._motor_outputs_publisher = self.create_publisher(
@@ -379,6 +386,25 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
     #                   Callbacks
     # -----------------------------------------
+    def _pid_param_set_callback(self, msg):
+        """Read the json string and increment/decrement the pid config param.
+        (NOTE: Perhaps slightly confusin method name)
+        """
+        # Update the corresponding PID object
+        if msg.pid_element.lower() == "p":
+            self._pids[msg.key].Kp += msg.value
+        elif msg.pid_element.lower() == "i":
+            self._pids[msg.key].Ki += msg.value
+        elif msg.pid_element.lower() == "d":
+            self._pids[msg.key].Kd += msg.value
+        # Update the value in the pid config property
+        self._pid_config[msg.pid_element][msg.key] = msg.value
+        new_pid_config = json.dumps(self._pid_config)
+        self.get_logger().info(f"New PID config: {new_pid_config}")
+        new_param = rclpy.parameter.Parameter('pid_config', rclpy.Parameter.Type.STRING, new_pid_config)
+        self.get_logger().info(f"Updating PID param: {msg}")
+        self.set_parameters([new_param])
+
     def _get_state_callback(self, _, response):
         """Simple getter for the node's state.
         """

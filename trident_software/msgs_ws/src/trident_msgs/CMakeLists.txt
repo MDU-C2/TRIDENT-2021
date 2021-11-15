@@ -53,6 +53,7 @@ set(msg_files
   "msg/MotorOutput.msg"
   "msg/MotorOutputs.msg"
   "msg/State.msg"
+  "msg/PidParam.msg"
   "srv/LoadMission.srv"
   "srv/GuidanceRequest.srv"
   "srv/GetGoalPose.srv"
