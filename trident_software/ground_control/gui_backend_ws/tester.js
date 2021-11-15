@@ -6,11 +6,10 @@ const StartMission = rclnodejs.require('trident_msgs/action/StartMission');
 const Waypoint = rclnodejs.require('trident_msgs/msg/Waypoint');
 const WaypointAction = rclnodejs.require('trident_msgs/msg/WaypointAction');
 const Pose = rclnodejs.require('geometry_msgs/msg/Pose');
-const tridenStates = require('./tridentstates')
+const tridenStates = require('./tridentstates');
+const State = rclnodejs.require('trident_msgs/msg/State');
 
 let prefixTopics = "gc/";
-var data1 = {x:50,y:0,z:0,roll:0,pitch:0,heading: 45,velx:0,vely:0,velz:0,velroll:0,velpitch:0,velheading:0};
-var data2 = {x:-50,y:0,z:0,roll:0,pitch:0,heading: 45,velx:0,vely:0,velz:0,velroll:0,velpitch:0,velheading:0};
 
 class ActionServer {
   constructor(node,target) {
@@ -50,17 +49,6 @@ class ActionServer {
 
       // Publish the feedback
       missionHandle.publishFeedback(feedbackMessage);
-
-      if (this.target == 'athena')
-      {
-        data1.heading = i*10;
-        data1.x = 50;
-      }
-      else if (this.target == 'naiad')
-      {
-        data2.heading = i*10;
-        data2.x = -50;
-      }
 
       // Wait for 1 second
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -119,10 +107,37 @@ rclnodejs
     const statePublisherAthena = node.createPublisher('trident_msgs/msg/State',prefixTopics+'athena/position/state');
     const statePublisherNaiad = node.createPublisher('trident_msgs/msg/State',prefixTopics+'naiad/position/state');
 
+    let twist = rclnodejs.createMessageObject('geometry_msgs/msg/Twist');
+    let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
+    let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
+    let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
+    let state = new State();
+
+    twist.linear.x = 0.0;
+    twist.linear.y = 0.0;
+    twist.linear.z = 0.0;
+    twist.angular.x = 0.0;
+    twist.angular.y = 0.0;
+    twist.angular.z = 0.0;
+
+    point.x = 0.0;
+    point.y = 0.0;
+    point.z = 0.0;
+    //Temporarily set orientation to zero
+    quaternion.x = 0.0;
+    quaternion.y = 0.0;
+    quaternion.z = 0.0;
+    quaternion.w = 0.0;
+    pose.position = point;
+    pose.orientation = quaternion;
+
+    state.twist = twist;
+    state.pose = pose;
+
      //Publish state
     setInterval(function(){
-      statePublisherAthena.publish(data1);
-      statePublisherNaiad.publish(data2);
+      statePublisherAthena.publish(state);
+      statePublisherNaiad.publish(state);
     },1000);
     
 

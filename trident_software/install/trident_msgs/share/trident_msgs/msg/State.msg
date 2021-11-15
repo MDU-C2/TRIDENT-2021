@@ -1,1 +1,0 @@
-/home/andreas/TRIDENT-2021/trident_software/msgs_ws/src/trident_msgs/msg/State.msg

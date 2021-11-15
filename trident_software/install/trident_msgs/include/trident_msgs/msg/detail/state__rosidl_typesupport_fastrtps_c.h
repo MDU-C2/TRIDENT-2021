@@ -1,1 +1,0 @@
-/home/andreas/TRIDENT-2021/trident_software/build/trident_msgs/rosidl_typesupport_fastrtps_c/trident_msgs/msg/detail/state__rosidl_typesupport_fastrtps_c.h

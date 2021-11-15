@@ -1,1 +1,0 @@
-/home/andreas/TRIDENT-2021/trident_software/bridge_ws/src/ros1_bridge/include/ros1_bridge/convert_decl.hpp
