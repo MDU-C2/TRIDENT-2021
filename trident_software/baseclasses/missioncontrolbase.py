@@ -272,7 +272,7 @@ class MissionControlBase(Node):
             wp_action.action_param = 3
             pose = Pose()
             pose.position.x = 0.0
-            pose.position.y = 10.0
+            pose.position.y = 20.0
             pose.position.z = -2.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
@@ -287,8 +287,8 @@ class MissionControlBase(Node):
             wp_action.action_type = WaypointActionType.HOLD
             wp_action.action_param = 3
             pose = Pose()
-            pose.position.x = 10.0
-            pose.position.y = 10.0
+            pose.position.x = 20.0
+            pose.position.y = 20.0
             pose.position.z = -2.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
@@ -303,7 +303,7 @@ class MissionControlBase(Node):
             wp_action.action_type = WaypointActionType.HOLD
             wp_action.action_param = 3
             pose = Pose()
-            pose.position.x = 10.0
+            pose.position.x = 20.0
             pose.position.y = 0.0
             pose.position.z = -2.0
             pose.orientation.x = 0.0

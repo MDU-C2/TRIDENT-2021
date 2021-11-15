@@ -398,11 +398,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         elif msg.pid_element.lower() == "d":
             self._pids[msg.key].Kd += msg.value
         # Update the value in the pid config property
-        self._pid_config[msg.pid_element][msg.key] = msg.value
+        self._pid_config[msg.pid_element][msg.key] += msg.value
         new_pid_config = json.dumps(self._pid_config)
-        self.get_logger().info(f"New PID config: {new_pid_config}")
+        # self.get_logger().info(f"New PID config: {new_pid_config}")
         new_param = rclpy.parameter.Parameter('pid_config', rclpy.Parameter.Type.STRING, new_pid_config)
-        self.get_logger().info(f"Updating PID param: {msg}")
+        self.get_logger().info(f"Incrementing PID param: {msg}")
         self.set_parameters([new_param])
 
     def _get_state_callback(self, _, response):

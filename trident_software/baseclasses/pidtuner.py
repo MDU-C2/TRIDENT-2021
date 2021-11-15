@@ -3,6 +3,7 @@ import rclpy
 
 from trident_msgs.msg import PidParam
 from rcl_interfaces.srv import GetParameters
+import json
 
 import sys, select, termios, tty
 
@@ -109,8 +110,9 @@ def main(args=None):
                 current_params_request.names = ['pid_config']
                 future = current_params_client.call_async(current_params_request)
                 rclpy.spin_until_future_complete(node, future)
-                current_params = future.result()
-                print(current_params)
+                current_params = json.loads(future.result().values[0].string_value)
+                # print(current_params)
+                print(f"New value for PID {current_pid_key}: {param_msg.pid_element}={round(current_params[param_msg.pid_element][current_pid_key], 2)}")
 
             # If the pressed key is a key that increases/decreases the pid increment value
             elif key in change_pid_increment_bindings.keys():
