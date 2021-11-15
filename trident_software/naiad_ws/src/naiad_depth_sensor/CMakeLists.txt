@@ -40,3 +40,5 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
+
+ament_package()
