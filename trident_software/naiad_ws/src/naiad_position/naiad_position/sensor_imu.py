@@ -1,7 +1,9 @@
-import baseclasses.sensorbase as sensbase
 import rclpy
+import numpy as np
+import baseclasses.sensorbase as sensbase
 from time import time
-import serial
+from math import sin, cos
+from squaternions import Quaternions
 
 class IMUNode(sensbase):
     def __init__(self):
@@ -11,7 +13,7 @@ class IMUNode(sensbase):
            heading and delta_heading can be copied over directly (after conversion)'''
         todeg = 180/3.14
         init_obs_mat = np.array([
-            #x y z     r     p     y dx dy dz dr dp dh 
+            #x y z     r     p     h dx dy dz dr dp dh 
             #[0,0,0,todeg,    0,    0, 0, 0, 0, 0, 0, 0], #r
             #[0,0,0,    0,todeg,    0, 0, 0, 0, 0, 0, 0], #p
             #[0,0,0,    0,    0,todeg, 0, 0, 0, 0, 0, 0], #h
@@ -29,12 +31,22 @@ class IMUNode(sensbase):
         
         super().__init__('imu', 'naiad', 0.25,
                          init_obs_mat, 9, noise_mat)
-        
+                         
         self.prev_state = np.transpose(np.zeros((12,1)))
         self.prev_state_time = time()
-
-        ser = serial.Serial(port="COM7",baudrate=115200,timeout=0.5)
-        ser.close()
+            
+        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # Otherwise, default is False and it will act like normal.
+        self.declare_parameter('simulated', False)
+        if(self.get_parameter('simulated').value):
+            self.simul_sensor = self.create_subscription(
+                                Imu, '/naiad/simulation/imu',
+                                self.SimulatedMeasurement, 10)
+            self.timer.destroy() # Stop the original timed sensor from running
+        else:
+            import serial
+            ser = serial.Serial(port="COM7",baudrate=115200,timeout=0.5)
+            ser.close()
     
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
@@ -50,7 +62,7 @@ class IMUNode(sensbase):
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
         
-        super().SensorService(request, response)
+        return super().SensorService(request, response)
     
     def TakeMeasurement(self):
         # TODO: Maybe switch readings to follow north-east-down?
@@ -74,6 +86,19 @@ class IMUNode(sensbase):
         except:
             print("Error reading IMU in the NAIAD!")
         ser.close()
+        
+    def SimulatedMeasurement(self, msg):
+        q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
+        euler = q.to_euler()
+        self.measure[0,0] = euler[0]
+        self.measure[1,0] = euler[1]
+        self.measure[2,0] = euler[2]
+        self.measure[3,0] = msg.linear_acceleration.x
+        self.measure[4,0] = msg.linear_acceleration.y
+        self.measure[5,0] = msg.linear_acceleration.z
+        self.measure[6,0] = msg.angular_velocity.x
+        self.measure[7,0] = msg.angular_velocity.y
+        self.measure[8,0] = msg.angular_velocity.z
 
 def main(args=None):
     rclpy.init(args=args)
