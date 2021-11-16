@@ -83,9 +83,9 @@ def main(args=None):
     }
     # Default pid increment/decrement values
     pid_increments = {
-        'p': 0.01,
-        'i': 0.01,
-        'd': 0.01
+        'p': 0.05,
+        'i': 0.05,
+        'd': 0.05
     }
 
     rclpy.init()
@@ -106,12 +106,13 @@ def main(args=None):
                 param_msg.pid_element = pid_bindings[key][0]
                 param_msg.key = current_pid_key
                 param_msg.value = pid_bindings[key][1] * pid_increments[pid_bindings[key][0]]
+                param_publisher.publish(param_msg)
+                # Get the current param values to give user feedback of the new values
                 current_params_request = GetParameters.Request()
                 current_params_request.names = ['pid_config']
                 future = current_params_client.call_async(current_params_request)
                 rclpy.spin_until_future_complete(node, future)
                 current_params = json.loads(future.result().values[0].string_value)
-                # print(current_params)
                 print(f"New value for PID {current_pid_key}: {param_msg.pid_element}={round(current_params[param_msg.pid_element][current_pid_key], 2)}")
 
             # If the pressed key is a key that increases/decreases the pid increment value
@@ -125,7 +126,6 @@ def main(args=None):
             elif key == '\x03':
                 break
                 
-            param_publisher.publish(param_msg)
 
     except Exception as e:
         print(e)

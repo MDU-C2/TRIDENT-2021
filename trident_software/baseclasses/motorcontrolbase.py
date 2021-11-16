@@ -1,10 +1,11 @@
 """Module containing the base class definition for the motor control nodes.
 
-Author: Johannes Deivard 2021-10
+Author: Johannes Deivard 2021-11
 """
 from abc import ABCMeta, abstractmethod
 import numpy as np
 from math import sqrt, pi, atan2, log # For Pythagorean theorem to calculate distance
+from collections import deque
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
 from simple_pid import PID 
 import json
@@ -74,6 +75,12 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # The latest computation of the point and shoot orientation.
         # (This is updated by a timer callback set to the pas_orientation_update_freq)
         self._pas_orientation = None
+        # Tracks the state history, used to determine if we are accelerating or not
+        self._state_history = deque(maxlen=10)
+        # Boolean that determines if the z-axis should be used in the distance_to_goal calculations.
+        # If the motor config contains a motor that can affect the position in the z axis, use the z delta in distance
+        # to goal calculations. If not, don't use it.
+        self._use_z_in_distance_to_goal = bool(max([motor["pose_effect"]["z"] for motor in self._motor_config]))
 
         # SET HARDCODED STATE FOR TESTING PURPOSES
         p = Point()
@@ -92,7 +99,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"]),
             "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"]),
             "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip),
-            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"])   
+            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"]) 
         }
 
         # Rate object with relative sleeping period that controls the motor update frequency
@@ -225,7 +232,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             "yaw":   current_orientation[2]
         }
 
-
+        # Since the agents only moves forward in their own x axis, we need to translate the
+        # goal to a distance to the goal. This works since we always use point and shoot so we will
+        # only move closer to the goal if we are looking in the right direction.
         goals["x"] = 0
         currents["x"] = - self.distance_to_goal(current.position, goal.position)
 
@@ -244,13 +253,17 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         
         # Scale the x/y pid control values based on the current velocity
         # to avoid jerky acceleration
-        linear_vel_log_fn = lambda linear_vel: log(5*linear_vel + 1.1)
+        linear_vel_log_fn = lambda linear_vel: min(log(1*linear_vel + 1.01), 1.0)
+        # Compute the total velocity vector
         total_vel = sqrt(self._agent_state.twist.linear.x**2 + self._agent_state.twist.linear.y**2) # + self._agent_state.twist.linear.z**2)
         self.get_logger().info(f"VELOCITY: {total_vel}")
-        # Clip the value to 0,1
-        linear_thruster_scaling = min(linear_vel_log_fn(total_vel), 1.0)
-        # control_values["x"] *= linear_thruster_scaling
-        # control_values["y"] *= linear_thruster_scaling
+        # Check if the agent is accelerating which means the thrust should be limited by the log velocity function
+        if self.is_accelerating():
+            # Get the linear velocity log scaling and clip the value to 0,1
+            linear_thruster_scaling = linear_vel_log_fn(total_vel)
+            self.get_logger().info(f"Agent accelerating, linear thruster scaling active: Linear control value={control_values['x']}, Scaling factor={linear_thruster_scaling}")
+            control_values["x"] *= linear_thruster_scaling
+            control_values["y"] *= linear_thruster_scaling
 
         delta_yaw = abs(goals["yaw"] - currents["yaw"])
         # Set the x to 0 if our yaw error is larger than ~10 degrees
@@ -288,10 +301,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Unpack the positions
         x1, y1, z1 = (current.x, current.y, current.z)
         x2, y2, z2 = (goal.x, goal.y, goal.z)
-        # TODO: Check motor config if thruster that can affect x,y,z exist, if not dont include in distance
 
-        # Pythagorean theorem
-        return sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+        # Pythagorean theorem, the _use_z_in_distance_to_goal determines if the z difference should matter or not.
+        return sqrt((x1-x2)**2 + (y1-y2)**2 + ((z1-z2)**2 * self._use_z_in_distance_to_goal))
 
     
     def _goto_pose_goal_reached(self, goal: Pose) -> bool:
@@ -382,6 +394,22 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             motor_outputs.append(output)
 
         return motor_outputs
+
+    def is_accelerating(self):
+        """Uses the agent's state history deque to determine if the agent is accelerating
+        or not.
+        """
+        # Pre-allocate list for small performance increase
+        delta_vels = np.empty((len(self._state_history)-1))
+        for i in range(len(self._state_history)-1):
+            # Get the total velocity vector of i and i+1 and compute the difference. If the difference is positive,
+            # the agent is accelerating.
+            delta_vels[i] = sqrt(self._state_history[i+1].twist.linear.x**2 + self._state_history[i+1].twist.linear.y**2) - \
+                            sqrt(self._state_history[i].twist.linear.x**2 + self._state_history[i].twist.linear.y**2)
+        # If the majority of the delta_vels are positive, we consider the agent to be accelerating.
+        # NOTE: This approach is robust to small acceleration errors but reacts slow when the agent's acceleration
+        #       is changing.
+        return sum(delta_vels > 0) > (len(self._state_history) / 2)
 
 
     #                   Callbacks
@@ -494,6 +522,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
         self._agent_state = msg
+        # Add the state to the history deque
+        self._state_history.append(self._agent_state)
 
     # Sim odom listener callback
     def _sim_odom_listener_callback(self, msg: Odometry):
@@ -505,6 +535,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         temp_state.twist = msg.twist.twist
         # self.get_logger().info(f"Received odom update. New state of the agent is: {temp_state}")
         self._agent_state = temp_state
+        # Add the state to the history deque
+        self._state_history.append(self._agent_state)
+
 
     def _running_std_update(self, existing_aggregate, new_values):
         """Algorithm for computing variance in a single pass to save memory and computational power.
