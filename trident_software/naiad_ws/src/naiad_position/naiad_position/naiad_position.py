@@ -36,6 +36,7 @@ class NaiadPosNode(posbase.PosNode):
         transition = np.matmul(trans_mat,prev)'''
         x, y, z, r, p, h, dx, dy, dz, dr, dp, dh = prev.flatten().tolist()
         # This transition func assumes the NAIAD is level.
+        # TODO: Add control vector
         transition = np.array([[
             x+dx*cos(h)*dt+dy*sin(h)*dt,
             y+dy*sin(h)*dt+dy*cos(h)*dt,
