@@ -1,4 +1,8 @@
-/openvslam/*
+openvslam/
+!/openvslam/Installation_notes.txt
+!/openvslam/example/
+!/openvslam/results/
+
 FBoW/
 Pangolin/
 eigen-3.3.7/
@@ -7,9 +11,7 @@ opencv-4.5.4/
 
 !/instructions for evaluation.txt
 
-!/openvslam/Installation_notes.txt
-!/openvslam/example/
-!/openvslam/results/
+KITTI/dataset/sequences/
 
 *.mp4
-
+*.bmp
