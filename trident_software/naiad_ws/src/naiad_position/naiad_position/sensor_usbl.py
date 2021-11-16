@@ -17,6 +17,10 @@ class USBLNode(sensbase.SensorNode):
         
         super().__init__('usbl', 'naiad', 0.5,
                          self.ObservationService, 3, noise_mat)
+                         
+        # These value that will be read/written to to get the athenas position
+        self.declare_parameter('athena_position/x', 0)
+        self.declare_parameter('athena_position/y', 0)
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
@@ -30,7 +34,9 @@ class USBLNode(sensbase.SensorNode):
             self.get_logger.error("REAL USBL NOT IMPLEMENTED!")
     
     def ObservationService(self, state, dt):
-        athena_pos = [0,0,0] # Get real value here!
+        athena_pos = [self.get_parameter('athena_position/x').value,
+                      self.get_parameter('athena_position/y').value, 0]
+        print(athena_pos)
         naiad_pos = state[:3].flatten().tolist()
         diffpos = [a-b for a, b in zip(athena_pos, naiad_pos)]
         local_pos = [ # Doesn't account for pitch and roll!
