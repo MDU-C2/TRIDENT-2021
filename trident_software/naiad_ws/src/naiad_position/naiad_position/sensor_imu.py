@@ -3,9 +3,11 @@ import numpy as np
 import baseclasses.sensorbase as sensbase
 from time import time
 from math import sin, cos
-from squaternions import Quaternions
+from squaternion import Quaternion
 
-class IMUNode(sensbase):
+from sensor_msgs.msg import Imu
+
+class IMUNode(sensbase.SensorNode):
     def __init__(self):
         '''The IMU measurement vector will look like this
            yaw pitch roll accelx accely accelz gyrox gyroy gyroz
@@ -32,7 +34,7 @@ class IMUNode(sensbase):
         super().__init__('imu', 'naiad', 0.25,
                          init_obs_mat, 9, noise_mat)
                          
-        self.prev_state = np.transpose(np.zeros((12,1)))
+        self.prev_state = np.zeros((12,1))
         self.prev_state_time = time()
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
@@ -53,11 +55,11 @@ class IMUNode(sensbase):
     def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
-        self.obs_mat[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
+        self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
                              (dt*state[6,0])
-        self.obs_mat[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
+        self.obs_mod[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
                              (dt*state[7,0])
-        self.obs_mat[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
+        self.obs_mod[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
                              (dt*state[8,0])
         self.prev_state = np.copy(state)
         self.prev_state_time = time()

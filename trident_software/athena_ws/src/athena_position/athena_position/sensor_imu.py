@@ -50,9 +50,9 @@ class IMUNode(sensbase.SensorNode):
     def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
-        self.obs_mat[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
+        self.obs_mod[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
                              (dt*state[3, 0])
-        self.obs_mat[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
+        self.obs_mod[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
                              (dt*state[4, 0])
         self.prev_state = np.copy(state)
         self.prev_state_time = time()

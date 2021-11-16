@@ -2,18 +2,24 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from abc import ABC, abstractmethod
+import types
+from time import time
 
 from trident_msgs.srv import KalmanSensorService
 
 class SensorNode(Node, ABC):
     def __init__(self, sensor_type, mounted_on, read_interval,
-                       observation_matrix, measure_var_count, noise_matrix):
+                       observation_model, measure_var_count, noise_matrix):
         super().__init__(mounted_on+'_'+sensor_type)
-        self.obs_mat = observation_matrix
+        self.obs_mod = observation_model
         self.measure = np.zeros((measure_var_count, 1))
         self.m_noise = noise_matrix
-        assert (self.obs_mat.shape[0] == measure_var_count),\
-            "Matrix is not the right shape for the measurement size"
+        
+        self.last_resp = time()
+        
+        ismatrix = isinstance(self.obs_mod, np.ndarray)
+        assert (not ismatrix or self.obs_mod.shape[0] == measure_var_count),\
+            "Matrix is not the right shape for the measurement size, and isn't a function"
         # I think?
         assert (self.m_noise.shape[0] == measure_var_count and self.m_noise.shape[1] == measure_var_count),\
             "Noise matrix is not the right shape for the measurement size"
@@ -24,28 +30,48 @@ class SensorNode(Node, ABC):
             self.SensorService)
         self.timer = self.create_timer(read_interval, self.TakeMeasurement)
         
+        self.ismatrix = isinstance(self.obs_mod, np.ndarray)
+    
+    def jacobian(self, func, state, dt):
+        new_state = func(state, dt)
+        n = state.shape[0]
+        m = new_state.shape[0]
+        A = np.zeros((m,n))
+        dx = 1e-8
+        for j in range(n):
+            Dxj = (abs(state[j,0])*dx if state[j,0] != 0 else dx)
+            x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(state.flatten().tolist())]
+            A[:, j] = (func(np.transpose(np.array([x_plus])), dt) - new_state).flatten()/Dxj
+        return (new_state, A)
+    
     def SensorService(self, request, response):
         # Take in the state and covar
         state = np.reshape(request.state, (-1,1))
         covar = np.reshape(request.covar, (-1,state.shape[0]))
         
         # Perform the needed EKF steps
-        # TODO: allow observation matrix OR function
-        self.get_logger().info("Measure: %s" % self.measure)
-        residual = self.measure - np.matmul(self.obs_mat, state)
+        # self.get_logger().info("Measure: %s" % self.measure)
+        if(self.ismatrix):
+            obs_mat = self.obs_mod
+        else:
+            dt = time() - self.last_resp
+            self.last_resp = time()
+            new_state, obs_mat = self.jacobian(self.obs_mod, state, dt)
+            
+        residual = self.measure - np.matmul(obs_mat, state)
         residual_covar = np.matmul(np.matmul(
-                             self.obs_mat,
+                             obs_mat,
                              covar),
-                             np.transpose(self.obs_mat)) + self.m_noise
+                             np.transpose(obs_mat)) + self.m_noise
         kalman_gain = np.matmul(np.matmul(
                           covar,
-                          np.transpose(self.obs_mat)),
+                          np.transpose(obs_mat)),
                           np.linalg.inv(residual_covar))
         
         # Craft and send response
         response.residual          = residual.flatten().astype('float32').tolist()
         response.gain              = kalman_gain.flatten().astype('float32').tolist()
-        response.observationmatrix = self.obs_mat.flatten().astype('float32').tolist()
+        response.observationmatrix = obs_mat.flatten().astype('float32').tolist()
         #print("Request:",  request)
         #self.get_logger().info("Request: %s" % request)
         #self.get_logger().info("Response: %s" % response)
