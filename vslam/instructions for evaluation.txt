@@ -1,0 +1,5 @@
+1. Run OpenVSLAM (instructions coming soon)
+2. Run main.py in Documents/KITTI/dataset to convert results from quaternion form (output from OpenVSLAM) to transformation matrix form (same format as KITTI ground truth)
+3. (Opt) Recompile odometry evaluation code. In Documents/KITTI/devkit/cpp, enter into terminal "g++ -O3 -w -DNDEBUG -o evaluate_odometry evaluate_odometry.cpp matrix.cpp"
+4. (Opt) Remove old evaluation data. In Documents/KITTI/dataset/poses, enter into terminal "rm -rf errors/ plot_error/ plot_path/"
+5. Run evaluation code. In Documents/KITTI/dataset/poses (same as above), enter into terminal "../../devkit/cpp/evaluate_odometry ./". Errors will appear in folders "erors", "plot_error", and "plot_path", the contents of each file is described on a webpage I have bookmarked in chrome. 

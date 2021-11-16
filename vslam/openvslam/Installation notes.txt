@@ -1,0 +1,23 @@
+ALL
+sudo required before all make install lines, ie run
+sudo make install 
+instead of 
+make install
+
+to change installation directory
+make DESTDIR=/tmp install
+
+set OPENCV_DIR in CMake file
+
+OpenCV
+Install version 4.5.4 (latest) instead of the one in the guide, or at least something v.4.0 or later. 
+
+FBoW
+Added line
+set(OpenCV_DIR "/home/lisa/Downloads/opencv-3.4.0/build") OR
+set(OpenCV_DIR "/home/lisa/Documents/opencv-4.5.4/build")
+at line 87, to fix dependency by finding OpenCVConfig.cmake
+
+g2o
+Before installing g2o, install Qt5 with
+sudo apt-get install qt5-default 

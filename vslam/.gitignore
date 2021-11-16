@@ -1,0 +1,16 @@
+/**
+
+!/.gitignore
+!/instructions for evaluation.txt
+
+!/openvslam/
+/openvslam/*
+
+!/openvslam/Installation_notes.txt
+!/openvslam/example/
+!/openvslam/results/
+
+
+
+*.mp4
+
