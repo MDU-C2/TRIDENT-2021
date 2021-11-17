@@ -10,7 +10,7 @@ class NaiadPosNode(posbase.PosNode):
         
         init_state = np.zeros((12,1))  # Starts at 0,0
         init_covar = np.zeros((12,12)) # Starts with no uncertainty
-        init_noise = (np.array([0.5, 0.5, 0.5, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1])*np.identity(12))**2 # These are just guesses!
+        init_noise = (np.array([0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.02, 0.02, 0.02, 0.01, 0.01, 0.01])*np.identity(12))**2 # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/gps", "/naiad/sensor/usbl"],
@@ -36,7 +36,6 @@ class NaiadPosNode(posbase.PosNode):
         transition = np.matmul(trans_mat,prev)'''
         x, y, z, r, p, h, dx, dy, dz, dr, dp, dh = prev.flatten().tolist()
         # This transition func assumes the NAIAD is level.
-        # TODO: Add control vector
         transition = np.array([[
             x+dx*cos(h)*dt+dy*sin(h)*dt,
             y+dy*sin(h)*dt+dy*cos(h)*dt,
@@ -44,16 +43,17 @@ class NaiadPosNode(posbase.PosNode):
             r+dr*dt,
             p+dp*dt,
             h+dh*dt,
-            dx,
-            dy,
-            dz,
-            dr,
-            dp,
-            dh]])
+            -1.125*self.control_vec[0,0]-1.125*self.control_vec[1,0],
+            0,
+            -0.5625*self.control_vec[2,0]-0.5625*self.control_vec[3,0]-0.5625*self.control_vec[4,0]-0.5625*self.control_vec[5,0],
+            2.3749*self.control_vec[2,0]-2.3749*self.control_vec[3,0]+2.3749*self.control_vec[4,0]-2.3749*self.control_vec[5,0],
+            1.375*self.control_vec[2,0]+1.375*self.control_vec[3,0]-1.375*self.control_vec[4,0]-1.375*self.control_vec[5,0],
+            -2.874*self.control_vec[0,0]+2.874*self.control_vec[1,0]]])
         transition = np.transpose(transition)
         return transition
     
-    def get_ctrl_vec(self):
+    def get_ctrl_vec(self, msg):
+        self.get_logger().info("Control vector: %s" % msg)
         self.control_vec[:,0] = msg.setpoints
     
     def state_publish(self):

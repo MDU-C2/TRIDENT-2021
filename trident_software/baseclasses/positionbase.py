@@ -184,7 +184,7 @@ class PosNode(Node, ABC):
                                         obs_mat),
                                     pred_covar)
                 except Exception as e:
-                    self.get_logger().warn("Skipping sensor due to failure! " + e)
+                    self.get_logger().warn("Skipping sensor due to failure! " + str(e))
             
             # Finally, set the state and covariance to the new ones!
             self.state = pred_state

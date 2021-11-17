@@ -10,7 +10,7 @@ class AthenaPosNode(positionbase.PosNode):
         
         init_state = np.zeros((6,1))  # Starts at 0,0
         init_covar = np.zeros((6,6)) # Starts with no uncertainty
-        init_noise = (np.array([0.5, 0.5, 0.4, 0.2, 0.2, 0.1])*np.identity(6))**2 # These are just guesses!
+        init_noise = (np.array([0.05, 0.05, 0.04, 0.02, 0.02, 0.01])*np.identity(6))**2 # These are just guesses!
             
         super().__init__("athena_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
@@ -41,9 +41,9 @@ class AthenaPosNode(positionbase.PosNode):
             x+dx*cos(h)*dt+dy*sin(h)*dt,
             y+dy*sin(h)*dt+dy*cos(h)*dt,
             h+dh*dt,
-            dx+1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
-            dy,
-            dh+5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]]])
+            1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
+            0,
+            5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]]])
         transition = np.transpose(transition)
         return transition
     
@@ -57,7 +57,7 @@ class AthenaPosNode(positionbase.PosNode):
         msg.pose.position.x = self.state[0,0]
         msg.pose.position.y = self.state[1,0]
         msg.pose.position.z = 0.0
-        self.get_logger().info("Heading:%s" % self.state[2,0])
+        #self.get_logger().info("Heading:%s" % self.state[2,0])
         q = Quaternion.from_euler(0, 0, self.state[2,0])
         msg.pose.orientation.x = q.x
         msg.pose.orientation.y = q.y

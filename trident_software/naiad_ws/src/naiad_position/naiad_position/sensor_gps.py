@@ -1,7 +1,7 @@
 import baseclasses.sensorbase as sensbase
 import rclpy
 import numpy as np
-from math import sin, cos, sqrt, asin
+from math import sin, cos, sqrt, asin, inf
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
 
@@ -69,6 +69,9 @@ class GPSNode(sensbase.SensorNode):
         if msg.status.status != -1:
             self.measure[0,0] = msg.latitude  - self.origin[0]
             self.measure[1,0] = msg.longitude - self.origin[1]
+            self.m_noise = np.identity(2)*0.000005**2
+        else:
+            self.m_noise = np.array([[inf, 0], [0, inf]]) # Set the noise to inifnite if the gps in unavailable
 
 def main(args=None):
     rclpy.init(args=args)
