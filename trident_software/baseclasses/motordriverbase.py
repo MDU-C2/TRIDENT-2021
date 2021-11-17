@@ -107,11 +107,12 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         msg = Setpoints()
         outputs = []
         for motor_output in motor_outputs:
-            # Scale the output value to stonefish values (-1, 1)
-            if motor_output.value > max_value:
-                motor_output.value = max_value
-            elif motor_output.value < -max_value:
-                motor_output.value = -max_value
+            motor_output.value *= 1 #self._motor_output_scale
+            # # Scale the output value to stonefish values (-1, 1)
+            # if motor_output.value > max_value:
+            #     motor_output.value = max_value
+            # elif motor_output.value < -max_value:
+            #     motor_output.value = -max_value
             val = float(motor_output.value)
 
             outputs.append(val)

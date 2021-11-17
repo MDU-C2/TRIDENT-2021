@@ -7,7 +7,7 @@ import numpy as np
 from math import sqrt, pi, atan2, log # For Pythagorean theorem to calculate distance
 from collections import deque
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
-from simple_pid import PID 
+from simple_pid import PID
 import json
 import rclpy
 from rclpy.node import Node
@@ -82,11 +82,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # to goal calculations. If not, don't use it.
         self._use_z_in_distance_to_goal = bool(max([motor["pose_effect"]["z"] for motor in self._motor_config]))
 
-        # SET HARDCODED STATE FOR TESTING PURPOSES
+        # SET DEFAULT STATE 
         p = Point()
-        p.x, p.y, p.z = (1.0, 1.0, 1.0)
+        p.x, p.y, p.z = (0.0, 0.0, 0.0)
         q = Quaternion()
-        q.x ,q.y, q.z, q.w = (0.2, 0.3, 0.1, 1.0)
+        q.x ,q.y, q.z, q.w = (0.0, 0.0, 0.0, 1.0)
         self._agent_state.pose.position = p
         self._agent_state.pose.orientation = q
         ##########################################
@@ -94,12 +94,12 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Create the PID objects
         self._pids = {
-            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"], output_limits=(-0.4,0.4)),
-            "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"]),
-            "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"]),
-            "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"]),
-            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip),
-            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"]) 
+            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"], output_limits=(-0.3,0.3)),
+            "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"], output_limits=(-1,1)),
+            "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"], output_limits=(-1,1)),
+            "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"], output_limits=(-1,1)),
+            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip, output_limits=(-1,1)),
+            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"], output_limits=(-1,1))
         }
 
         # Rate object with relative sleeping period that controls the motor update frequency
@@ -187,6 +187,20 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 return angle + 2*pi
         return angle
 
+    def disable_pids(self):
+        """Disable the pids by setting the auto_mode to false, meaning that
+        no new values will be calculated.
+        """
+        for pid in self._pids:
+            pid.auto_mode = False
+
+    def enable_pids(self):
+        """Enable the pids by turning auto_mode on and setting the last_output to 0,
+        which means that the I-term will be reset to zero. 
+        """
+        for pid in self._pids:
+            pid.set_auto_mode(True, last_output=0)
+
 
     def _update_node_state(self, new_state):
         """Updates the node's state and publish the new state to the state topic.
@@ -253,7 +267,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         
         # Scale the x/y pid control values based on the current velocity
         # to avoid jerky acceleration
-        linear_vel_log_fn = lambda linear_vel: min(log(1*linear_vel + 1.01), 1.0)
+        linear_vel_log_fn = lambda linear_vel: min(log(0.3*linear_vel + 1.01), 1.0)
         # Compute the total velocity vector
         total_vel = sqrt(self._agent_state.twist.linear.x**2 + self._agent_state.twist.linear.y**2) # + self._agent_state.twist.linear.z**2)
         self.get_logger().info(f"VELOCITY: {total_vel}")
@@ -467,6 +481,10 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             self._manual_override = request.data
             response.success = True
             response.message = f"Successfully set manual override to {request.data}."
+            if request.data == True:
+                self.disable_pids()
+            else:
+                self.enable_pids()
         except Exception as e:
             response.success = False
             response.message = f"Something went wrong when setting manual override property. The manual override is currently set to: {self._manual_override}" \
@@ -495,11 +513,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # # Compute dot product between the two unit vectors
         # pas_north_dot = sum(x_i*y_i for x_i, y_i in zip(pas_vec_unit, north_vec_unit))
 
-        pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
+        # pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
         # self.get_logger().info(f"Computed PAS_VEC_UNIT: {pas_vec_unit}")
-        north_vec_unit = [1,0,0]  # North vector since heading uses north as reference.
+        # north_vec_unit = [1,0,0]  # North vector since heading uses north as reference.
         # pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
-        pas_yaw_angle = np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0))
+        # pas_yaw_angle = np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0))
         pas_yaw_angle = atan2(pas_vec[1], pas_vec[0])
         self.get_logger().info(f"Computed new PaS yaw angle: {pas_yaw_angle}")
         # TODO: Account for all angles, not only yaw.
