@@ -100,22 +100,15 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """Converts motor_outputs to Setpoints and sends the values
         to the simulation topic.
         """
-        max_value = 0.5
         # Reset the motor output silence watchdog timer.
         self._motor_output_silence_watchdog_timer.reset()
         # Create the thruster Setpoints message
         msg = Setpoints()
         outputs = []
         for motor_output in motor_outputs:
-            motor_output.value *= 1 #self._motor_output_scale
-            # # Scale the output value to stonefish values (-1, 1)
-            # if motor_output.value > max_value:
-            #     motor_output.value = max_value
-            # elif motor_output.value < -max_value:
-            #     motor_output.value = -max_value
-            val = float(motor_output.value)
+            # Scale the output according to the motor_output_scale parameter
+            outputs.append(float(motor_output.value * self._motor_output_scale))
 
-            outputs.append(val)
         msg.setpoints = outputs
         self.get_logger().info(f"Publishing motor outputs to simulation. Outputs: {msg}")
         self._sim_motor_publisher.publish(msg)

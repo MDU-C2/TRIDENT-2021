@@ -452,11 +452,11 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """
         # Update the corresponding PID object
         if msg.pid_element.lower() == "p":
-            self._pids[msg.key].Kp += msg.value
+            self._pids[msg.key].Kp = round(self._pids[msg.key].Kp + msg.value, 2)
         elif msg.pid_element.lower() == "i":
-            self._pids[msg.key].Ki += msg.value
+            self._pids[msg.key].Ki = round(self._pids[msg.key].Ki + msg.value, 2)
         elif msg.pid_element.lower() == "d":
-            self._pids[msg.key].Kd += msg.value
+            self._pids[msg.key].Kd = round(self._pids[msg.key].Kd + msg.value, 2)
         # Update the value in the pid config property
         self._pid_config[msg.pid_element][msg.key] += msg.value
         new_pid_config = json.dumps(self._pid_config)
