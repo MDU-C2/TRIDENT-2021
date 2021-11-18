@@ -4,7 +4,7 @@ Author: Johannes Deivard 2021-11
 """
 from abc import ABCMeta, abstractmethod
 import numpy as np
-from math import sqrt, pi, atan2, log # For Pythagorean theorem to calculate distance
+from math import sqrt, pi, atan2, log, degrees, radians 
 from collections import deque
 from squaternion import Quaternion as SQuaternion # Simple quaternion calculations
 from simple_pid import PID
@@ -40,6 +40,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 ('pas_threshold', 0.0), # Point and Shoot threshold in meters
                 ('goal_distance_slack', 0.2), # Meters
                 ('goal_orientation_slack', 0.1), # Percent
+                ('pitch_limit', 85), # Degrees
                 ('motor_config', ""),
                 ('pid_config', ""),
                 ('use_sim_odom', False),
@@ -59,6 +60,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # The accepted slack for considering the GotoPose goal finished
         self._goto_pose_goal_distance_slack = self.get_parameter('goal_distance_slack').get_parameter_value().double_value # Hz
         self._goto_pose_goal_orientation_slack = self.get_parameter('goal_orientation_slack').get_parameter_value().double_value # Hz
+        # The allowed pitch angle, used to limit the throttle when the agent gets closer to the limit to avoid the agent from tipping over.
+        self._pitch_limit = self.get_parameter('pitch_limit').get_parameter_value().double_value # Degres
         # Get the use_sim_odom parameter that determines if we should use the simulation real odom values instead of the position modules state
         self._use_sim_odom = self.get_parameter('use_sim_odom').get_parameter_value().bool_value
 
@@ -94,12 +97,12 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Create the PID objects
         self._pids = {
-            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"], output_limits=(-0.3,0.3)),
-            "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"], output_limits=(-1,1)),
-            "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"], output_limits=(-1,1)),
-            "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"], output_limits=(-1,1)),
-            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip, output_limits=(-1,1)),
-            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"], output_limits=(-1,1))
+            "x":     PID(self._pid_config["p"]["x"],     self._pid_config["i"]["x"],     self._pid_config["d"]["x"], output_limits=(-0.5,0.5)),
+            "y":     PID(self._pid_config["p"]["y"],     self._pid_config["i"]["y"],     self._pid_config["d"]["y"], output_limits=(-0.5,0.5)),
+            "z":     PID(self._pid_config["p"]["z"],     self._pid_config["i"]["z"],     self._pid_config["d"]["z"], output_limits=(-0.5,0.5)),
+            "pitch": PID(self._pid_config["p"]["pitch"], self._pid_config["i"]["pitch"], self._pid_config["d"]["pitch"], output_limits=(-0.5,0.5)),
+            "yaw":   PID(self._pid_config["p"]["yaw"],   self._pid_config["i"]["yaw"],   self._pid_config["d"]["yaw"], error_map=MotorControlBase.pi_clip, output_limits=(-0.5,0.5)),
+            "roll":  PID(self._pid_config["p"]["roll"],  self._pid_config["i"]["roll"],  self._pid_config["d"]["roll"], output_limits=(-0.5,0.5))
         }
 
         # Rate object with relative sleeping period that controls the motor update frequency
@@ -265,19 +268,34 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             self.get_logger().info(f"{key} PID components: {pid_.components}")
         self.get_logger().info(f"Control values: {control_values}")
         
-        # Scale the x/y pid control values based on the current velocity
-        # to avoid jerky acceleration
-        linear_vel_log_fn = lambda linear_vel: min(log(0.3*linear_vel + 1.01), 1.0)
-        # Compute the total velocity vector
+
+        current_pitch_degrees = degrees(currents["pitch"])
+        pitch_percentage_of_limit = current_pitch_degrees / self._pitch_limit
+        # NOTE: This inline function returns a scaling value that is 0 when the input x == z, which is
+        #       the percentage of the pitch limit. E.g., a pitch limit of 45 degrees and z=0.9, the scaling value
+        #       will be zero when the agent's pitch is 0.9*45=40.5, meaning that the pid affecting x will be set to 0.
+        #       When the pitch is greater than 40.5 in this example, the output value will be negative, meaning that
+        #       the agent will try very hard not to hit the pitch limit.
+        pitch_vel_scaling_fn = lambda x, z: 1 - (x/z)**4
+        # Scale the x/y pid contorl values based on current pitch to avoid the agent from tipping over.
+        pitch_vel_scaling =  pitch_vel_scaling_fn(pitch_percentage_of_limit, 0.9)
+        control_values["x"] *= pitch_vel_scaling
+        control_values["y"] *= pitch_vel_scaling
+
+        # # Compute the total velocity vector
         total_vel = sqrt(self._agent_state.twist.linear.x**2 + self._agent_state.twist.linear.y**2) # + self._agent_state.twist.linear.z**2)
         self.get_logger().info(f"VELOCITY: {total_vel}")
         # Check if the agent is accelerating which means the thrust should be limited by the log velocity function
-        if self.is_accelerating():
-            # Get the linear velocity log scaling and clip the value to 0,1
-            linear_thruster_scaling = linear_vel_log_fn(total_vel)
-            self.get_logger().info(f"Agent accelerating, linear thruster scaling active: Linear control value={control_values['x']}, Scaling factor={linear_thruster_scaling}")
-            control_values["x"] *= linear_thruster_scaling
-            control_values["y"] *= linear_thruster_scaling
+        # if self.is_accelerating():
+        #     # Scale the x/y pid control values based on the current velocity
+        #     # to avoid jerky acceleration
+        #     linear_vel_log_fn = lambda linear_vel: min(log(0.1*linear_vel + 1.01), 1.0)
+        #     # NOTE: This does not work very well, probably needs a lot of fine tuning.
+        #     # Get the linear velocity log scaling
+        #     linear_thruster_scaling = linear_vel_log_fn(total_vel)
+        #     self.get_logger().info(f"Agent accelerating, linear thruster scaling active: Linear control value={control_values['x']}, Scaling factor={linear_thruster_scaling}")
+        #     control_values["x"] *= linear_thruster_scaling
+        #     control_values["y"] *= linear_thruster_scaling
 
         delta_yaw = abs(goals["yaw"] - currents["yaw"])
         # Set the x to 0 if our yaw error is larger than ~10 degrees
