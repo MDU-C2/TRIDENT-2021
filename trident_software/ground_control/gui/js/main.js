@@ -321,14 +321,14 @@ class Server {
 			var latlng = waypointMap.getLatLng([resp.x,resp.y]);
 			waypointMap.athenaMarker.setRotationAngle(resp.yaw);
 			waypointMap.athenaMarker.slideTo(latlng, {
-				duration: 500
+				duration: 100
 			});
 		});
 		this.socket.on('state/naiad', resp => {
 			var latlng = waypointMap.getLatLng([resp.x,resp.y]);
 			waypointMap.naiadMarker.setRotationAngle(resp.yaw);
 			waypointMap.naiadMarker.slideTo(latlng, {
-				duration: 500
+				duration: 100
 			});
 		});
 	}
@@ -443,7 +443,11 @@ class Logger {
 		if (minutes < 10){minutes = '0'+minutes;}
 		if (seconds < 10){seconds = '0'+seconds;}
 		var time = hours + ":" + minutes + ":" + seconds;
-		document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+		if (board == "loggerMainWindow")
+		{
+			document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+		}
+		//document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
 		var objDiv = document.getElementById(board);
 		if (!this.freezeLogger)
 		{
@@ -534,8 +538,11 @@ waypointMap.map.on('click', function(e) {
 	list.innerHTML = "Waypoint "+ waypointMap.waypointCounter[waypointMap.waypointType] +":<br> \
 		<span>Lat: </span><span id='waypointLat-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lat.toFixed(7)+"</span> \
 		<br><span>Lng: </span><span id='waypointLng-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lng.toFixed(7)+"</span> \
-		<br><span>Depth: </span><span id='depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>0</span><span> meters</span> \
+		<hr><span>Action type:</span> \
+		<br><input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"1' autocomplete='off' checked><label class='btn btn-outline-primary' for='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"1'>Hold</label><input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"2' autocomplete='off'><label class='btn btn-outline-primary ' for='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"2'>No action</label> \
+		<hr><span>Depth: </span><span id='depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>0</span><span> meters</span> \
 		<button onclick='removeWaypoint(\""+waypointMap.waypointType+"\",\""+waypointMap.waypointCounter[waypointMap.waypointType]+"\")' style='position:absolute;top:0.5rem;right:0.5rem;background:transparent;border:none;'><i class='bi bi-x-circle' style='color: red; font-size: 2rem;'></i></button>";
+		
 	list.appendChild(slider);
 	document.getElementById("waypointList-"+waypointMap.waypointType).appendChild(list); 
 	if (waypointMap.waypointCounter[waypointMap.waypointType] > 1)
@@ -710,7 +717,7 @@ async function sendPayload()
 			case 'load_mission_plan':
 				var waypoints = [];
 				//If we don't have any waypoints added for target
-				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[0].length == 0))
+				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[1].length == 0))
 				{
 					logger.printLogger('loggerMainWindow',"No waypoints added for: " + tar, "red");
 					continue;
