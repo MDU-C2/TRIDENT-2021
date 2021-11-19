@@ -92,9 +92,9 @@ def main(args=None):
         'u': 'x',
         'i': 'y',
         'o': 'z',
-        'j': 'pitch',
-        'k': 'yaw',
-        'l': 'roll',
+        'j': 'roll',
+        'k': 'pitch',
+        'l': 'yaw',
 
     }
     # Bindings for incrementing pid values
@@ -125,7 +125,7 @@ def main(args=None):
     }
 
     rclpy.init()
-    node = rclpy.create_node('teleop_twist_keyboard')
+    node = rclpy.create_node('pid_tuner')
     	
     param_publisher = node.create_publisher(PidParam, f'{args[1]}/motor_control/param/pid/set', 10)
     current_params_client = node.create_client(GetParameters, f"{args[1]}/motor_control/get_parameters")

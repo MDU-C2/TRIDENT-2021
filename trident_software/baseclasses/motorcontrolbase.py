@@ -67,6 +67,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         # Set initial motor control state to IDLE
         self._motor_control_state = MotorControlState.IDLE
+        self._prev_state = MotorControlState.IDLE
         # Boolean that controls the manual override, if manual override is True, the motor control will not send any output values to the motor driver.
         self._manual_override = False
         # The last known state of the agent.
@@ -83,7 +84,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Boolean that determines if the z-axis should be used in the distance_to_goal calculations.
         # If the motor config contains a motor that can affect the position in the z axis, use the z delta in distance
         # to goal calculations. If not, don't use it.
-        self._use_z_in_distance_to_goal = bool(max([motor["pose_effect"]["z"] for motor in self._motor_config]))
+        self._use_z_in_distance_to_goal = bool(max([abs(motor["pose_effect"]["z"]) for motor in self._motor_config]))
 
         # SET DEFAULT STATE 
         p = Point()
@@ -194,20 +195,22 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         """Disable the pids by setting the auto_mode to false, meaning that
         no new values will be calculated.
         """
-        for pid in self._pids:
+        for pid in self._pids.values():
             pid.auto_mode = False
 
     def enable_pids(self):
         """Enable the pids by turning auto_mode on and setting the last_output to 0,
-        which means that the I-term will be reset to zero. 
+        which means that the I-term will be reset to zero.
         """
-        for pid in self._pids:
+        for pid in self._pids.values():
             pid.set_auto_mode(True, last_output=0)
 
 
     def _update_node_state(self, new_state):
         """Updates the node's state and publish the new state to the state topic.
         """
+        if self._prev_state is MotorControlState(new_state):
+            self._prev_state = self._motor_control_state
         self._motor_control_state = MotorControlState(new_state)
         msg = String()
         msg.data = str(self._motor_control_state)
@@ -255,6 +258,17 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         goals["x"] = 0
         currents["x"] = - self.distance_to_goal(current.position, goal.position)
 
+        # Check if the agent is within 0.1m of the target,
+        if abs(currents["x"]) < 0.4:
+            smallest_angle_to_goal = abs(((goals["yaw"] - currents["yaw"] + pi) % 2*pi) - pi)
+            # Check if the goal is behind the agent ( > 120 degrees)
+            if smallest_angle_to_goal > (2*pi)/3:
+                self.get_logger().info(f"Goal is behind agent. Smallest angle to goal: {degrees(smallest_angle_to_goal)} (>90 degrees). Allowing reverse.")
+                # Reverse the distance to make the agent reverse instead of turn and go forward
+                currents["x"] *= -1
+                # Also make the desired yaw the opposite direction so it is reversing instead of turning
+                goals["yaw"] = (goals["yaw"] + 180) % 360
+
         # Create the motor outputs list
         motor_outputs = []
         # ... and the control values dict
@@ -298,8 +312,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         #     control_values["y"] *= linear_thruster_scaling
 
         delta_yaw = abs(goals["yaw"] - currents["yaw"])
-        # Set the x to 0 if our yaw error is larger than ~10 degrees
-        if delta_yaw > 0.1745:
+        # Set the x to 0 if our yaw error is larger than ~2 degrees
+        if delta_yaw > 0.034906585:
             control_values["x"] = 0
             control_values["y"] = 0
 
@@ -398,7 +412,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         Returns:
             MotorOutputs: Motor outputs based on the twist message.
         """
-        base_speed = 100 # TODO: This needs to be discussed.
+        base_speed = 1 # TODO: This needs to be discussed.
         motor_outputs = []
         # PID the pitch and roll so the agents stay level during teleop
         self._pids["pitch"].setpoint = 0
@@ -501,11 +515,13 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             response.message = f"Successfully set manual override to {request.data}."
             if request.data == True:
                 self.disable_pids()
+                self._update_node_state(MotorControlState.MANUAL_OVERRIDE)
             else:
                 self.enable_pids()
+                self._update_node_state(self._prev_state)
         except Exception as e:
             response.success = False
-            response.message = f"Something went wrong when setting manual override property. The manual override is currently set to: {self._manual_override}" \
+            response.message = f"Something went wrong when setting manual override property. The manual override is currently set to: {self._manual_override}\n" \
                                f"Error message: {e}."
 
         return response

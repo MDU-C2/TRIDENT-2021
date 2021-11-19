@@ -5,9 +5,9 @@ athena:
       pas_orientation_update_freq: 0.5 # Hz - The frequency at which the motor controller computer a new point and shoot orientation. 
                                        #      This doesn't need to happen that often.
       pas_threshold: 0.0   # The threshold that decided if PaS orientation should be used instead of the goal orientation. Distance in meters from the goal.  
-      goal_distance_slack: 0.1 # Meters
+      goal_distance_slack: 0.05 # Meters
       goal_orientation_slack: 1.0 # Percent.
-      pitch_limit: 45.0 # Degrees. The allowed pitch angle, used to limit the throttle when the agent gets closer to the limit to avoid the agent from tipping over.
+      pitch_limit: 90.0 # Degrees. The allowed pitch angle, used to limit the throttle when the agent gets closer to the limit to avoid the agent from tipping over.
       motor_config: >
         [ 
           {
@@ -38,27 +38,27 @@ athena:
       pid_config: >
         {
           "p": {
-            "x":     0.4,
+            "x":     0.7,
             "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.3,
+            "yaw":   0.7,
             "roll":  0.0
           },
           "i": {
-            "x":     0.15,
+            "x":     0.0,
             "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.1,
+            "yaw":   0.0,
             "roll":  0.0
           },
           "d": {
-            "x":     0.1,
+            "x":     0.28,
             "y":     0.0,
             "z":     0.0,
             "pitch": 0.0,
-            "yaw":   0.05,
+            "yaw":   0.2,
             "roll":  0.0
           }
         }
@@ -76,7 +76,7 @@ athena:
     ros__parameters:
       motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
-      motor_output_scale: 0.1 # Scales the motor output values to limit maximum thrust
+      motor_output_scale: 0.5 # Scales the motor output values to limit maximum thrust
       motor_interface: >
         [
           {

@@ -46,7 +46,7 @@ def generate_launch_description():
             name='motor_driver',
             parameters=[config,
                 {'simulation': True},
-                {'motor_output_scale': 0.3}
+                {'motor_output_scale': 0.5}
             ]
         ),
         Node(
