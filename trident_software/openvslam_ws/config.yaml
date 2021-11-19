@@ -1,0 +1,90 @@
+# NAIAD old video, monocular
+
+#==============#
+# Camera Model #
+#==============#
+
+Camera:
+  name: GIMME2 monocular
+  setup: monocular
+  model: perspective
+
+# Calibration in air
+  fx: 200.662
+  fy: 201.155
+# Calibration in air, * ~1.3
+  # fx: 266.680
+  # fy: 286.743
+# Calibration in water
+#fx: 1371.811
+#fy: 1365.205
+  
+# Calibration in air
+  cx: 241.681
+  cy: 132.986
+# Calibration in water
+#cx: 319.581
+#cy: 43.846
+  
+# Calibration in air
+  # k1: -0.232
+  # k2: 0.051
+# Calibration in water
+#  k1: 0.416
+#  k2: 7.142
+# Test
+  k1: 0
+  k2: 0 
+
+
+  p1: 0.0
+  p2: 0.0
+  k3: 0.0
+
+  fps: 2.5
+  cols: 480
+  rows: 270
+
+  color_order: RGB
+
+#=====================#
+# Tracking Parameters #
+#=====================#
+
+Tracking:
+  max_num_keypoints: 4000
+  ini_max_num_keypoints: 6000
+
+#================#
+# ORB Parameters #
+#================#
+
+Feature:
+  scale_factor: 1.2
+  num_levels: 12     # 8
+  ini_fast_threshold: 40        # 20
+  min_fast_threshold: 20       # 7
+ 
+
+#====================#
+# Mapping Parameters #
+#====================#
+
+Mapping:
+  baseline_dist_thr_ratio: 0.02
+
+#===========================#
+# PangolinViewer Parameters #
+#===========================#
+
+PangolinViewer:
+  keyframe_size: 0.06
+  keyframe_line_width: 1
+  graph_line_width: 1
+  point_size: 2
+  camera_size: 0.07
+  camera_line_width: 2
+  viewpoint_x: 0
+  viewpoint_y: -20
+  viewpoint_z: -0.1
+  viewpoint_f: 2800
