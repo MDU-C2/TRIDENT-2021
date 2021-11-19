@@ -10,7 +10,7 @@ class NaiadPosNode(posbase.PosNode):
         
         init_state = np.zeros((12,1))  # Starts at 0,0
         init_covar = np.zeros((12,12)) # Starts with no uncertainty
-        init_noise = (np.array([0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.02, 0.02, 0.02, 0.01, 0.01, 0.01])*np.identity(12))**2 # These are just guesses!
+        init_noise = (np.array([0.25, 0.25, 0.25, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05])*np.identity(12))**2 # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/gps", "/naiad/sensor/usbl"],
