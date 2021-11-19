@@ -24,3 +24,7 @@ span.badge {
     width: 8rem;
     height:2.5rem;
 }
+
+input:checked {
+    color: red !important;
+}

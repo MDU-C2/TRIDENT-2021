@@ -3,7 +3,7 @@ const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 var fs = require('fs'); //File system library
 var THREE = require('three');
 
-let prefixTopics = "gc/"; //Prefix used during testing
+let prefixTopics = ""; //Prefix used during testing
 
 class Server
 {
@@ -30,7 +30,7 @@ class Server
     this.io = require("socket.io")(this.server, {  
       cors: {
         origin: "http://localhost:"+this.port,
-        methods: ["GET", "POST"]  
+        methods: ["GET", "POST"],
       }
     });
   }
@@ -357,6 +357,8 @@ class ROS2
     this.startMissionNaiad = null;
     this.stateAthena = null;
     this.stateNaiad = null;
+    this.simStateAthena = null;
+    this.simStateNaiad = null;
     this.logging = null;
   }
 
@@ -383,6 +385,22 @@ class ROS2
       var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
       this.heartbeatNaiad.active = true;
       serverHandle.io.emit('state/naiad', {x:msg.pose.position.x, y:msg.pose.position.y, yaw:rotation._z*(180/Math.PI)});
+    });
+
+    //Create and start state listener Athena
+    this.simStateAthena = this.node.createSubscription('nav_msgs/msg/Odometry', prefixTopics+'athena/simulation/odometry', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
+      this.heartbeatAthena.active = true;
+      serverHandle.io.emit('state/athena', {x:msg.pose.pose.position.x, y:msg.pose.pose.position.y, yaw:rotation._z*(180/Math.PI)});
+    });
+
+    //Create and start state listener Naiad
+    this.simStateNaiad = this.node.createSubscription('nav_msgs/msg/Odometry', prefixTopics+'naiad/simulation/odometry', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
+      this.heartbeatNaiad.active = true;
+      serverHandle.io.emit('state/naiad', {x:msg.pose.pose.position.x, y:msg.pose.pose.position.y, yaw:rotation._z*(180/Math.PI)});
     });
 
     //Create and start logging listener Athena & Naiad
