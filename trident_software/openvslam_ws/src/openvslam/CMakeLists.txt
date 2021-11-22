@@ -134,15 +134,8 @@ include_directories(${popl_INCLUDE_DIR})
 set(json_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rd/json/include)
 include_directories(${json_INCLUDE_DIR})
 
-# pangolin viewer
-set(USE_PANGOLIN_VIEWER OFF CACHE BOOL "Enable Pangolin Viewer")
-if(USE_PANGOLIN_VIEWER)
-    find_library(Pangolin_Viewer_LIB pangolin_viewer)
-    find_package(Pangolin REQUIRED)
-endif()
-
 # socket publisher
-set(USE_SOCKET_PUBLISHER OFF CACHE BOOL "Enable Socket Publisher")
+set(USE_SOCKET_PUBLISHER ON CACHE BOOL "Enable Socket Publisher")
 if(USE_SOCKET_PUBLISHER)
     find_package(sioclient REQUIRED)
     find_package(Protobuf REQUIRED)

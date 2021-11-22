@@ -14,10 +14,9 @@ add_executable(run_slam run_real_slam.cc)
 list(APPEND EXECUTABLE_TARGETS run_slam)
 
 foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
-    # pangolin_viewer is used on a priority basis
     # set macro flag
-    #target_compile_definitions(${EXECUTABLE_TARGET}
-    #	    PRIVATE -DUSE_SOCKET_PUBLISHER)
+    target_compile_definitions(${EXECUTABLE_TARGET}
+    	    PRIVATE -DUSE_SOCKET_PUBLISHER)
     # link viewer
     target_link_libraries(${EXECUTABLE_TARGET} PRIVATE
 	    #${Socket_Publisher_LIB} 
