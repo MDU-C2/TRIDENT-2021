@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "Fuse holder")(type Legacy)(uri "${KIPRJMOD}/Fuse holder.lib")(options "")(descr ""))
+  (lib (name Relay_Trident)(type Legacy)(uri ${KIPRJMOD}/Relay_Trident.lib)(options "")(descr ""))
+)
