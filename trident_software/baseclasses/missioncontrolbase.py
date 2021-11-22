@@ -63,7 +63,7 @@ class MissionControlBase(Node):
         # Load the debug mission
         mission = Mission()
         wp_list = []
-        for _ in range(100):
+        for _ in range(1000):
             waypoint = Waypoint()
             wp_action = WaypointAction()
             wp_action.action_type = WaypointActionType.HOLD
@@ -353,7 +353,7 @@ class MissionControlBase(Node):
         """Accepts or rejects the goal request. The goal is rejected if a the MissionControlState is EXECUTING_MISSION"""
         if self._mission_control_state == MissionControlState.EXECUTING_MISSION:
             return GoalResponse.REJECT
-            
+
         return GoalResponse.ACCEPT
 
     async def _action_server_start_mission_execute_callback(self, goal_handle):
@@ -379,7 +379,6 @@ class MissionControlBase(Node):
                 return cancel_results
 
             self._goto_waypoint_done_event.clear()
-            # self.get_logger().info(f"Awaiting goto_waypoint_send_goal")
             goto_waypoint_goal_future = self._goto_waypoint_send_goal(waypoint)
             # Wait for the GotoWaypoint action to finish by waiting on the event property.
             self._goto_waypoint_done_event.wait()
@@ -410,7 +409,6 @@ class MissionControlBase(Node):
 
         # Update mission control state, since the mission is finished.
         self._mission_control_state = MissionControlState.MISSION_FINISHED
-        # goal_handle.succeed()
         
         # Set the goal state
         goal_handle.succeed()
@@ -432,85 +430,10 @@ class MissionControlBase(Node):
         # Validity checks:
         # Empty mission
         if len(request.mission.waypoints) == 0:
-            mission = Mission()
-            wp_list = []
-            # Make it a looong mission
-            for _ in range(100):
-                waypoint = Waypoint()
-                wp_action = WaypointAction()
-                wp_action.action_type = WaypointActionType.HOLD
-                wp_action.action_param = 3
-                pose = Pose()
-                pose.position.x = 0.0
-                pose.position.y = 20.0
-                pose.position.z = -2.0
-                pose.orientation.x = 0.0
-                pose.orientation.y = 0.0
-                pose.orientation.z = 0.0
-                pose.orientation.w = 0.0
-                waypoint.pose = pose
-                waypoint.action = wp_action
-                wp_list.append(waypoint)
-
-                waypoint = Waypoint()
-                wp_action = WaypointAction()
-                wp_action.action_type = WaypointActionType.HOLD
-                wp_action.action_param = 3
-                pose = Pose()
-                pose.position.x = 20.0
-                pose.position.y = 20.0
-                pose.position.z = -8.0
-                pose.orientation.x = 0.0
-                pose.orientation.y = 0.0
-                pose.orientation.z = 0.0
-                pose.orientation.w = 0.0
-                waypoint.pose = pose
-                waypoint.action = wp_action
-                wp_list.append(waypoint)
-
-                waypoint = Waypoint()
-                wp_action = WaypointAction()
-                wp_action.action_type = WaypointActionType.HOLD
-                wp_action.action_param = 3
-                pose = Pose()
-                pose.position.x = 20.0
-                pose.position.y = 0.0
-                pose.position.z = -12.0
-                pose.orientation.x = 0.0
-                pose.orientation.y = 0.0
-                pose.orientation.z = 0.0
-                pose.orientation.w = 0.0
-                waypoint.pose = pose
-                waypoint.action = wp_action
-                wp_list.append(waypoint)
-
-                waypoint = Waypoint()
-                wp_action = WaypointAction()
-                wp_action.action_type = WaypointActionType.HOLD
-                wp_action.action_param = 3
-                pose = Pose()
-                pose.position.x = 0.0
-                pose.position.y = 0.0
-                pose.position.z = 0.0
-                pose.orientation.x = 0.0
-                pose.orientation.y = 0.0
-                pose.orientation.z = 0.0
-                pose.orientation.w = 0.0
-                waypoint.pose = pose
-                waypoint.action = wp_action
-                wp_list.append(waypoint)
-
-            self.get_logger().info(f"Loaded debug mission with {len(wp_list)} waypoints.")
-            mission.waypoints = wp_list
-            self.mission = mission
-            response.success = True
-            response.message = "Loaded debug mission"
-
-            # response.success = False
-            # response.message = "Cannot load a mission with 0 waypoints."
-
+            response.success = False
+            response.message = "Cannot load a mission with 0 waypoints."
             return response
-            
+
         try:
             self.get_logger().info(f"Received mission with {len(request.mission.waypoints)} waypoints.")
             self.mission = request.mission

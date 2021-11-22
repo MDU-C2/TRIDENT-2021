@@ -528,8 +528,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         return response
 
-
-
     def _update_pas_orientation(self):
         """Computes and updates the point and shoot orientation needed to go straight from the current position to
          the goal position. Uses the object properties _agent_state and _goal_pose to get current and goal position.
@@ -542,18 +540,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         goal = self._goal_pose.position
         # Create vector from the two points
         pas_vec = (goal.x - current.x, goal.y - current.y, goal.z - current.z)
-        # Convert the vector to the unit vector
-        # pas_vec_norm = (abs(pas_vec[0])* abs(pas_vec[1]) * abs(pas_vec[2]))
-        # pas_vec_unit = (pas_vec[0]/pas_vec_norm, pas_vec[1]/pas_vec_norm, pas_vec[2]/pas_vec_norm)
-        # north_vec_unit = (1,0,0)
-        # # Compute dot product between the two unit vectors
-        # pas_north_dot = sum(x_i*y_i for x_i, y_i in zip(pas_vec_unit, north_vec_unit))
-
-        # pas_vec_unit = pas_vec / np.linalg.norm(pas_vec)
-        # self.get_logger().info(f"Computed PAS_VEC_UNIT: {pas_vec_unit}")
-        # north_vec_unit = [1,0,0]  # North vector since heading uses north as reference.
-        # pas_yaw_angle = np.degrees(np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0)))
-        # pas_yaw_angle = np.arccos(np.clip(np.dot(pas_vec_unit, north_vec_unit), -1.0, 1.0))
         pas_yaw_angle = atan2(pas_vec[1], pas_vec[0])
         self.get_logger().info(f"Computed new PaS yaw angle: {pas_yaw_angle}")
         # TODO: Account for all angles, not only yaw.
@@ -663,7 +649,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                     self._agent_state.pose.orientation.x, self._agent_state.pose.orientation.y, self._agent_state.pose.orientation.y, self._agent_state.pose.orientation.z]
         mean_pose_m2 = [0] * 7
         mean_pose_count = 1
-        # pose_variance = []
 
         if goal_handle.request.duration > 0:
             # Start the hold pose timer
@@ -784,9 +769,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
         # Loop as long as the goal isn't reached.
-        # i = 0 # For testing
-        # while(i < 5):
-            # i+=1
         while(not self._goto_pose_goal_reached(goal_handle.request.pose) and not goal_handle.is_cancel_requested):
             current_pos = self._agent_state.pose.position
             desired_pos = goal_handle.request.pose.position
