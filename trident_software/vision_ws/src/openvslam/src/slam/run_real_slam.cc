@@ -56,9 +56,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     // Pre-allocate area for image 
     // CV_8UC3 represents an 8-bit Uint with 3 channels
-    cv::Mat image = cv::Mat(HEIGHT, WIDTH, CV_8UC3);
-    cv::Mat image_temp = cv::Mat(HEIGHT, WIDTH, CV_8UC3);
-    
+
     cv::Mat* next_image = &image;
     cv::Mat* working_image = &image_temp;
 
@@ -131,8 +129,6 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
                 cv::Mat* tempPtr = working_image;
                 working_image = next_image;
                 next_image = tempPtr;
-
-                //memcpy(image, image_temp, IMAGE_SIZE);
             }
         }
     });
