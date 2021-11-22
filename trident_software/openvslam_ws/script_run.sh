@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./build/openvslam/example/run_slam -v orb_vocab.fbow -c config.yaml
+./build/openvslam/src/run_slam -v src/openvslam/config/orb_vocab.fbow -c src/openvslam/config/config.yaml
