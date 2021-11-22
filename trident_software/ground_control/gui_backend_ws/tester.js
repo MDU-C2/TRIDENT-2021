@@ -186,6 +186,7 @@ rclnodejs
       'trident_msgs/srv/LoadMission',
       prefixTopics+'athena/mission_control/mission/load',
       (request, response) => {
+        console.log(JSON.stringify(request));
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on athena";;
@@ -198,6 +199,7 @@ rclnodejs
       'trident_msgs/srv/LoadMission',
       prefixTopics+'naiad/mission_control/mission/load',
       (request, response) => {
+        console.log(JSON.stringify(request));
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on naiad";

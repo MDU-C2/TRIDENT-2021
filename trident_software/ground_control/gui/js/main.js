@@ -1,3 +1,5 @@
+//const tridentstates = require("../../gui_backend_ws/tridentstates");
+
 /*
 	Trident states class
 	 - Contains states for each submodule in Athena and Naiad
@@ -35,6 +37,11 @@ class TridenStates {
 			MOTOR_OUTPUT_SILENCE: 2,
 			ACTIVE: 3
 		};
+
+		this.actionState = {
+			NO_ACTION: 0,
+			HOLD_POSITION: 1
+		}
 	}
 }
 
@@ -443,11 +450,12 @@ class Logger {
 		if (minutes < 10){minutes = '0'+minutes;}
 		if (seconds < 10){seconds = '0'+seconds;}
 		var time = hours + ":" + minutes + ":" + seconds;
-		if (board == "loggerMainWindow")
+		document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+		//Limit outputs to logging screen to avoid overload
+		if (document.getElementById(board).childNodes.length >= 50)
 		{
-			document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
+			document.getElementById(board).removeChild(document.getElementById(board).childNodes[0]);
 		}
-		//document.getElementById(board).innerHTML += "<p class='font-monospace my-0' style='color:"+color+";'>"+time+" - "+msg+"</p>";
 		var objDiv = document.getElementById(board);
 		if (!this.freezeLogger)
 		{
@@ -519,17 +527,26 @@ waypointMap.map.on('click', function(e) {
 	var slider = document.createElement('input');
 	slider.type = 'range';
 	slider.name = waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType];
-	slider.id = "depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType];
+	slider.id = "depthRangeSlider-" + waypointMap.waypointType + "-"  + waypointMap.depth[waypointMap.waypointType].length;
 	slider.className = "form-range"
 	slider.min = 0;
 	slider.max = 100;
 	slider.value = 0;
 	slider.step = 1;
-	var tmpType = waypointMap.waypointType;
 	slider.onchange = slider => {
-		waypointMap.depth[waypointMap.waypointType][waypointMap.waypointCounter[waypointMap.waypointType]-1] = slider.target.value;
+		waypointMap.depth[waypointMap.waypointType][slider.target.id.substr(19,19)-1] = slider.target.value;
 		document.getElementById("depthRangeNum-"+slider.target.name).innerHTML = slider.target.value;
 	};
+
+	var actionType = document.createElement('div');
+	actionType.className = "actionTypeDiv-"+waypointMap.waypointType;
+	actionType.innerHTML = "<hr><span>Action type:</span> \
+							<br><input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"-1' autocomplete='off'> \
+							<label class='btn btn-outline-primary' for='actionType"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"-1'>Hold</label> \
+							<input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"-2' autocomplete='off' checked> \
+							<label class='btn btn-outline-primary ' for='actionType"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"-2'>No action</label> \
+							<label class='pt-2'>Action param:</label> \
+							<input class='form-control' id='actionParam"+waypointMap.waypointType+"-"+waypointMap.waypointCounter[waypointMap.waypointType]+"' style='width: 3rem;' value='0'>";
 
 	//Create waypoint list element
 	var list = document.createElement('li');
@@ -538,18 +555,17 @@ waypointMap.map.on('click', function(e) {
 	list.innerHTML = "Waypoint "+ waypointMap.waypointCounter[waypointMap.waypointType] +":<br> \
 		<span>Lat: </span><span id='waypointLat-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lat.toFixed(7)+"</span> \
 		<br><span>Lng: </span><span id='waypointLng-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>"+e.latlng.lng.toFixed(7)+"</span> \
-		<hr><span>Action type:</span> \
-		<br><input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"1' autocomplete='off' checked><label class='btn btn-outline-primary' for='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"1'>Hold</label><input type='radio' class='btn-check' name='actionTypes"+waypointMap.waypointCounter[waypointMap.waypointType]+"' id='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"2' autocomplete='off'><label class='btn btn-outline-primary ' for='actionType"+waypointMap.waypointCounter[waypointMap.waypointType]+"2'>No action</label> \
 		<hr><span>Depth: </span><span id='depthRangeNum-" + waypointMap.waypointType + "-"  + waypointMap.waypointCounter[waypointMap.waypointType]+"'>0</span><span> meters</span> \
 		<button onclick='removeWaypoint(\""+waypointMap.waypointType+"\",\""+waypointMap.waypointCounter[waypointMap.waypointType]+"\")' style='position:absolute;top:0.5rem;right:0.5rem;background:transparent;border:none;'><i class='bi bi-x-circle' style='color: red; font-size: 2rem;'></i></button>";
 		
+	
+	//Add slider to list
 	list.appendChild(slider);
+	//Add action type to list
+	list.appendChild(actionType);
 	document.getElementById("waypointList-"+waypointMap.waypointType).appendChild(list); 
 	if (waypointMap.waypointCounter[waypointMap.waypointType] > 1)
 	{
-		var tmpArr = [];
-		tmpArr.push(waypointMap.latlng[waypointMap.waypointType][waypointMap.latlng[waypointMap.waypointType].length-1]);
-		tmpArr.push(waypointMap.latlng[waypointMap.waypointType][waypointMap.latlng[waypointMap.waypointType].length-2]);
 		if (waypointMap.waypointType == 0) //Athena
 		{
 			var polyline = new L.polyline(waypointMap.latlng[waypointMap.waypointType], {color: 'blue'}).addTo(waypointMap.map);
@@ -585,6 +601,7 @@ function removeWaypoint(type, counter)
 		{
 			waypointMap.map.removeLayer(waypoint);
 			waypointMap.waypointObjects[waypointMap.waypointType].splice(index,1);
+			waypointMap.depth[waypointMap.waypointType].splice(index,1);
 		}
 
 	});
@@ -665,6 +682,7 @@ function selectWaypointType(target)
 */
 async function sendPayload()
 {
+	var tridentStates = new TridenStates();
 	var payload = document.getElementById("payloadSelectBox").value;
 	var targets = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked]; // [athena,naiad]
 	var tmpTargerArr = [];
@@ -730,6 +748,9 @@ async function sendPayload()
 				{
 					var tarIndex = 1;
 				}
+
+				var actionTypeList = document.getElementsByClassName("actionTypeDiv-"+tarIndex);
+				var counter = 0;
 				//Setup waypoints array
 				waypointMap.latlng[tarIndex].forEach(item => {
 					//Create temporary waypoint array
@@ -738,8 +759,20 @@ async function sendPayload()
 					tmpWP.push(waypointMap.getXYpos({latitude:item[0],longitude:item[1]}));
 					//Get corresponding z pos (depth)
 					var depth = parseInt(waypointMap.depth[tarIndex][waypointMap.latlng[tarIndex].indexOf(item)]);
-					//Add [x,y,z] pos to waypoints array
-					waypoints.push([tmpWP[0][0], tmpWP[0][1], depth]);
+					//Get action type and param values
+					if(document.getElementById("actionType"+actionTypeList[counter].lastChild.id.substr(11,13)+"-1").checked)
+					{
+						var actionType = tridentStates.actionState.HOLD_POSITION;
+						var actionParam = parseInt(document.getElementById("actionParam"+actionTypeList[counter].lastChild.id.substr(11,13)).value);
+					}
+					else
+					{
+						var actionType = tridentStates.actionState.NO_ACTION;
+						var actionParam = parseInt(document.getElementById("actionParam"+actionTypeList[counter].lastChild.id.substr(11,13)).value);
+					}
+					//Add [x,y,z] pos and action type to waypoints array
+					waypoints.push([tmpWP[0][0], tmpWP[0][1], depth, actionType, actionParam]);
+					counter += 1;
 				});
 				data = {function:payload, waypoints:waypoints, target:tar};
 				break;

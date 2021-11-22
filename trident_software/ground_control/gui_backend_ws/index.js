@@ -3,7 +3,7 @@ const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 var fs = require('fs'); //File system library
 var THREE = require('three');
 
-let prefixTopics = ""; //Prefix used during testing
+let prefixTopics = "gc/"; //Prefix used during testing
 
 class Server
 {
@@ -198,17 +198,17 @@ class Server
           case 'load_mission_plan':
             //Setup mission parameters
             let mission = rclnodejs.createMessageObject('trident_msgs/msg/Mission');
-            let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
-            let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
-            let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
-            let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
-            let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
             let loadMission = new LoadMission.Request();
-
+            
             for (var wp of req.data.waypoints)
             {
-              wpAction.action_type = 0;
-              wpAction.action_param = 0;
+              let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
+              let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
+              let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
+              let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
+              let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
+              wpAction.action_type = wp[3];
+              wpAction.action_param = wp[4];
               point.x = wp[0];
               point.y = wp[1];
               point.z = wp[2];
@@ -223,7 +223,9 @@ class Server
               waypoint.action = wpAction;
               mission.waypoints.push(waypoint);
             }
+
             loadMission.mission = mission;
+            
             if (req.data.target == 'athena')
             {
               ROS2handle.loadMissionPlanAthena.waitForService(1000).then((result) => {
