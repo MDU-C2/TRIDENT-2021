@@ -665,7 +665,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         mean_pose_count = 1
         # pose_variance = []
 
-        if goal_handle.request.duration != 0:
+        if goal_handle.request.duration > 0:
             # Start the hold pose timer
             hold_pose_timer = self.create_timer(goal_handle.request.duration, self._set_hold_pose_time_reached)
         # Start time for the hold action
