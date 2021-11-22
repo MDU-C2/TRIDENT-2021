@@ -12,12 +12,7 @@ fi
 
 #Source ROS2 environment
 echo "Sourcing ROS2 environment"
-if [ "$HOSTNAME" = "trident-Surface-Pro-3" ]
-then
-    source ~/ros2_foxy/ros2-linux/local_setup.bash
-else
-    source ~/ros2_foxy/install/setup.bash
-fi
+source ~/ros2_foxy/ros2-linux/local_setup.bash
 
 #Check if build argument is set
 if [[ "$*" =~ "-b" ]]
