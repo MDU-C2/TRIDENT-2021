@@ -23,7 +23,8 @@ setup(
             'position_node = naiad_position.naiad_position:main',
             'imu_node = naiad_position.sensor_imu:main',
             'gps_node = naiad_position.sensor_gps:main',
-            'usbl_node = naiad_position.sensor_usbl:main'
+            'usbl_node = naiad_position.sensor_usbl:main',
+            'pressure_node = naiad_position.sensor_pressure:main'
         ],
     },
 )

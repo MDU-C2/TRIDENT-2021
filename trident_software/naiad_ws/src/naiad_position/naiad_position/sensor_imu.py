@@ -27,7 +27,7 @@ class IMUNode(sensbase.SensorNode):
             [0,0,0,    0,    0,    0, 0, 0, 1, 0, 0, 0], #ddz
             [0,0,0,    0,    0,    0, 0, 0, 0, 1, 0, 0], #dr
             [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0], #dp
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]])#dh
+            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]], dtype=np.float32)#dh
         
         noise_mat = (np.array([[.3, .3, .5, .001, .001, .001, .17, .17, .17]])*np.identity(9))**2
         
@@ -67,7 +67,6 @@ class IMUNode(sensbase.SensorNode):
         return super().SensorService(request, response)
     
     def TakeMeasurement(self):
-        # TODO: Maybe switch readings to follow north-east-down?
         ser.open()
         ser.read_until() # This "clears" the current line
         try:

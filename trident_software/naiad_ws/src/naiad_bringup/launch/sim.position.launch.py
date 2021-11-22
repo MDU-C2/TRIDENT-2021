@@ -36,5 +36,14 @@ def generate_launch_description():
             parameters=[
                 {"simulated": True}
             ]
+        ),
+        Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='pressure_node',
+            name='pressure',
+            parameters=[
+                {"simulated": True}
+            ]
         )
     ])

@@ -57,7 +57,6 @@ class SensorNode(Node, ABC):
             obs_jacob = jacfwd(self.obs_mod)
             #self.get_logger().info("TEST %s" % jnp.array_str(jnp.array(state.flatten())))
             obs_mat = obs_jacob(jnp.array(state.flatten()))#self.jacobian(self.obs_mod, state, dt)
-            #self.get_logger().info("Jacobian_matrix: %s" % obs_mat)
             
         residual = self.measure - np.matmul(obs_mat, state)
         residual_covar = np.matmul(np.matmul(
@@ -68,6 +67,10 @@ class SensorNode(Node, ABC):
                           covar,
                           np.transpose(obs_mat)),
                           np.linalg.inv(residual_covar))
+        
+        self.get_logger().info("Residual: %s" % residual)
+        self.get_logger().info("Gain: %s" % kalman_gain)
+        self.get_logger().info("Observation matrix: %s" % obs_mat)
         
         # Craft and send response
         response.residual          = residual.flatten().astype('float32').tolist()
