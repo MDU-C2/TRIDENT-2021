@@ -1,6 +1,0 @@
-#!/bin/bash
-
-pushd ../..
-colcon build
-node src/openvslam/viewer/app.js & sleep 2 && ./build/openvslam/src/run_slam -v src/openvslam/config/orb_vocab.fbow -c src/openvslam/config/config.yaml && fg
-popd
