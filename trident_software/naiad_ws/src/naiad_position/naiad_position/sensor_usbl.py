@@ -1,7 +1,7 @@
 import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
-from math import sqrt, sin, cos, atan2
+import jax.numpy as jnp
 
 from visualization_msgs.msg import MarkerArray
 
@@ -33,22 +33,24 @@ class USBLNode(sensbase.SensorNode):
         else:
             self.get_logger.error("REAL USBL NOT IMPLEMENTED!")
     
-    def ObservationService(self, state, dt):
-        athena_pos = np.transpose(np.array([[self.get_parameter('athena_position/x').value,
+    def ObservationService(self, state):
+        athena_pos = jnp.transpose(jnp.array([[self.get_parameter('athena_position/x').value,
                       self.get_parameter('athena_position/y').value, 0]]))
-        naiad_pos = -1*state[:3]
+        n_pos = -1*state[:3]
         n_rot = -1*state[3:6]
-        translate = np.append(np.eye(4,3), np.append(naiad_pos, [[1]], axis=0), axis=1)
-        rotation = np.array([[cos(n_rot[2]), -sin(n_rot[2]), 0], [sin(n_rot[2]), cos(n_rot[2]), 0], [0, 0, 1]])
+        translate = jnp.append(jnp.eye(4,3), jnp.append(n_pos, jnp.array([1])).reshape(4,1), axis=1)
+        rotation = jnp.array([[jnp.cos(n_rot[2]), -jnp.sin(n_rot[2]), 0],
+                              [jnp.sin(n_rot[2]), jnp.cos(n_rot[2]), 0],
+                              [0, 0, 1]])
+        local_pos = jnp.matmul(rotation, jnp.matmul(translate, jnp.append(athena_pos, jnp.array([[1]])).reshape(4,1))[:3])
+        #self.get_logger().info(jnp.array_str(local_pos.flatten()))
+        return local_pos.flatten()
         '''diffpos = [a-b for a, b in zip(athena_pos, naiad_pos)]
         diffang = atan2(diffpos[1], diffpos[0])
         local_pos = [ # Doesn't account for pitch and roll!
         diffpos[0]*cos(state[5])+diffpos[1]*sin(state[5]),
         diffpos[1]*cos(state[5])-diffpos[0]*sin(state[5]),
         diffpos[2]]'''
-        local_pos = np.matmul(rotation, np.matmul(translate, np.append(athena_pos, [[1]]))[:3])
-        self.get_logger().info(np.array_str(local_pos))
-        return local_pos
     
     def TakeMeasurement(self):
         pass

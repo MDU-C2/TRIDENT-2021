@@ -29,7 +29,7 @@ class IMUNode(sensbase.SensorNode):
             [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0], #dp
             [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]])#dh
         
-        noise_mat = (np.array([[2, .5, .5, .0001, .0001, .0001, .17, .17, .17]])*np.identity(9))**2
+        noise_mat = (np.array([[.3, .3, .5, .001, .001, .001, .17, .17, .17]])*np.identity(9))**2
         
         super().__init__('imu', 'naiad', 0.25,
                          init_obs_mat, 9, noise_mat)

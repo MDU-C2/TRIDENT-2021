@@ -4,6 +4,8 @@ from rclpy.node import Node
 from abc import ABC, abstractmethod
 import types
 from time import time
+from jax import jacfwd
+import jax.numpy as jnp
 
 from trident_msgs.srv import KalmanSensorService
 
@@ -14,8 +16,6 @@ class SensorNode(Node, ABC):
         self.obs_mod = observation_model
         self.measure = np.zeros((measure_var_count, 1))
         self.m_noise = noise_matrix
-        
-        self.last_resp = time()
         
         ismatrix = isinstance(self.obs_mod, np.ndarray)
         assert (not ismatrix or self.obs_mod.shape[0] == measure_var_count),\
@@ -32,7 +32,7 @@ class SensorNode(Node, ABC):
         
         self.ismatrix = isinstance(self.obs_mod, np.ndarray)
     
-    def jacobian(self, func, state, dt):
+    '''def jacobian(self, func, state, dt):
         new_state = func(state, dt)
         n = state.shape[0]
         m = new_state.shape[0]
@@ -42,7 +42,7 @@ class SensorNode(Node, ABC):
             Dxj = (abs(state[j,0])*dx if state[j,0] != 0 else dx)
             x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(state.flatten().tolist())]
             A[:, j] = (func(np.transpose(np.array([x_plus])), dt) - new_state).flatten()/Dxj
-        return (new_state, A)
+        return (new_state, A)'''
     
     def SensorService(self, request, response):
         # Take in the state and covar
@@ -54,9 +54,10 @@ class SensorNode(Node, ABC):
         if(self.ismatrix):
             obs_mat = self.obs_mod
         else:
-            dt = time() - self.last_resp
-            self.last_resp = time()
-            new_state, obs_mat = self.jacobian(self.obs_mod, state, dt)
+            obs_jacob = jacfwd(self.obs_mod)
+            #self.get_logger().info("TEST %s" % jnp.array_str(jnp.array(state.flatten())))
+            obs_mat = obs_jacob(jnp.array(state.flatten()))#self.jacobian(self.obs_mod, state, dt)
+            #self.get_logger().info("Jacobian_matrix: %s" % obs_mat)
             
         residual = self.measure - np.matmul(obs_mat, state)
         residual_covar = np.matmul(np.matmul(
