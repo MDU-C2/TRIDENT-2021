@@ -74,7 +74,7 @@ athena:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   motor_driver:
     ros__parameters:
-      motor_output_silence_period: 0.2   # Allowed time period in seconds that the motor driver
+      motor_output_silence_period: 0.4   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
       motor_output_scale: 0.5 # Scales the motor output values to limit maximum thrust
       motor_interface: >

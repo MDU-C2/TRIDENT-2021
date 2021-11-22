@@ -8,11 +8,12 @@ from threading import Event
 import rclpy
 from baseclasses.tridentstates import GotoWaypointStatus, NavigationState, HoldPoseStatus, GotoPoseStatus, WaypointActionType
 from rclpy.node import Node
-from rclpy.action import ActionClient, ActionServer
+from rclpy.action import ActionClient, ActionServer, CancelResponse, GoalResponse
 
 from geometry_msgs.msg import Pose, Point      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
 from std_msgs.msg import String
+from trident_msgs.msg import State
 from trident_msgs.srv import GetGoalPose, GetState
 from trident_msgs.action import GotoWaypoint, GotoPose, HoldPose
 
@@ -23,6 +24,8 @@ class NavigationBase(Node):
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
+        # The last known state of the agent.
+        self._agent_state: State = State()
         # Keeps track of the status of the GotoWaypoint action
         self._goto_waypoint_status = None
         self.path_to_waypoint: List[Pose] = []
@@ -34,6 +37,9 @@ class NavigationBase(Node):
         self._goto_pose_done_event = Event()
         # Event that keeps track on whether the GotoPose action has finished or not.
         self._hold_pose_done_event = Event()
+        # Keep track of the goal handles, so that they can be canceled
+        self._goto_pose_goal_handle = None
+        self._hold_pose_goal_handle = None
         # Keep reference to GotoWaypoint goal handle here so that feedback can be propagated
         self._goto_waypoint_goal_handle = None
 
@@ -45,6 +51,7 @@ class NavigationBase(Node):
             GotoWaypoint,
             'navigation/waypoint/go',
             execute_callback=self._action_server_goto_waypoint_execute_callback,
+            cancel_callback=self._action_server_goto_waypoint_cancel_goal
         )
         # Service to communicate the current goal pose to those who wants to know (e.g., guidance system)
         self._get_goal_pose_server = self.create_service(
@@ -77,7 +84,12 @@ class NavigationBase(Node):
 
         # Subscriptions
         # -------------
-
+        self._state_subscription = self.create_subscription(
+            State,
+            'position/state',
+            self._state_listener_callback,
+            1 # History depth, only keep the last received message
+        )
         # Publishers
         # ----------
         self._goto_waypoint_status_publisher = self.create_publisher(
@@ -141,6 +153,14 @@ class NavigationBase(Node):
 
     #                   Callbacks
     # --------------------------------------------
+    # Agent state listener callback
+    def _state_listener_callback(self, msg: State):
+        """Callback for the subscribtion to the position/state topic that contains state messages with the msg type Pose.
+        The callback reads the state and updates the agent_state property.
+        """
+        self.get_logger().info(f"Received state update. New state of the agent is: {msg}")
+        self._agent_state = msg
+
     def _get_state_callback(self, _, response):
         """Simple getter for the node's state.
         """
@@ -215,6 +235,7 @@ class NavigationBase(Node):
             return
 
         self.get_logger().info('Hold pose goal accepted.')
+        self._hold_pose_goal_handle = goal_handle
         # Create the future that gets completed when the action is finished
         self._hold_pose_get_result_future = goal_handle.get_result_async()
         # Add the callback for when the future is completed
@@ -234,6 +255,13 @@ class NavigationBase(Node):
         # Signal that the action has finished
         self._hold_pose_done_event.set()
 
+    def _hold_pose_cancel_done(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info('Hold pose goal successfully canceled')
+        else:
+            self.get_logger().info('Hold pose goal failed to cancel')
+        self._hold_pose_done_event.set()
 
     # Goto pose action client callbacks
     # -----------------------
@@ -282,6 +310,7 @@ class NavigationBase(Node):
             return
 
         self.get_logger().info('Pose goal accepted.')
+        self._goto_pose_goal_handle = goal_handle
         # Create the future that gets completed when the action is finished
         self._goto_pose_get_result_future = goal_handle.get_result_async()
         # Add the callback for when the future is completed
@@ -305,9 +334,30 @@ class NavigationBase(Node):
         # Signal that the action has finished
         self._goto_pose_done_event.set()
 
+    def _goto_pose_cancel_done(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info('Goto pose goal successfully canceled')
+        else:
+            self.get_logger().info('Goto pose goal failed to cancel')
+        self._goto_pose_done_event.set()
+
 
     # Goto waypoint action server callbacks
     # -----------------------
+    def _action_server_goto_waypoint_cancel_goal(self, goal_handle):
+        """Accepts or rejects the cancel request."""
+        self.get_logger().info("Received goto waypoint cancel request.")
+        try:
+            cancel_future = self._goto_pose_goal_handle.cancel_goal_async()
+            cancel_future.add_done_callback(self._goto_pose_cancel_done)
+            cancel_future = self._hold_pose_goal_handle.cancel_goal_async()
+            cancel_future.add_done_callback(self._hold_pose_cancel_done)
+        except Exception as e:
+            self.get_logger().info(f"Tried to cancel goto_pose/hold_pose goal, but failed. Error message: {e}")
+        
+        return CancelResponse.ACCEPT
+
     async def _action_server_goto_waypoint_execute_callback(self, goal_handle):
         """Executes the given goal by sending desired poses to the motor controller.
         Return feedback in the form of distance to goal, goal status and informational message.
@@ -327,7 +377,10 @@ class NavigationBase(Node):
         # Store goal handle for feedback propagation
         self._goto_waypoint_goal_handle = goal_handle
         # Loop through the poses that leads to the waypoint
-        for pose in self.path_to_waypoint:
+        for pose in self.path_to_waypoint:            # Check if a cancel was requested
+            if goal_handle.is_cancel_requested:
+                break
+
             self._goto_pose_done_event.clear()
             # Create and publish the initial feedback message.
             # Note: Further feedback messages will be propagated via the GotoPose feedback
@@ -341,9 +394,8 @@ class NavigationBase(Node):
             # ... and await the result via the appropriate event
             self._goto_pose_done_event.wait()
 
-
         # Check if the waypoint action is HOLD
-        if goal_handle.request.waypoint.action.action_type == WaypointActionType.HOLD:
+        if goal_handle.request.waypoint.action.action_type == WaypointActionType.HOLD and not goal_handle.is_cancel_requested:
             self.get_logger().info(f'Waypoint goal reached. Now performing HOLD action for {goal_handle.request.waypoint.action.action_param} seconds.')
             self._hold_pose_done_event.clear()
             # Call the motor controller's HoldPose action service
@@ -353,13 +405,18 @@ class NavigationBase(Node):
             )
             self._hold_pose_done_event.wait()
             self.get_logger().info('HoldPose goal finished.')
-        
-        goal_handle.succeed()
-        result = GotoWaypoint.Result()
-        result.status = GotoWaypointStatus.FINISHED
-        result.message = "Arrived at the waypoint. Goal finished."
-        result.distance_to_goal = 0.0 # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
-        
-        self.get_logger().info(f'Returning result: {result}')
 
+        # Create the result message and populate it
+        result = GotoWaypoint.Result()
+        if goal_handle.is_cancel_requested:
+            goal_handle.canceled()
+            self.get_logger().info("Mission goal canceled.")
+            result.message = "GotoWaypoint goal canceled."
+        else:
+            goal_handle.succeed()
+            result.message = "Arrived at the waypoint and action finished. Goal finished."
+        result.status = GotoWaypointStatus.FINISHED
+        result.distance_to_goal = self.distance_to_goal(self._agent_state.pose.position, goal_handle.request.waypoint.pose.position)
+
+        self.get_logger().info(f'Returning result: {result}')
         return result

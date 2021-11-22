@@ -6,7 +6,7 @@ import rclpy
 from threading import Event
 from baseclasses.tridentstates import MissionControlState, GotoWaypointStatus, StartMissionStatus, WaypointActionType
 from rclpy.node import Node
-from rclpy.action import ActionClient, ActionServer
+from rclpy.action import ActionClient, ActionServer, CancelResponse, GoalResponse
 
 from geometry_msgs.msg import Pose, Point, Quaternion      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
@@ -26,6 +26,8 @@ class MissionControlBase(Node):
         self.mission = None
         # Event that keeps track on whether an action has finished or not.
         self._goto_waypoint_done_event = Event()
+        # Goal handle for the GotoWaypoint action
+        self._goto_waypoint_goal_handle = None
 
 
         # self.get_logger().info('Creating servers.')
@@ -39,6 +41,8 @@ class MissionControlBase(Node):
             StartMission,
             'mission_control/mission/start',
             execute_callback=self._action_server_start_mission_execute_callback,
+            cancel_callback=self._action_server_start_mission_cancel_goal,
+            goal_callback=self._action_server_start_mission_goal_callback
         )
         # self.get_logger().info('StartMission action server created.')
 
@@ -284,6 +288,7 @@ class MissionControlBase(Node):
             return
 
         self.get_logger().info('Waypoint goal accepted.')
+        self._goto_waypoint_goal_handle = goal_handle
         # Create the future that gets completed when the action is finished
         self._goto_waypoint_get_result_future = goal_handle.get_result_async()
         # Add the callback for when the future is completed
@@ -326,11 +331,35 @@ class MissionControlBase(Node):
 
         return goto_waypoint_send_goal_future
 
+    def _goto_waypoint_cancel_done(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info('Goto waypoint goal successfully canceled')
+        else:
+            self.get_logger().info('Goto waypoint goal failed to cancel')
+
     # Start mission action server callbacks
     # ------------------------------
+    def _action_server_start_mission_cancel_goal(self, goal_handle):
+        """Accepts or rejects the cancel request."""
+        self.get_logger().info("Received mission cancel request.")
+
+        cancel_future = self._goto_waypoint_goal_handle.cancel_goal_async()
+        cancel_future.add_done_callback(self._goto_waypoint_cancel_done)
+
+        return CancelResponse.ACCEPT
+
+    def _action_server_start_mission_goal_callback(self, goal_request):
+        """Accepts or rejects the goal request. The goal is rejected if a the MissionControlState is EXECUTING_MISSION"""
+        if self._mission_control_state == MissionControlState.EXECUTING_MISSION:
+            return GoalResponse.REJECT
+            
+        return GoalResponse.ACCEPT
+
     async def _action_server_start_mission_execute_callback(self, goal_handle):
         """Executes the given goal by telling the navigation module to start the mission.
         """
+        # Check if 
         total_waypoints = len(self.mission.waypoints)
         waypoints_succeeded = 0
         waypoints_failed = 0
@@ -340,11 +369,21 @@ class MissionControlBase(Node):
         self.get_logger().info(f"Starting to execute mission with {total_waypoints} waypoints.")
 
         for i, waypoint in enumerate(self.mission.waypoints):
+            # Check if a cancel was requested
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                self.get_logger().info("Mission goal canceled.")
+                cancel_results = StartMission.Result()
+                cancel_results.success = True if StartMissionStatus.FINISHED else False
+                cancel_results.message = f"Mission goal canceled. Finished {i+1} waypoints."
+                return cancel_results
+
             self._goto_waypoint_done_event.clear()
             # self.get_logger().info(f"Awaiting goto_waypoint_send_goal")
             goto_waypoint_goal_future = self._goto_waypoint_send_goal(waypoint)
             # Wait for the GotoWaypoint action to finish by waiting on the event property.
             self._goto_waypoint_done_event.wait()
+            # MIGHT NEED TO ADD CANCEL CHECK FOR GOTO WAYPOINT HERE
             goto_waypoint_result = self._goto_waypoint_get_result_future.result().result
             self.get_logger().info(f"goto_waypoint_result: {goto_waypoint_result}.")
 

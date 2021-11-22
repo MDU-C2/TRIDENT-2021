@@ -159,6 +159,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             GotoPose,
             'motor_control/pose/go',
             execute_callback=self._action_server_goto_pose_execute_callback,
+            cancel_callback=self._action_server_goto_pose_on_cancel_callback
         )
         # Action server for the HoldPose action
         self._action_server_hold_pose = ActionServer(
@@ -166,6 +167,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             HoldPose,
             'motor_control/pose/hold',
             execute_callback=self._action_server_hold_pose_execute_callback,
+            cancel_callback=self._action_server_hold_pose_on_cancel_callback
         )
         # Manual override service
         self._server_manual_override = self.create_service(
@@ -752,6 +754,15 @@ class MotorControlBase(Node, metaclass=ABCMeta):
 
     # GotoPose callbacks
     # -----------------
+
+    def _action_server_goto_pose_on_cancel_callback(self, goal_handle):
+        """When a cancel is requested, we just set the hold_pose_time_reached
+        to true, and lets the execute callback handle the rest.
+        """
+        self.get_logger().info("Received cancel request. Cancelling...")
+
+        return CancelResponse.ACCEPT
+
     def _action_server_goto_pose_execute_callback(self, goal_handle):
         """Execution callback for the GotoPose action. Executes the goal with the help of PID regulation
         of the motors.
@@ -776,7 +787,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # i = 0 # For testing
         # while(i < 5):
             # i+=1
-        while(not self._goto_pose_goal_reached(goal_handle.request.pose)):
+        while(not self._goto_pose_goal_reached(goal_handle.request.pose) and not goal_handle.is_cancel_requested):
             current_pos = self._agent_state.pose.position
             desired_pos = goal_handle.request.pose.position
             current_orientation = self._agent_state.pose.orientation
@@ -835,7 +846,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         result = GotoPose.Result()
         result.status = GotoPoseStatus.FINISHED
         result.message = "Arrived at the goal pose. Goal finished."
-        result.distance_to_goal = 0.0 # TODO: self.distance_to_goal(self.agent_state.pose.position, goal_handle.request.pose.position) # TEMPORARY! TODO: Use the current state to calculate the distance to the goal.
+        result.distance_to_goal = self.distance_to_goal(self._agent_state.pose.position, goal_handle.request.pose.position)
 
         self.get_logger().info(f'Returning result: {result}')
 
