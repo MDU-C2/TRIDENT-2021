@@ -2,5 +2,5 @@
 
 pushd ../..
 colcon build
-./build/openvslam/example/run_slam -v src/openvslam/config/orb_vocab.fbow -c src/openvslam/config/config.yaml
+./build/openvslam/src/run_slam -v src/openvslam/config/orb_vocab.fbow -c src/openvslam/config/config.yaml
 popd
