@@ -122,17 +122,9 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 # yaml-cpp
 find_package(yaml-cpp REQUIRED)
 
-# spdlog
-set(spdlog_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rd/spdlog/include)
-include_directories(${spdlog_INCLUDE_DIR})
-
 # popl
 set(popl_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rd/popl/include)
 include_directories(${popl_INCLUDE_DIR})
-
-# json
-set(json_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rd/json/include)
-include_directories(${json_INCLUDE_DIR})
 
 # socket publisher
 set(USE_SOCKET_PUBLISHER ON CACHE BOOL "Enable Socket Publisher")
