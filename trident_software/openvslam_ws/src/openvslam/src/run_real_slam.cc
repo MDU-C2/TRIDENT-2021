@@ -24,10 +24,6 @@
 #include <glog/logging.h>
 #endif
 
-#ifdef USE_GOOGLE_PERFTOOLS
-#include <gperftools/profiler.h>
-#endif
-
 /* GIMME2 includes and defs */
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -110,9 +106,6 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     unsigned int num_frame = 0;
 
-    bool is_not_end = true;
-
-
     // run the frame capture in another thread
     std::thread thread1([&]() {
         while(true)       
@@ -146,21 +139,11 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     // run the SLAM in another thread
     std::thread thread2([&]() {
-        while (is_not_end) {
+        while (true) {
             // check if the termination of SLAM system is requested or not
             if (SLAM.terminate_is_requested()) {
                 break;
             }
-
-            /*
-            is_not_end = video.read(frame);
-            if (frame.empty()) {
-                continue;
-            }
-            if (scale != 1.0) {
-                cv::resize(frame, frame, cv::Size(), scale, scale, cv::INTER_LINEAR);
-            }
-            */
 
             const auto tp_1 = std::chrono::steady_clock::now();
 
@@ -265,16 +248,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-#ifdef USE_GOOGLE_PERFTOOLS
-    ProfilerStart("slam.prof");
-#endif
-
     // run tracking
     mono_tracking(cfg, vocab_file_path->value(), map_db_path->value());
-
-#ifdef USE_GOOGLE_PERFTOOLS
-    ProfilerStop();
-#endif
 
     return EXIT_SUCCESS;
 }
