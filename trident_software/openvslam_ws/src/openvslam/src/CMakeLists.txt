@@ -26,11 +26,6 @@ foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
     target_link_libraries(${EXECUTABLE_TARGET} PRIVATE
         yaml-cpp)
 
-    # build
-    target_include_directories(${EXECUTABLE_TARGET}
-                               PRIVATE ${OpenCV_INCLUDE_DIRS}
-                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/3rd/popl/include>
-                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/3rd/spdlog/include>)
     target_link_libraries(${EXECUTABLE_TARGET}
 	    PRIVATE ${openvslam_LIBS} ${OpenCV_LIBRARIES} ${Socket_Publisher_LIB} ${SIOCLIENT_LIBRARY} ${PROTOBUF_LIBRARIES})
 
