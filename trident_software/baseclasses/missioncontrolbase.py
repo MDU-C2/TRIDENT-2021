@@ -64,6 +64,136 @@ class MissionControlBase(Node):
         mission = Mission()
         wp_list = []
         for _ in range(1000):
+
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = 5.0
+            # pose.position.z = 2.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = 0.0
+            # pose.position.z = 8.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 5.0
+            # pose.position.y = 0.0
+            # pose.position.z = 4.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = 0.0
+            # pose.position.z = 1.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = -5.0
+            # pose.position.z = 1.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = 0.0
+            # pose.position.z = 1.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = -5.0
+            # pose.position.y = 0.0
+            # pose.position.z = 1.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
+            # waypoint = Waypoint()
+            # wp_action = WaypointAction()
+            # wp_action.action_type = WaypointActionType.HOLD
+            # wp_action.action_param = 3
+            # pose = Pose()
+            # pose.position.x = 0.0
+            # pose.position.y = 0.0
+            # pose.position.z = 1.0
+            # pose.orientation.x = 0.0
+            # pose.orientation.y = 0.0
+            # pose.orientation.z = 0.0
+            # pose.orientation.w = 0.0
+            # waypoint.pose = pose
+            # waypoint.action = wp_action
+            # wp_list.append(waypoint)
+
             waypoint = Waypoint()
             wp_action = WaypointAction()
             wp_action.action_type = WaypointActionType.HOLD
@@ -71,7 +201,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = 5.0
-            pose.position.z = 2.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -87,7 +217,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = 0.0
-            pose.position.z = 8.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -103,7 +233,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 5.0
             pose.position.y = 0.0
-            pose.position.z = 4.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -119,7 +249,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = 0.0
-            pose.position.z = 1.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -135,7 +265,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = -5.0
-            pose.position.z = 1.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -151,7 +281,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = 0.0
-            pose.position.z = 1.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -167,7 +297,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = -5.0
             pose.position.y = 0.0
-            pose.position.z = 1.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -183,7 +313,7 @@ class MissionControlBase(Node):
             pose = Pose()
             pose.position.x = 0.0
             pose.position.y = 0.0
-            pose.position.z = 1.0
+            pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
@@ -191,72 +321,6 @@ class MissionControlBase(Node):
             waypoint.pose = pose
             waypoint.action = wp_action
             wp_list.append(waypoint)
-
-        # Make it a looong mission
-        # for _ in range(100):
-        #     waypoint = Waypoint()
-        #     wp_action = WaypointAction()
-        #     wp_action.action_type = WaypointActionType.HOLD
-        #     wp_action.action_param = 3
-        #     pose = Pose()
-        #     pose.position.x = 0.0
-        #     pose.position.y = 15.0
-        #     pose.position.z = 2.0
-        #     pose.orientation.x = 0.0
-        #     pose.orientation.y = 0.0
-        #     pose.orientation.z = 0.0
-        #     pose.orientation.w = 0.0
-        #     waypoint.pose = pose
-        #     waypoint.action = wp_action
-        #     wp_list.append(waypoint)
-
-        #     waypoint = Waypoint()
-        #     wp_action = WaypointAction()
-        #     wp_action.action_type = WaypointActionType.HOLD
-        #     wp_action.action_param = 3
-        #     pose = Pose()
-        #     pose.position.x = 15.0
-        #     pose.position.y = 15.0
-        #     pose.position.z = 8.0
-        #     pose.orientation.x = 0.0
-        #     pose.orientation.y = 0.0
-        #     pose.orientation.z = 0.0
-        #     pose.orientation.w = 0.0
-        #     waypoint.pose = pose
-        #     waypoint.action = wp_action
-        #     wp_list.append(waypoint)
-
-        #     waypoint = Waypoint()
-        #     wp_action = WaypointAction()
-        #     wp_action.action_type = WaypointActionType.HOLD
-        #     wp_action.action_param = 3
-        #     pose = Pose()
-        #     pose.position.x = 15.0
-        #     pose.position.y = 0.0
-        #     pose.position.z = 4.0
-        #     pose.orientation.x = 0.0
-        #     pose.orientation.y = 0.0
-        #     pose.orientation.z = 0.0
-        #     pose.orientation.w = 0.0
-        #     waypoint.pose = pose
-        #     waypoint.action = wp_action
-        #     wp_list.append(waypoint)
-
-        #     waypoint = Waypoint()
-        #     wp_action = WaypointAction()
-        #     wp_action.action_type = WaypointActionType.HOLD
-        #     wp_action.action_param = 3
-        #     pose = Pose()
-        #     pose.position.x = 0.0
-        #     pose.position.y = 0.0
-        #     pose.position.z = 0.5
-        #     pose.orientation.x = 0.0
-        #     pose.orientation.y = 0.0
-        #     pose.orientation.z = 0.0
-        #     pose.orientation.w = 0.0
-        #     waypoint.pose = pose
-        #     waypoint.action = wp_action
-        #     wp_list.append(waypoint)
 
         self.get_logger().info("Loaded debug mission.")
         mission.waypoints = wp_list

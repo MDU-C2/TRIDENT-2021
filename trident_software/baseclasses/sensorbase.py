@@ -68,9 +68,9 @@ class SensorNode(Node, ABC):
                           np.transpose(obs_mat)),
                           np.linalg.inv(residual_covar))
         
-        self.get_logger().info("Residual: %s" % residual)
-        self.get_logger().info("Gain: %s" % kalman_gain)
-        self.get_logger().info("Observation matrix: %s" % obs_mat)
+        # self.get_logger().info("Residual: %s" % residual)
+        # self.get_logger().info("Gain: %s" % kalman_gain)
+        # self.get_logger().info("Observation matrix: %s" % obs_mat)
         
         # Craft and send response
         response.residual          = residual.flatten().astype('float32').tolist()

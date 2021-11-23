@@ -1,6 +1,7 @@
 import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
+from collections import deque
 from time import time
 from math import sin, cos
 from squaternion import Quaternion
@@ -34,6 +35,7 @@ class IMUNode(sensbase.SensorNode):
         super().__init__('imu', 'naiad', 0.25,
                          init_obs_mat, 9, noise_mat)
                          
+        self.acc_history = deque(maxlen=30)
         self.prev_state = np.zeros((12,1))
         self.prev_state_time = time()
             
@@ -55,12 +57,33 @@ class IMUNode(sensbase.SensorNode):
     def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
-        self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
-                             (dt*state[6,0])
-        self.obs_mod[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
-                             (dt*state[7,0])
-        self.obs_mod[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
-                             (dt*state[8,0])
+        self.acc_history.append([
+            self.prev_state[6,0]-state[6,0] / dt,
+            self.prev_state[7,0]-state[7,0] / dt,
+            self.prev_state[8,0]-state[8,0] / dt,
+        ])
+        mean_accs = [
+            sum([acc[0] for acc in self.acc_history]) / len(self.acc_history),
+            sum([acc[1] for acc in self.acc_history]) / len(self.acc_history),
+            sum([acc[2] for acc in self.acc_history]) / len(self.acc_history),
+        ]
+        self.obs_mod[3, 6] = mean_accs[0] / state[6,0]
+                             
+        self.obs_mod[4, 7] = mean_accs[1] / state[7,0]
+                             
+        self.obs_mod[5, 8] = mean_accs[2] / state[8,0]
+                             
+
+        # self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
+        #                      (dt*state[6,0])
+        # self.obs_mod[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
+        #                      (dt*state[7,0])
+        # self.obs_mod[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
+        #                      (dt*state[8,0])
+
+        self.get_logger().info(f"x accel:{self.obs_mod[3, 6]*state[6,0]}")
+        self.get_logger().info(f"y accel:{self.obs_mod[4, 7]*state[7,0]}")
+        self.get_logger().info(f"z accel:{self.obs_mod[5, 8]*state[8,0]}")
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
         
