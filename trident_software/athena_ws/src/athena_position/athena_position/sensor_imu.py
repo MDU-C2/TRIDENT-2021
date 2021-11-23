@@ -16,11 +16,13 @@ class IMUNode(sensbase.SensorNode):
             #x y      yaw dx dy dyaw
             [0,0,       0, 1, 0,   0], #ddx
             [0,0,       0, 0, 1,   0], #ddy
-            [0,0,180/3.14, 0, 0,   0], #  yaw
+            #[0,0,180/3.14, 0, 0,   0], #  yaw
+            [0,0,       1, 0, 0,   0], #  yaw (for sim)
             [0,0,       0, 0, 0,   1]])# dyaw
         
         # TODO: couldn't find any real noise values, but these should be fine?
-        noise_mat = (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
+        #noise_mat = (np.array([[0.1, 0.1, 3, 0.1]])*np.identity(4))**2
+        noise_mat = (np.array([[0.00001745, 0.00001745, 0.000001745, 0.000001745]])*np.identity(4))**2
         
         super().__init__('imu', 'athena', 0.25,
                          init_obs_mat, 4, noise_mat)
@@ -37,21 +39,20 @@ class IMUNode(sensbase.SensorNode):
                                 self.SimulatedMeasurement, 10)
             self.timer.destroy() # Stop the original timed sensor from running
         else:
-            
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
             import board
             import busio
             import adafruit_bno055
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
     
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
     def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
-        self.obs_mat[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
+        self.obs_mod[0, 3] = (self.prev_state[3, 0]-state[3, 0]) /\
                              (dt*state[3, 0])
-        self.obs_mat[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
+        self.obs_mod[1, 4] = (self.prev_state[4, 0]-state[4, 0]) /\
                              (dt*state[4, 0])
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
@@ -74,7 +75,9 @@ class IMUNode(sensbase.SensorNode):
         self.measure[3,0] = msg.angular_velocity.z/100 + 99*self.measure[3,0]/100'''
         self.measure[0,0] = msg.linear_acceleration.x
         self.measure[1,0] = msg.linear_acceleration.y
-        q = Quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z)
+        #self.get_logger().info("Base quat: %s" % msg.orientation)
+        q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
+        #self.get_logger().info("Euler: %s" % str(q.to_euler()))
         self.measure[2,0] = q.to_euler()[2]
         self.measure[3,0] = msg.angular_velocity.z
 

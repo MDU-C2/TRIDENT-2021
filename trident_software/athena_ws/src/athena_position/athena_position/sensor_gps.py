@@ -29,7 +29,7 @@ class GPSNode(sensbase.SensorNode):
             [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
-                         init_obs_mat, 2, np.identity(2)*0.5**2)
+                         init_obs_mat, 2, np.identity(2)*0.000005**2)
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('is_simulated', False)

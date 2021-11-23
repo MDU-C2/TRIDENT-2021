@@ -88,7 +88,7 @@ class WaypointMap {
 		this.naiadMarker = new L.marker([this.relativeNullPoint.latitude+0.001,this.relativeNullPoint.longitude-0.001], {icon:this.naiadIcon}).addTo(this.map);
 		
 	}
-	asRadians(degrees)
+	asRadians(degrees) //Converts degrees to radians
 	{
 		return degrees * Math.PI / 180
 	}
@@ -98,7 +98,7 @@ class WaypointMap {
 		return (1-Math.cos(theta))/2;
 	}
 
-	GenerateXYconversionParams()
+	generateXYconversionParams()
 	{
 		// Calculate the "great circle" length of a degree latitude and longitude
 		var earthRadius = 6362257; // approximate radius at origin
@@ -110,15 +110,15 @@ class WaypointMap {
 			));
 	}
 
-	GetXYpos(desiredPos)
+	getXYpos(desiredPos) //Get [x,y] coords based of [lat,lng]
 	{
-		degreeDifference = [desiredPos.latitude - this.relativeNullPoint.latitude,
+		var degreeDifference = [desiredPos.latitude - this.relativeNullPoint.latitude,
 							desiredPos.longitude - this.relativeNullPoint.longitude];
 		return [degreeDifference[0]*this.metersPerLat,
 				degreeDifference[1]*this.metersPerLon];
 	}
 
-	GetLatLng(relativePos)
+	getLatLng(relativePos) //Get [lat,lng] coord based of [x,y]
 	{
 		return [relativePos[0]/this.metersPerLat+this.relativeNullPoint.latitude,
 				relativePos[1]/this.metersPerLon+this.relativeNullPoint.longitude];
@@ -138,6 +138,8 @@ class Server {
 
 	sendReq(data)
 	{
+		//Create a promise that sends a request to the server,
+		//waits for a response, and sends it back to client.
 		return new Promise(resolve => {
 			this.socket.emit("request",{data});
 			this.socket.on("response", resp => {
@@ -186,6 +188,7 @@ class Server {
 		});
 	}
 
+	//Listen on updates of the substates in Athena and Naiad
 	listenGetStates()
 	{
 		var state = new TridenStates();
@@ -292,6 +295,7 @@ class Server {
 		});
 	}
 
+	//Listen om mission status update
 	listenMissionStatus()
 	{
 		this.socket.on('mission/status', resp => {
@@ -310,31 +314,33 @@ class Server {
 		});
 	}
 
+	//Listen on Athena and Naiad current position and heading
 	listenPosState()
 	{
 		this.socket.on('state/athena', resp => {
-			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
-			waypointMap.athenaMarker.setRotationAngle(resp.data.heading);
+			var latlng = waypointMap.getLatLng([resp.x,resp.y]);
+			waypointMap.athenaMarker.setRotationAngle(resp.yaw);
 			waypointMap.athenaMarker.slideTo(latlng, {
 				duration: 500
 			});
 		});
 		this.socket.on('state/naiad', resp => {
-			var latlng = waypointMap.GetLatLng([resp.data.x,resp.data.y]);
-			waypointMap.naiadMarker.setRotationAngle(resp.data.heading);
+			var latlng = waypointMap.getLatLng([resp.x,resp.y]);
+			waypointMap.naiadMarker.setRotationAngle(resp.yaw);
 			waypointMap.naiadMarker.slideTo(latlng, {
 				duration: 500
 			});
 		});
 	}
 
+	//Listen on logging data from Athena and Naiad
 	listenLogger()
 	{
 		this.socket.on('logger/athena', resp => {
-			logger.printLogger('loggerAthenaWindow', JSON.stringify(resp.data));
+			logger.printLogger('loggerAthenaWindow', JSON.stringify(resp));
 		});
 		this.socket.on('logger/naiad', resp => {
-			logger.printLogger('loggerNaiadWindow', JSON.stringify(resp.data));
+			logger.printLogger('loggerNaiadWindow', JSON.stringify(resp));
 		});
 	}
 }
@@ -353,6 +359,7 @@ class Athena {
 		};
 	}
 
+	//Set substate of specified module
 	setSubState(module,state)
 	{
 		switch(module)
@@ -391,6 +398,7 @@ class Naiad {
 		};
 	}
 
+	//Set substate of specified module
 	setSubState(module,state)
 	{
 		switch(module)
@@ -424,6 +432,7 @@ class Logger {
 		this.freezeLogger = false;
 	}
 
+	//Print logging message to specified board (main, athena, naiad)
 	printLogger(board,msg,color)
 	{
 		var today = new Date();
@@ -442,6 +451,8 @@ class Logger {
 		}
 	}
 
+	//Disable the logging windows from automatically scrolling
+	//to the bottom when new logging data is printed
 	toggleFreezeLogger()
 	{
 		this.freezeLogger = !this.freezeLogger;
@@ -455,6 +466,7 @@ class Logger {
 		}
 	}
 
+	//Clear logging screens
 	clearLoggerWindow()
 	{
 		document.getElementById('loggerMainWindow').innerHTML = "";
@@ -462,6 +474,7 @@ class Logger {
 		document.getElementById('loggerNaiadWindow').innerHTML = "";
 	}
 
+	//Opens a new tab with an enlarged logger window for main, athena, and naiad
 	openFullscreenLogger()
 	{
 		window.open('loggerWindow.html', '_blank');
@@ -471,7 +484,7 @@ class Logger {
 
 //Setup class handlers
 var waypointMap = new WaypointMap();
-waypointMap.GenerateXYconversionParams();
+waypointMap.generateXYconversionParams();
 var athena = new Athena();
 var naiad = new Naiad();
 var logger = new Logger();
@@ -576,17 +589,19 @@ function remapPolyLines()
 {
 	//Remove all polylines and add them back to get correct polylines
 	waypointMap.polyLines[waypointMap.waypointType].forEach(function(item){
-		//console.log(item);
 		waypointMap.map.removeLayer(item);
 	});
 	waypointMap.latlng[waypointMap.waypointType] = [];
 
-	//Remap polylines
+	//Go through each marker on the map of a specified type (athena, naiad)
+	//and insert it to the latlng array buffer
 	waypointMap.waypointObjects[waypointMap.waypointType].forEach(function(waypoint)
 	{
 		waypointMap.latlng[waypointMap.waypointType].push([waypoint._latlng.lat,waypoint._latlng.lng]);
 	});
 
+	//If there are more than one marker of the same type => set a polyline
+	//between those markers
 	if (waypointMap.waypointCounter[waypointMap.waypointType] > 1)
 	{
 		if (waypointMap.waypointType == 0) //Athena
@@ -643,7 +658,6 @@ function selectWaypointType(target)
 */
 async function sendPayload()
 {
-	console.log(document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked);
 	var payload = document.getElementById("payloadSelectBox").value;
 	var targets = [document.getElementById("checkboxTargetAthena").checked, document.getElementById("checkboxTargetNaiad").checked]; // [athena,naiad]
 	var tmpTargerArr = [];
@@ -729,12 +743,14 @@ async function sendPayload()
 				var tmpBool = null;
 				if (tar == 'athena')
 				{
+					//Get the inverted value of the current manual_override value
 					if (athena.substate.motor_ctrl = 'MANUAL_OVERRIDE'){tmpBool=false;}
 					else {tmpBool=true}
 					
 				}
 				else if (tar == 'naiad')
 				{
+					//Get the inverted value of the current manual_override value
 					if (naiad.substate.motor_ctrl = 'MANUAL_OVERRIDE'){tmpBool=false;}
 					else {tmpBool=true}
 				}
@@ -747,6 +763,7 @@ async function sendPayload()
 
 		var server = new Server();
 		logger.printLogger('loggerMainWindow',"Sending "+payload+" to: " + tar);
+		//Send payload to server as request and wait for response
 		var resp = await server.sendReq(data);
 		if (resp.data.success == true)
 		{
@@ -764,6 +781,7 @@ async function sendPayload()
 */
 async function abort()
 {
+	//Send abort payload to both Athena and Naiad
 	var target = ['athena','naiad'];
 	for (tar of target)
 	{

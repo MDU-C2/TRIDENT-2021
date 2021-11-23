@@ -1,6 +1,7 @@
 const rclnodejs = require('./node_modules/rclnodejs/index.js'); //ROS2 javascript library
 const LoadMission = rclnodejs.require('trident_msgs/srv/LoadMission');
 var fs = require('fs'); //File system library
+var THREE = require('three');
 
 let prefixTopics = "gc/"; //Prefix used during testing
 
@@ -206,7 +207,7 @@ class Server
 
             for (var wp of req.data.waypoints)
             {
-              wpAction.action_type = waypointAction.NO_ACTION;
+              wpAction.action_type = 0;
               wpAction.action_param = 0;
               point.x = wp[0];
               point.y = wp[1];
@@ -370,14 +371,18 @@ class ROS2
   {
     //Create and start state listener Athena
     this.stateAthena = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'athena/position/state', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
       this.heartbeatAthena.active = true;
-      serverHandle.io.emit('state/athena', {data:msg});
+      serverHandle.io.emit('state/athena', {x:msg.pose.position.x, y:msg.pose.position.y, yaw:rotation._z*(180/Math.PI)});
     });
 
     //Create and start state listener Naiad
     this.stateNaiad = this.node.createSubscription('trident_msgs/msg/State', prefixTopics+'naiad/position/state', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
       this.heartbeatNaiad.active = true;
-      serverHandle.io.emit('state/naiad', {data:msg});
+      serverHandle.io.emit('state/naiad', {x:msg.pose.position.x, y:msg.pose.position.y, yaw:rotation._z*(180/Math.PI)});
     });
 
     //Create and start logging listener Athena & Naiad
@@ -389,10 +394,16 @@ class ROS2
           typeof msg.line !== 'undefined')
       {
         var logTarget = msg.name.substr(0, msg.name.indexOf('.')); //Get target device name
+        var date = new Date(msg.stamp * 1000);
+        var hours = date.getHours();
+        var minutes = "0" + date.getMinutes();
+        var seconds = "0" + date.getSeconds();
+        var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+        msg.stamp = formattedTime
         fs.appendFile('logs/'+logTarget+'.log', JSON.stringify(msg)+'\n', function (err) {
           if (err) throw err;
         }); 
-        serverHandle.io.emit('logger/'+logTarget, {data:msg});
+        serverHandle.io.emit('logger/'+logTarget, msg);
       }
     });
 

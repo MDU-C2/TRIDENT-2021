@@ -11,7 +11,8 @@ from cola2_msgs.msg import Setpoints
 
 class PosNode(Node, ABC):
     def __init__(self, name, pub_topic_name, interval,
-                 start_state, start_covar, proc_noise, sensor_list, ctrl_v_size, ctrl_v_top_name):
+                 start_state, start_covar, proc_noise, sensor_list,
+                 ctrl_v_size, ctrl_v_top_name):
                  
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
@@ -21,7 +22,7 @@ class PosNode(Node, ABC):
         #self.timer = self.create_timer(timer_period, self.timer_callback)
         self.last_state_time = time()
         self.get_logger().info("If this shows up, the simulation messages are still being used for control vector")
-        self.ctrl_vec_sub_ = self.create_subscription(cola2_msgs/Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
+        self.ctrl_vec_sub_ = self.create_subscription(Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
         
         # Inits for all the Kalman-related variables #
         #-------------------------------------------#
@@ -135,11 +136,17 @@ class PosNode(Node, ABC):
         n = state.shape[0]
         m = new_state.shape[0]
         A = np.zeros((m,n))
-        h = n * pow(2,-51) # Just a small number here, I think?
+        ''' h = n * pow(2,-51) # Just a small number here, I think?
         for k in range(n):
-            state1 = state.astype('complex64')
+            state1 = np.copy(state).astype('complex64')
             state1[k, 0] = complex(state1[k, 0], h)
             A[:, k] = np.transpose((func(state1, dt)).imag/h) 
+        return (new_state, A)'''
+        dx = 1e-8
+        for j in range(n):
+            Dxj = (abs(state[j,0])*dx if state[j,0] != 0 else dx)
+            x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(state.flatten().tolist())]
+            A[:, j] = (func(np.transpose(np.array([x_plus])), dt) - new_state).flatten()/Dxj
         return (new_state, A)
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
@@ -177,7 +184,7 @@ class PosNode(Node, ABC):
                                         obs_mat),
                                     pred_covar)
                 except Exception as e:
-                    self.get_logger().warn("Skipping sensor due to failure! " + e)
+                    self.get_logger().warn("Skipping sensor due to failure! " + str(e))
             
             # Finally, set the state and covariance to the new ones!
             self.state = pred_state
