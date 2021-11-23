@@ -9,6 +9,8 @@
 
 using namespace std::chrono_literals;
 
+bool stop_node = false;
+
 class OpticalFlowNode : public rclcpp::Node
 {
     public:
@@ -16,7 +18,7 @@ class OpticalFlowNode : public rclcpp::Node
             : Node("optical_flow_node"), count_(0)
         {
             publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-            while(true){ /* Start optical flow algorithm here, maybe in its own thread. */
+            while(!stop_node){ /* Start optical flow algorithm here, maybe in its own thread. */
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 auto message = std_msgs::msg::String();
                 message.data = "Hello, world! " + std::to_string(count_++);
@@ -33,8 +35,15 @@ class OpticalFlowNode : public rclcpp::Node
         size_t count_;
 };
 
+void mySigintHandler(int sig)
+{
+    std::cout << "Interrupt signal (" << sig << ") received.\n";
+    stop_node = true;
+}
+
 int main(int argc, char * argv[])
 {
+    signal(SIGINT, mySigintHandler);
     rclcpp::init(argc, argv);
     rclcpp::spin_some(std::make_shared<OpticalFlowNode>());
     rclcpp::shutdown();
