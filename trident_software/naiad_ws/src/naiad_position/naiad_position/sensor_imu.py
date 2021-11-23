@@ -35,9 +35,11 @@ class IMUNode(sensbase.SensorNode):
         super().__init__('imu', 'naiad', 0.25,
                          init_obs_mat, 9, noise_mat)
                          
-        self.acc_history = deque(maxlen=30)
+        self.acc_history = deque(maxlen=3)
         self.prev_state = np.zeros((12,1))
         self.prev_state_time = time()
+        
+        self.imu_history = deque(maxlen=30)
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
@@ -114,15 +116,18 @@ class IMUNode(sensbase.SensorNode):
     def SimulatedMeasurement(self, msg):
         q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
         euler = q.to_euler()
-        self.measure[0,0] = euler[0]
-        self.measure[1,0] = euler[1]
-        self.measure[2,0] = euler[2]
-        self.measure[3,0] = msg.linear_acceleration.x
-        self.measure[4,0] = msg.linear_acceleration.y
-        self.measure[5,0] = msg.linear_acceleration.z
-        self.measure[6,0] = msg.angular_velocity.x
-        self.measure[7,0] = msg.angular_velocity.y
-        self.measure[8,0] = msg.angular_velocity.z
+        self.imu_history.append([
+            euler[0],
+            euler[1],
+            euler[2],
+            msg.linear_acceleration.x,
+            msg.linear_acceleration.y,
+            msg.linear_acceleration.z,
+            msg.angular_velocity.x,
+            msg.angular_velocity.y,
+            msg.angular_velocity.z
+        ])
+        self.measure[:,0] = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
 def main(args=None):
     rclpy.init(args=args)
