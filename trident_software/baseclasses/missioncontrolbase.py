@@ -335,6 +335,11 @@ class MissionControlBase(Node):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) > 0:
             self.get_logger().info('Goto waypoint goal successfully canceled')
+            # Change the state accordingly
+            if self.mission is not None and len(self.mission.waypoints):
+                self._mission_control_state = MissionControlState.MISSION_LOADED
+            else:
+                self._mission_control_state = MissionControlState.NO_MISSION
         else:
             self.get_logger().info('Goto waypoint goal failed to cancel')
 
