@@ -11,6 +11,10 @@
 #include <opencv2/ml.hpp>
 #include <opencv2/core/utility.hpp>
 
+#define LK_DENSE 0
+#define FARNEBACK 1
+#define RLOF 2
+
 using namespace cv;
 using namespace std;
 
@@ -82,7 +86,7 @@ int lucas_kanade(const string& filename, bool save)
 }
 
 
-void dense_optical_flow(string filename, bool save, bool to_gray)
+void dense_optical_flow(string filename, bool save, bool to_gray, int method)
 {
     // VideoCapture 
     // capture(samples::findFile(filename));
@@ -116,8 +120,22 @@ void dense_optical_flow(string filename, bool save, bool to_gray)
             next = frame2;
         Mat flow(prvs.size(), CV_32FC2);
 
-        // method(prvs, next, flow, std::forward<Args>(args)...);
-        cv::optflow::calcOpticalFlowSparseToDense(prvs, next, flow);
+        switch (method)
+        {
+        case LK_DENSE:
+            // Dense Lucas-Kanade algorithm
+            optflow::calcOpticalFlowSparseToDense(prvs, next, flow);
+            break;
+        case FARNEBACK:
+            calcOpticalFlowFarneback(prvs, next, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+            break;
+        case RLOF:
+            optflow::calcOpticalFlowDenseRLOF(prvs, next, flow);
+            break;
+        default:
+            cout << "ERROR NO OPTICAL FLOW ALGORITHM \n";
+            break;
+        }
 
         // visualization
         Mat flow_parts[2];
@@ -130,9 +148,9 @@ void dense_optical_flow(string filename, bool save, bool to_gray)
 
         // Scalar avgAngle = angle.at<uchar>(Point2i(pt1));
         Scalar avgMagn = mean(magn_norm);
-        int scale = 70;
-        pt2 = pt1 + Point2i(scale * cos(avgAngle[0] * CV_PI / 180), scale * sin(avgAngle[0] * CV_PI / 180));
-        cout << "pt1 = " << pt1 << ", pt2 = " << pt2 << ", angle = " << avgAngle << endl;
+        int scale = 90;
+        pt2 = pt1 + Point2i(scale * avgMagn[0] * cos(avgAngle[0] * CV_PI / 180), scale * avgMagn[0] * sin(avgAngle[0] * CV_PI / 180));
+        cout << "pt1 = " << pt1 << ", pt2 = " << pt2 << ", angle = " << avgAngle[0] << ", magnitude = " << avgMagn[0] << endl;
 
 
         //build hsv image
@@ -143,18 +161,18 @@ void dense_optical_flow(string filename, bool save, bool to_gray)
         merge(_hsv, 3, hsv);
         hsv.convertTo(hsv8, CV_8U, 255.0);
         cvtColor(hsv8, bgr, COLOR_HSV2BGR);
-        if (save) {
-            string save_path = "./optical_flow_frames/frame_" + to_string(counter) + ".jpg";
-            imwrite(save_path, bgr);
-        }
+        // draw arrow on video image
         arrowedLine(frame2, pt1, pt2, Scalar(130,100,100), 5);
+        // show video and optical flow result
         imshow("frame", frame2);
         imshow("flow", bgr);
         int keyboard = waitKey(30);
+        // quit 
         if (keyboard == 'q' || keyboard == 27)
             break;
         prvs = next;
         counter++;
+        waitKey(0);
     }
 }
 
@@ -169,9 +187,9 @@ int main(int argc, char** argv)
 
     string filename = "../Naiad_in_trondheim_firstTrial_pt1_2.mp4";
     bool save = true;
-    bool to_gray = true;
+    bool to_gray = true;        // FARNEBACK-true, RLOF-false
     // lucas_kanade(filename, save);
-    dense_optical_flow(filename, save, to_gray);
+    dense_optical_flow(filename, save, to_gray, FARNEBACK);        // For last argument, select from LK_DENSE, FARNEBACK, RLOF
 
     return 0;
 }
