@@ -20,6 +20,8 @@
 #include <spdlog/spdlog.h>
 #include <popl.hpp>
 
+#include "rclcpp/rclcpp.hpp"
+
 #ifdef USE_STACK_TRACE_LOGGER
 #include <glog/logging.h>
 #endif
@@ -47,6 +49,9 @@ typedef struct
     uint8_t Data[PPF];
 } UDPFrame;
 
+bool stop_thread_1 = false;
+bool stop_thread_2 = false;
+
 void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
                    const std::string& vocab_file_path, const std::string& map_db_path) {
     int sockfd;
@@ -57,8 +62,10 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // Pre-allocate area for image 
     // CV_8UC3 represents an 8-bit Uint with 3 channels
 
+    cv::Mat image = cv::Mat(HEIGHT, WIDTH, CV_8UC3);
+    cv::Mat temp_image = cv::Mat(HEIGHT, WIDTH, CV_8UC3);
     cv::Mat* next_image = &image;
-    cv::Mat* working_image = &image_temp;
+    cv::Mat* working_image = &temp_image;
 
     // Creating the socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) 
@@ -90,10 +97,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     // create a viewer object
     // and pass the frame_publisher and the map_publisher
-#ifdef USE_PANGOLIN_VIEWER
-    pangolin_viewer::viewer viewer(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
-#elif USE_SOCKET_PUBLISHER
+#if USE_SOCKET_PUBLISHER
     socket_publisher::publisher publisher(
         openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #endif
@@ -106,8 +110,14 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     // run the frame capture in another thread
     std::thread thread1([&]() {
+        while(rclcpp::ok()){
         while(true)       
         {
+            // check if the termination of SLAM system is requested or not
+            if (SLAM.terminate_is_requested() || stop_thread_1) {
+                std::terminate();
+            }
+
             // Recieve a dataframe from the GIMME2
             recvfrom(sockfd, (UDPFrame *)&frameBuffer, sizeof(UDPFrame), MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
 
@@ -131,14 +141,17 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
                 next_image = tempPtr;
             }
         }
+        }
     });
 
     // run the SLAM in another thread
     std::thread thread2([&]() {
+        while(rclcpp::ok()){
         while (true) {
             // check if the termination of SLAM system is requested or not
-            if (SLAM.terminate_is_requested()) {
-                break;
+            if (SLAM.terminate_is_requested() || stop_thread_2) {
+                stop_thread_1 = true;
+                std::terminate();
             }
 
             const auto tp_1 = std::chrono::steady_clock::now();
@@ -155,6 +168,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
             timestamp += 1.0 / cfg->camera_->fps_;
             ++num_frame;
         }
+        }
 
         // wait until the loop BA is finished
         while (SLAM.loop_BA_is_running()) {
@@ -163,13 +177,10 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
     });
 
     // run the viewer in the current thread
-#ifdef USE_PANGOLIN_VIEWER
-    viewer.run();
-#elif USE_SOCKET_PUBLISHER
+#if USE_SOCKET_PUBLISHER
     publisher.run();
 #endif
 
-    thread1.join();
     thread2.join();
 
     // shutdown the SLAM process
@@ -184,13 +195,28 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
     const auto total_track_time = std::accumulate(track_times.begin(), track_times.end(), 0.0);
     std::cout << "median tracking time: " << track_times.at(track_times.size() / 2) << "[s]" << std::endl;
     std::cout << "mean tracking time: " << total_track_time / track_times.size() << "[s]" << std::endl;
+
+    rclcpp::shutdown();
+}
+
+void mySigintHandler(int sig)
+{
+    std::cout << "Interrupt signal (" << sig << ") received.\n";
+    stop_thread_1 = stop_thread_2 = true;
 }
 
 int main(int argc, char* argv[]) {
+    signal(SIGINT, mySigintHandler);
+
 #ifdef USE_STACK_TRACE_LOGGER
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
 #endif
+    rclcpp::init(argc, argv);
+
+    std::cout << "Printing arguments:" << '\n';
+    for(int i = 0; i < argc; ++i)
+                std::cout << argv[i] << '\n';
 
     // create options
     popl::OptionParser op("Allowed options");

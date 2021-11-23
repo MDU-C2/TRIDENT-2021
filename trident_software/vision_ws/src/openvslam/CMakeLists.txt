@@ -76,17 +76,13 @@ endif()
 #########
 
 add_executable(run_slam src/slam/run_real_slam.cc)
-target_compile_definitions(run_slam
-	PRIVATE -DUSE_SOCKET_PUBLISHER)
-target_link_libraries(run_slam PRIVATE
-	${SIOCLIENT_LIBRARY} ${PROTOBUF_LIBRARIES} socket_publisher)
-target_link_libraries(run_slam PRIVATE
-	yaml-cpp)
-target_link_libraries(run_slam
-	PRIVATE ${openvslam_LIBS} ${OpenCV_LIBRARIES} ${Socket_Publisher_LIB} ${SIOCLIENT_LIBRARY} ${PROTOBUF_LIBRARIES})
+target_compile_definitions(run_slam PRIVATE -DUSE_SOCKET_PUBLISHER)
+target_link_libraries(run_slam ${openvslam_LIBS} ${OpenCV_LIBRARIES} ${Socket_Publisher_LIB} ${SIOCLIENT_LIBRARY} ${PROTOBUF_LIBRARIES} socket_publisher yaml-cpp)
+ament_target_dependencies(run_slam rclcpp)
 
 add_executable(run_optflow src/optflow/run_optflow.cc)
 ament_target_dependencies(run_optflow rclcpp std_msgs)
+target_link_libraries(run_optflow ${openvslam_LIBS} ${OpenCV_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 install(
 	TARGETS run_slam run_optflow DESTINATION lib/${PROJECT_NAME}
