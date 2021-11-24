@@ -733,6 +733,13 @@ async function sendPayload()
 		//Input correct parameters depending on payload
 		switch(payload) {
 			case 'load_mission_plan':
+				//Check if were currently executing mission
+				if (athena.substate.mission_ctrl == "EXECUTING")
+				{
+					logger.printLogger('loggerMainWindow',tar + " is currently executing mission.", "red");
+					continue;
+				}
+
 				var waypoints = [];
 				//If we don't have any waypoints added for target
 				if ((tar == 'athena' && waypointMap.latlng[0].length == 0) || (tar == 'naiad' && waypointMap.latlng[1].length == 0))
@@ -777,6 +784,12 @@ async function sendPayload()
 				data = {function:payload, waypoints:waypoints, target:tar};
 				break;
 			case 'start_mission_plan':
+				//Check if were currently executing mission
+				if (athena.substate.mission_ctrl == "EXECUTING")
+				{
+					logger.printLogger('loggerMainWindow',tar + " is currently executing mission.", "red");
+					continue;
+				}
 				data = {function:payload,target:tar};
 				break;
 			case 'toggle_manual_override':
