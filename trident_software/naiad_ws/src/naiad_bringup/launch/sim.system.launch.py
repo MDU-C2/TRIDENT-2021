@@ -62,7 +62,7 @@ def generate_launch_description():
             package='naiad_position',
             namespace='/naiad/position/',
             executable='position_node',
-            name='pos'
+            name='pos',
         ),
         Node(
             package='naiad_position',

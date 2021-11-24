@@ -5,6 +5,7 @@ from random import gauss
 from time import time, sleep
 from abc import ABC, abstractmethod
 
+from std_msgs.msg import String
 from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
 from cola2_msgs.msg import Setpoints
@@ -17,6 +18,16 @@ class PosNode(Node, ABC):
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
         super().__init__(name)
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('position_update_frequency', 10.0), # Hz
+            ])
+        # Load parameters
+        self._position_update_frequency = self.get_parameter('position_update_frequency').get_parameter_value().double_value # Hz
+        # Create the rate object at which the position node's spin loop operates at
+        self._position_update_rate = self.create_rate(self._position_update_frequency)
+
         self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
         #timer_period = interval
         #self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -25,7 +36,7 @@ class PosNode(Node, ABC):
         self.ctrl_vec_sub_ = self.create_subscription(Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
         
         # Inits for all the Kalman-related variables #
-        #-------------------------------------------#
+        #--------------------------------------------#
         self.state = np.copy(start_state)
         self.covar = np.copy(start_covar)
         self.proc_noise = np.copy(proc_noise)
@@ -126,7 +137,7 @@ class PosNode(Node, ABC):
                 elif time() - start_time > 3:
                     raise Exception("Service took too long (more than three seconds)!")
         except Exception as e:
-                print("Couldn't get values from a service:",e)
+                self.get_logger().info(f"Couldn't get values from a service: {e}")
     
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
     # Jacobian through complex step differentiation
@@ -192,8 +203,8 @@ class PosNode(Node, ABC):
             
             # AND publish the new state
             self.state_publish()
-            
-            sleep(0.5)
+            # Sleep until next update interval
+            self._position_update_rate.sleep()
 
 def main(args=None):
     rclpy.init(args=args)
