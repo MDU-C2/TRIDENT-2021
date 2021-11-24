@@ -124,6 +124,17 @@ class Server
         });
       });
 
+      //Get state from Athena guidance module
+      ROS2handle.getStatesAthena.position.waitForService(1900).then((result) => {
+        if (!result) {
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.position._serviceName+' not available'});
+          return;
+        }
+        ROS2handle.getStatesAthena.position.sendRequest(request, (response) => {
+          this.io.emit('state/get/position',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
+        });
+      });
+
       /*
         Naiad
       */
@@ -353,8 +364,8 @@ class ROS2
     this.startMissionPlanNaiad = null;
     this.abortAthena = null;
     this.abortNaiad = null;
-    this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
-    this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
+    this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null,guidance:null};
+    this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null,guidance:null};
     this.startMissionAthena = null;
     this.startMissionNaiad = null;
     this.stateAthena = null;

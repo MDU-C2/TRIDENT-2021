@@ -111,7 +111,8 @@ rclnodejs
     let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
     let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
     let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
-    let state = new State();
+    let state1 = new State();
+    let state2 = new State();
 
     twist.linear.x = 0.0;
     twist.linear.y = 0.0;
@@ -120,7 +121,7 @@ rclnodejs
     twist.angular.y = 0.0;
     twist.angular.z = 0.0;
 
-    point.x = 0.0;
+    point.x = -40.0;
     point.y = 0.0;
     point.z = 0.0;
     //Temporarily set orientation to zero
@@ -131,13 +132,18 @@ rclnodejs
     pose.position = point;
     pose.orientation = quaternion;
 
-    state.twist = twist;
-    state.pose = pose;
+    state1.twist = twist;
+    state1.pose = pose;
+
+    state2.twist = twist;
+    state2.pose = pose;
+    state2.pose.position.x = 40.0;
+    
 
      //Publish state
     setInterval(function(){
-      statePublisherAthena.publish(state);
-      statePublisherNaiad.publish(state);
+      statePublisherAthena.publish(state1);
+      statePublisherNaiad.publish(state2);
     },1000);
     
 
