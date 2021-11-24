@@ -56,21 +56,21 @@ class MinimalClientAsync(Node):
         self.actcli = ActionClient(self, GotoPose, 'athena/motor_control/pose/go')
 
     def send_goal(self, x, y, z, yaw, pitch, roll):
-        goal_msg = GotoPose.Goal()
-        goal_msg.pose.position.x = x
-        goal_msg.pose.position.y = y
-        goal_msg.pose.position.z = z
+        gotopose = GotoPose.Goal()
+        gotopose.pose.position.x = x
+        gotopose.pose.position.y = y
+        gotopose.pose.position.z = z
         q = Quaternion.from_euler(yaw, pitch, roll, degrees=True)
-        goal_msg.pose.orientation.x = q.x
-        goal_msg.pose.orientation.y = q.y
-        goal_msg.pose.orientation.z = q.z
-        goal_msg.pose.orientation.w = q.w
+        gotopose.pose.orientation.x = q.x
+        gotopose.pose.orientation.y = q.y
+        gotopose.pose.orientation.z = q.z
+        gotopose.pose.orientation.w = q.w
         
         self.get_logger().info('Waiting for action server...')
         self.actcli.wait_for_server()
 
         self.get_logger().info('Sending goal request')
-        self.send_goal_future = self.actcli.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
+        self.send_goal_future = self.actcli.send_goal_async(gotopose, feedback_callback=self.feedback_callback)
         self.send_goal_future.add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
@@ -85,15 +85,7 @@ class MinimalClientAsync(Node):
         self._get_result_future.add_done_callback(self.get_result_callback)
 
     def feedback_callback(self, feedback):
-        self.get_logger().info(f"Goto pose feedback: Distance to goal: {feedback.feedback.distance_to_goal}" \
-                               f"status: {feedback.feedback.status}, Message: {feedback.feedback.message}")
-
-        self.get_logger().info('Propagating feedback to GotoWaypoint client.')
-        # Propagate feedback to the GotoWaypoint client
-        goto_waypoint_feedback_msg = GotoWaypoint.Feedback()
-        goto_waypoint_feedback_msg.distance_to_goal = feedback.feedback.distance_to_goal
-        goto_waypoint_feedback_msg.status = GotoWaypointStatus.MOVING
-        goto_waypoint_feedback_msg.message = "Moving to waypoint."
+        self.get_logger().info('Received feedback: {0}'.format(feedback.feedback.distance_to_goal))
 
     def get_result_callback(self, future):
         result = future.result().result
@@ -104,7 +96,7 @@ class MinimalClientAsync(Node):
             self.get_logger().info('Goal failed with status: {0}'.format(status))
 
         # Shutdown after receiving a result
-        #rclpy.shutdown()
+        rclpy.shutdown()
 
 class TestTalkerListenerLink(unittest.TestCase):
 
@@ -145,4 +137,3 @@ class TestTalkerListenerLink(unittest.TestCase):
             
         """
         #minimal_actcli.destroy_node()
-        rclpy.shutdown()
