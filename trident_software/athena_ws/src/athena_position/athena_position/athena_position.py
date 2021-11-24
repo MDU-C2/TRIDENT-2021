@@ -3,6 +3,8 @@ import numpy as np
 from baseclasses import positionbase
 from trident_msgs.msg import State
 from math import sin, cos
+from rclpy.executors import MultiThreadedExecutor
+import threading
 from squaternion import Quaternion
 
 class AthenaPosNode(positionbase.PosNode):
@@ -74,8 +76,17 @@ class AthenaPosNode(positionbase.PosNode):
 def main(args=None):
     rclpy.init(args=args)
     athena_pos_node = AthenaPosNode()
+    # Create an executor thread that spins the node
+    executor = MultiThreadedExecutor()
+    executor.add_node(athena_pos_node)
+    executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.start()
+    # Run the main loop in the node
     athena_pos_node.spin()
-    athena_pos_node.destroy_node()
+    # Wait for the executor to finish
+    executor_thread.join()
+
+    naiad_pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

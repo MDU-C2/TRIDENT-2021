@@ -3,6 +3,8 @@ import numpy as np
 import baseclasses.positionbase as posbase
 from trident_msgs.msg import State
 from math import sin, cos
+from rclpy.executors import MultiThreadedExecutor
+import threading
 from squaternion import Quaternion
 
 class NaiadPosNode(posbase.PosNode):
@@ -76,7 +78,16 @@ class NaiadPosNode(posbase.PosNode):
 def main(args=None):
     rclpy.init(args=args)
     naiad_pos_node = NaiadPosNode()
+    # Create an executor thread that spins the node
+    executor = MultiThreadedExecutor()
+    executor.add_node(naiad_pos_node)
+    executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.start()
+    # Run the main loop in the node
     naiad_pos_node.spin()
+    # Wait for the executor to finish
+    executor_thread.join()
+
     naiad_pos_node.destroy_node()
     rclpy.shutdown()
 
