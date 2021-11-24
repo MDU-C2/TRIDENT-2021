@@ -22,6 +22,7 @@ from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfa
 from trident_msgs.srv import LoadMission, GetState
 from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
+from example_interfaces.srv import AddTwoInts
 
 @pytest.mark.rostest
 def generate_test_description():
@@ -43,14 +44,31 @@ class MinimalClientAsync(Node):
 
     def __init__(self):
         super().__init__('minimal_client_async')
-        self.cli = self.create_client(AddTwoInts, 'nav/wp_queue/empty')
+        self.cli = self.create_client(LoadMission, 'mission_control/mission/load')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
-        self.req = AddTwoInts.Request()
+        self.req = LoadMission.Request()
 
-    def send_request(self,a,b):
-        self.req.a = a
-        self.req.b = b
+    def send_request(self):
+        mission = Mission()
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = 5
+        pose = Pose()
+        pose.position.x = 3.0
+        pose.position.y = 3.0
+        pose.position.z = 3.0
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 1.0
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        mission.waypoints = [waypoint]
+        self.get_logger().info("Loaded debug mission.")
+        self.req.mission = mission
+
         self.future = self.cli.call_async(self.req)
 
 class TestTalkerListenerLink(unittest.TestCase):
@@ -67,14 +85,14 @@ class TestTalkerListenerLink(unittest.TestCase):
 
     def setUp(self):
         # Create a ROS node for tests
-        self.node = rclpy.create_node('test_navigation_link')
+        self.node = rclpy.create_node('test_mission_control_link')
 
     def tearDown(self):
         self.node.destroy_node()
 
     def test_service1(self):
         minimal_client = MinimalClientAsync()
-        minimal_client.send_request(7,5)
+        minimal_client.send_request()
         
         while rclpy.ok():
             rclpy.spin_once(minimal_client)
@@ -85,12 +103,13 @@ class TestTalkerListenerLink(unittest.TestCase):
                     minimal_client.get_logger().info(
                         'Service call failed %r' % (e,))
                 else:
-                    #minimal_client.get_logger().info('Result of add_two_ints: for %d + %d = %d' %(minimal_client.req.a, minimal_client.req.b, response.sum))
-                    self.assertEqual(response.sum, 12)
+                    print(response)
+                    self.assertEqual(response.success, True, "Response should be True")
+                    self.assertEqual(response.success, True, "Response should be True")
                 break
             
         minimal_client.destroy_node()
-
+    '''
     def test_service2(self):
         minimal_client = MinimalClientAsync()
         minimal_client.send_request(7,7)
@@ -107,5 +126,6 @@ class TestTalkerListenerLink(unittest.TestCase):
                     #minimal_client.get_logger().info('Result of add_two_ints: for %d + %d = %d' %(minimal_client.req.a, minimal_client.req.b, response.sum))
                     self.assertEqual(response.sum, 12)
                 break
-            
+         
         minimal_client.destroy_node()
+    '''
