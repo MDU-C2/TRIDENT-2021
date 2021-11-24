@@ -118,7 +118,7 @@ class TestTalkerListenerLink(unittest.TestCase):
                 break
             
         minimal_client.destroy_node()
-
+    '''
     def test_service2(self):
         minimal_client = ServiceTester()
         minimal_client.send_request_GetState()
