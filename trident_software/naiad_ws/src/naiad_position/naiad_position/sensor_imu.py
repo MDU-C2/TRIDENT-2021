@@ -3,7 +3,7 @@ import numpy as np
 import baseclasses.sensorbase as sensbase
 from collections import deque
 from time import time
-from math import sin, cos
+from math import sin, cos, pi
 from squaternion import Quaternion
 
 from sensor_msgs.msg import Imu
@@ -74,7 +74,12 @@ class IMUNode(sensbase.SensorNode):
         self.obs_mod[4, 7] = mean_accs[1] / state[7,0]
                              
         self.obs_mod[5, 8] = mean_accs[2] / state[8,0]
-                             
+        
+        #Test fix for "yaw spin"
+        '''if  (self.measure[2,0] - state[5,0]) >  pi:
+            self.measure[2,0] = -pi - self.measure[2,0]-state[5,0]
+        elif(self.measure[2,0] - state[5,0]) < -pi:
+            self.measure[2,0] =  pi + self.measure[2,0]-state[5,0]'''
 
         # self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
         #                      (dt*state[6,0])
