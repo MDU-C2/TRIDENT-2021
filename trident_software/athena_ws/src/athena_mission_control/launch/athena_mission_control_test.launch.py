@@ -105,7 +105,6 @@ class TestTalkerListenerLink(unittest.TestCase):
                 else:
                     print(response)
                     self.assertEqual(response.success, True, "Response should be True")
-                    self.assertEqual(response.success, True, "Response should be True")
                 break
             
         minimal_client.destroy_node()
