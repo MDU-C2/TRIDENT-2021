@@ -5,6 +5,9 @@ from random import gauss
 from time import time, sleep
 from abc import ABC, abstractmethod
 
+from jax import jacfwd
+import jax.numpy as jnp
+
 from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
 from cola2_msgs.msg import Setpoints
@@ -30,6 +33,7 @@ class PosNode(Node, ABC):
         self.covar = np.copy(start_covar)
         self.proc_noise = np.copy(proc_noise)
         self.control_vec = np.zeros((ctrl_v_size,1))
+        self.jacobian = jacfwd(self.state_trans)
         
         # Error detection on the different variables #
         #--------------------------------------------#
@@ -108,8 +112,8 @@ class PosNode(Node, ABC):
     # This SHOULDN'T be changed! This function calls and receives values from services
     def service_call(self, sensor_handle, pred_state, pred_covar):
         req = KalmanSensorService.Request()
-        req.state = list(pred_state.flatten())
-        req.covar = list(pred_covar.flatten())
+        req.state = pred_state.flatten().tolist()
+        req.covar = pred_covar.flatten().tolist()
         try:
             future = sensor_handle.call_async(req)
             #rclpy.spin_until_future_complete(self, future)
@@ -131,23 +135,24 @@ class PosNode(Node, ABC):
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
     # Jacobian through complex step differentiation
     # Source: https://se.mathworks.com/matlabcentral/fileexchange/18189-learning-the-extended-kalman-filter?s_tid=mwa_osa_a
-    def jacobian_csd(self, func, state, dt):
+    '''def jacobian_csd(self, func, state, dt):
         new_state = func(state, dt)
         n = state.shape[0]
         m = new_state.shape[0]
         A = np.zeros((m,n))
-        ''' h = n * pow(2,-51) # Just a small number here, I think?
-        for k in range(n):
-            state1 = np.copy(state).astype('complex64')
-            state1[k, 0] = complex(state1[k, 0], h)
-            A[:, k] = np.transpose((func(state1, dt)).imag/h) 
-        return (new_state, A)'''
+        
         dx = 1e-8
         for j in range(n):
             Dxj = (abs(state[j,0])*dx if state[j,0] != 0 else dx)
             x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(state.flatten().tolist())]
             A[:, j] = (func(np.transpose(np.array([x_plus])), dt) - new_state).flatten()/Dxj
-        return (new_state, A)
+        return (new_state, A)'''
+    ''' h = n * pow(2,-51) # Just a small number here, I think?
+    for k in range(n):
+        state1 = np.copy(state).astype('complex64')
+        state1[k, 0] = complex(state1[k, 0], h)
+        A[:, k] = np.transpose((func(state1, dt)).imag/h) 
+    return (new_state, A)'''
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
     def spin(self):
@@ -155,7 +160,11 @@ class PosNode(Node, ABC):
             # Predict new state (and get the state transition matrix thru Jacobian)
             dt = time() - self.last_state_time
             self.last_state_time = time()
-            pred_state, state_trans_mat = self.jacobian_csd(self.state_trans, self.state, dt)
+            pred_state = np.array(self.state_trans(jnp.array(self.state).flatten(), dt).reshape(-1,1), dtype=float)
+            #self.get_logger().info(np.array_str(pred_state))
+            state_trans_mat = np.array(self.jacobian(jnp.array(self.state).flatten(), dt), dtype=float)
+            #self.get_logger().info(np.array_str(state_trans_mat))
+            #self.get_logger().info("State type: %s Matrix type: %s" % (str(type(pred_state)), str(type(state_trans_mat))))
             # Add noise
             pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
             # Predict covariance of new state

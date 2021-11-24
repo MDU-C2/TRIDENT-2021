@@ -5,6 +5,8 @@ from trident_msgs.msg import State
 from math import sin, cos
 from squaternion import Quaternion
 
+import jax.numpy as jnp
+
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
         
@@ -36,15 +38,15 @@ class AthenaPosNode(positionbase.PosNode):
             [     0.0,    0.0],  #dy
             [     5.2,   -5.2]]) #dh
         transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)'''
-        x, y, h, dx, dy, dh = prev.flatten().tolist()
-        transition = np.array([[
-            x+dx*cos(h)*dt+dy*sin(h)*dt,
-            y+dy*sin(h)*dt+dy*cos(h)*dt,
-            h+dh*dt,
+        x, y, h, dx, dy, dh = prev
+        ClampRot = lambda r: (((r)+pi) % tau)-pi
+        transition = jnp.array([
+            x+dx*jnp.cos(h)*dt+dy*jnp.sin(h)*dt,
+            y+dy*jnp.sin(h)*dt+dy*jnp.cos(h)*dt,
+            ClampRot(h+dh*dt),
             1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
             0,
-            5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]]])
-        transition = np.transpose(transition)
+            5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]])
         return transition
     
     def get_ctrl_vec(self, msg):

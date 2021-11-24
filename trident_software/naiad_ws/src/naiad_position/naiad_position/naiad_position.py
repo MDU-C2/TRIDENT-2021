@@ -2,8 +2,10 @@ import rclpy
 import numpy as np
 import baseclasses.positionbase as posbase
 from trident_msgs.msg import State
-from math import sin, cos
+from math import sin, cos, pi, tau
 from squaternion import Quaternion
+
+import jax.numpy as jnp
 
 class NaiadPosNode(posbase.PosNode):
     def __init__(self):
@@ -34,21 +36,22 @@ class NaiadPosNode(posbase.PosNode):
             [0, 0, 0, 0, 0, 0,         0,         0,  0,  0,  0,  1]])#dh
         # TODO: add the contol vector, using the motor config.
         transition = np.matmul(trans_mat,prev)'''
-        x, y, z, r, p, h, dx, dy, dz, dr, dp, dh = prev.flatten().tolist()
+        x, y, z, r, p, h, dx, dy, dz, dr, dp, dh = prev
         # This transition func assumes the NAIAD is level.
-        transition = np.array([
-            x+dx*cos(h)*dt+dy*sin(h)*dt,
-            y+dx*sin(h)*dt+dy*cos(h)*dt,
+        ClampRot = lambda r: (((r)+pi) % tau)-pi
+        transition = jnp.array([
+            x+dx*jnp.cos(h)*dt+dy*jnp.sin(h)*dt,
+            y+dx*jnp.sin(h)*dt+dy*jnp.cos(h)*dt,
             z+dz*dt,
-            r+dr*dt,
-            p+dp*dt,
-            h+dh*dt,
-            -1.125*self.control_vec[0,0]-1.125*self.control_vec[1,0],
+            ClampRot(r+dr*dt),
+            ClampRot(p+dp*dt),
+            ClampRot(h+dh*dt),
+            -1.125 *self.control_vec[0,0]-1.125 *self.control_vec[1,0],
             0,
             -0.5625*self.control_vec[2,0]-0.5625*self.control_vec[3,0]-0.5625*self.control_vec[4,0]-0.5625*self.control_vec[5,0],
-            2.3749*self.control_vec[2,0]-2.3749*self.control_vec[3,0]+2.3749*self.control_vec[4,0]-2.3749*self.control_vec[5,0],
-            1.375*self.control_vec[2,0]+1.375*self.control_vec[3,0]-1.375*self.control_vec[4,0]-1.375*self.control_vec[5,0],
-            -2.874*self.control_vec[0,0]+2.874*self.control_vec[1,0]]).reshape(-1,1)
+             2.3749*self.control_vec[2,0]-2.3749*self.control_vec[3,0]+2.3749*self.control_vec[4,0]-2.3749*self.control_vec[5,0],
+             1.375 *self.control_vec[2,0]+1.375 *self.control_vec[3,0]-1.375 *self.control_vec[4,0]-1.375 *self.control_vec[5,0],
+            -2.874 *self.control_vec[0,0]+2.874 *self.control_vec[1,0]])
         return transition
     
     def get_ctrl_vec(self, msg):
