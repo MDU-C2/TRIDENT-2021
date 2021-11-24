@@ -12,14 +12,16 @@ class MotorDriverNode(MotorDriverBase):
         self.get_logger().info("Created motor driver node.")
 
 
+
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
 
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        pass
         # TODO: Implement real world drivers
+        pass
+
 
 
 def main(args=None):

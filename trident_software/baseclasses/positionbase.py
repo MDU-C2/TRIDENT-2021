@@ -4,10 +4,13 @@ import numpy as np
 from random import gauss
 from time import time, sleep
 from abc import ABC, abstractmethod
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from jax import jacfwd
 import jax.numpy as jnp
 
+from std_msgs.msg import String
 from trident_msgs.msg import State
 from trident_msgs.srv import KalmanSensorService
 from cola2_msgs.msg import Setpoints
@@ -20,6 +23,18 @@ class PosNode(Node, ABC):
         # Basic inits to create node, publisher, and periodic func #
         #----------------------------------------------------------#
         super().__init__(name)
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('position_update_frequency', 10.0), # Hz
+            ])
+        # Load parameters
+        self._position_update_frequency = self.get_parameter('position_update_frequency').get_parameter_value().double_value # Hz
+        # Create the rate object at which the position node's spin loop operates at
+        self._position_update_rate = self.create_rate(self._position_update_frequency)
+        # Create a thread pool executor with 2 threads that will execute the service calls to the sensors
+        self._service_call_pool = ThreadPoolExecutor(2)
+
         self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
         #timer_period = interval
         #self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -28,7 +43,7 @@ class PosNode(Node, ABC):
         self.ctrl_vec_sub_ = self.create_subscription(Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
         
         # Inits for all the Kalman-related variables #
-        #-------------------------------------------#
+        #--------------------------------------------#
         self.state = np.copy(start_state)
         self.covar = np.copy(start_covar)
         self.proc_noise = np.copy(proc_noise)
@@ -115,22 +130,18 @@ class PosNode(Node, ABC):
         req.state = pred_state.flatten().tolist()
         req.covar = pred_covar.flatten().tolist()
         try:
-            future = sensor_handle.call_async(req)
-            #rclpy.spin_until_future_complete(self, future)
-            start_time = time()
-            while rclpy.ok():
-                rclpy.spin_once(self)
-                if future.done():
-                    resp = future.result()
-                    x_size = len(pred_state)
-                    y_size = len(resp.residual)
-                    return(np.reshape(resp.gain,               (x_size, y_size)),
-                           np.reshape(resp.residual,           (-1,1)          ),
-                           np.reshape(resp.observationmatrix,  (y_size, x_size)))
-                elif time() - start_time > 3:
-                    raise Exception("Service took too long (more than three seconds)!")
+            # NOTE: This service call is blocking. This only works because rclpy.spin()
+            # is called in a separate thread in main. The service calls are also called from a ThreadPoolExecutor,
+            # so they won't block and will be handled simultaneously, which also works as an extra precaution against deadlocks.
+            resp = sensor_handle.call(req)
+            x_size = len(pred_state)
+            y_size = len(resp.residual)
+
+            return(np.reshape(resp.gain,               (x_size, y_size)),
+                   np.reshape(resp.residual,           (-1,1)          ),
+                   np.reshape(resp.observationmatrix,  (y_size, x_size)))
         except Exception as e:
-                print("Couldn't get values from a service:",e)
+                self.get_logger().info(f"Couldn't get values from a service: {e}")
     
     # This SHOULDN'T be changed! Returns both the new state and the jacobian
     # Jacobian through complex step differentiation
@@ -174,26 +185,54 @@ class PosNode(Node, ABC):
                             np.transpose(state_trans_mat)
                          ) + self.proc_noise
 
-            # Here we go through all of the different sensors
-            # TODO: none of this truly is implemented yet, since no sensors!
-            for sensor in self.sensor_handles:
-                try:
-                    # Get the values from the sensors
-                    gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
-                    # Check for cheeky nans
-                    if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
-                        raise Exception("The sensor",sensor,"returned a NaN!")
-                    # Update the state estimate
-                    #print(gain, resid)
-                    pred_state = pred_state + np.matmul(gain, resid)
-                    # Update the covariance estimate
-                    pred_covar = np.matmul(
-                                    np.identity(pred_state.shape[0]) - np.matmul(
-                                        gain,
-                                        obs_mat),
-                                    pred_covar)
-                except Exception as e:
-                    self.get_logger().warn("Skipping sensor due to failure! " + str(e))
+
+            # Send the service calls via the ThreadPoolExecutor
+            pool_futures = self._service_call_pool.map(self.service_call,
+                                                       self.sensor_handles,
+                                                       [pred_state]*len(self.sensor_handles),
+                                                       [pred_covar]*len(self.sensor_handles),
+                                                       timeout=1)
+            try:
+                # Loop through the results
+                for result, sensor in zip(list(pool_futures), self.sensor_handles):
+                        # Get the values from the sensors
+                        gain, resid, obs_mat = result
+                        # Check for cheeky nans
+                        if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
+                            raise Exception("The sensor ", sensor, " returned a NaN!")
+                        # Update the state estimate
+                        #print(gain, resid)
+                        pred_state = pred_state + np.matmul(gain, resid)
+                        # Update the covariance estimate
+                        pred_covar = np.matmul(
+                                        np.identity(pred_state.shape[0]) - np.matmul(
+                                            gain,
+                                            obs_mat),
+                                        pred_covar)
+            except Exception as e:
+                self.get_logger().warn("Skipping sensor due to failure! Error:" + str(e))
+                
+
+            # # Here we go through all of the different sensors
+            # # TODO: none of this truly is implemented yet, since no sensors!
+            # for sensor in self.sensor_handles:
+            #     try:
+            #         # Get the values from the sensors
+            #         gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
+            #         # Check for cheeky nans
+            #         if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
+            #             raise Exception("The sensor",sensor,"returned a NaN!")
+            #         # Update the state estimate
+            #         #print(gain, resid)
+            #         pred_state = pred_state + np.matmul(gain, resid)
+            #         # Update the covariance estimate
+            #         pred_covar = np.matmul(
+            #                         np.identity(pred_state.shape[0]) - np.matmul(
+            #                             gain,
+            #                             obs_mat),
+            #                         pred_covar)
+            #     except Exception as e:
+            #         self.get_logger().warn("Skipping sensor due to failure! " + str(e))
             
             # Finally, set the state and covariance to the new ones!
             self.state = pred_state
@@ -201,18 +240,23 @@ class PosNode(Node, ABC):
             
             # AND publish the new state
             self.state_publish()
-            
-            sleep(0.5)
+            # Sleep until next update interval
+            self._position_update_rate.sleep()
 
 def main(args=None):
     rclpy.init(args=args)
     
     pos_node = PosNode("unnamed_position_node", "unnamed_current_state", 1)
-    
-    #rclpy.spin(main_node)
+    # Create an executor thread that spins the node
+    executor = MultiThreadedExecutor()
+    executor.add_node(pos_node)
+    executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.start()
+    # Run the main loop in the node
     pos_node.spin()
+    # Wait for the executor to finish
+    executor_thread.join()
     
-    pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
