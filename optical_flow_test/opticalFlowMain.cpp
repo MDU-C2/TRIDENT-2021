@@ -163,9 +163,20 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         cvtColor(hsv8, bgr, COLOR_HSV2BGR);
         // draw arrow on video image
         arrowedLine(frame2, pt1, pt2, Scalar(130,100,100), 5);
+        // finding max values
+        double maxA, maxM, max1, max2;
+        minMaxLoc(angle, 0, &maxA, 0, 0 );
+        minMaxLoc(magnitude, 0, &maxM, 0, 0 );
+        minMaxLoc(flow_parts[0], 0, &max1, 0, 0 );
+        minMaxLoc(flow_parts[1], 0, &max2, 0, 0 );
         // show video and optical flow result
         imshow("frame", frame2);
         imshow("flow", bgr);
+        imshow("magnitude", magnitude/20);
+        imshow("angle", angle);
+        imshow("flow_parts[0]", flow_parts[0]/20);
+        imshow("flow_parts[1]", flow_parts[1]/20);
+        // cout << "image types:" << endl << "   magnitude: " << maxM << endl << "   angle: " << maxA << endl << "   flow_parts[0]: " << max1 << endl << "   flow_parts[1]: " << max2 << endl;
         int keyboard = waitKey(30);
         // quit 
         if (keyboard == 'q' || keyboard == 27)
