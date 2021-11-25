@@ -118,6 +118,26 @@ class TestTalkerListenerLink(unittest.TestCase):
                 break
             
         minimal_client.destroy_node()
+
+    def test_service2(self):
+        minimal_client = ServiceTester()
+        minimal_client.send_request_GetState()
+        
+        while rclpy.ok():
+            rclpy.spin_once(minimal_client)
+            if minimal_client.future.done():
+                try:
+                    response = minimal_client.future.result()
+                except Exception as e:
+                    minimal_client.get_logger().info(
+                        'Service call failed %r' % (e,))
+                else:
+                    print(response)
+                    self.assertEqual(response.success, True, "Mission control should return: True")
+                    self.assertEqual(response.state, 'NO_MISSION', "Mission control should return: NO_MISSION")
+                break
+            
+        minimal_client.destroy_node()
     '''
     def test_service2(self):
         minimal_client = ServiceTester()
