@@ -30,8 +30,9 @@ class MotorDriverNode(MotorDriverBase):
         return max(minim, min(value, maxim))
 
     @staticmethod
-    def scale_to_mm_output(output):
-        return output*2000
+    def motor_output_to_mm_output(output):
+        clamped = MotorDriverNode.clamp(-1.0, output, 1.0)
+        return int(6000+(clamped*2000))
 
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -39,18 +40,16 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        # TODO: Implement real world drivers
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
         for id_, value in motor_outputs.motor_outputs:
-            mm_query[1] = id_
-            # TODO: Change this to use the actual motor power message, rather than this junk
-            motor_target = int(self.clamp(4000, 6000+2000*value, 8000))
-            mm_query[2:] = self.integer_to_maestro_bytes(motor_target)
+            # Translate the motor id to the correct mini maestro id
+            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == id_][0]
+            mm_query[1] =  maestro_id
+            motor_output = MotorDriverNode.motor_output_to_mm_output(value * self._motor_output_scale)
+            mm_query[2:] = self.integer_to_maestro_bytes(motor_output)
+            self.get_logger().info(f"Sending motor value {motor_output} to motor with id {id_} (on maestro_id={maestro_id})")
             self.ser.write(mm_query)
-
-
-
 
 
 def main(args=None):

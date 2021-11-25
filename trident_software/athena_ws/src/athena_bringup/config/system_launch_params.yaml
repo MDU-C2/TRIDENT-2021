@@ -81,10 +81,10 @@ athena:
         [
           {
             "id": 1,
-            "gpio_pin": 42
+            "pin": 32
           },
           {
             "id": 2,
-            "gpio_pin": 42
+            "pin": 33
           }
         ]          

@@ -158,27 +158,27 @@ naiad:
         [
           {
             "id": 1,
-            "gpio_pin": 42
+            "maestro_id": 1
           },
           {
             "id": 2,
-            "gpio_pin": 42
+            "maestro_id": 2
           },
           {
             "id": 3,
-            "gpio_pin": 42
+            "maestro_id": 3
           },
           {
             "id": 4,
-            "gpio_pin": 42
+            "maestro_id": 4
           },
           {
             "id": 5,
-            "gpio_pin": 42
+            "maestro_id": 5
           },
           {
             "id": 6,
-            "gpio_pin": 42
+            "maestro_id": 6
           }
         ]
           

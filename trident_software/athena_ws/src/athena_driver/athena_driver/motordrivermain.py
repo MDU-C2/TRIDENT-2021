@@ -1,8 +1,14 @@
+from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from baseclasses.motordriverbase import MotorDriverBase
 from trident_msgs.msg import MotorOutputs
 
+import RPi.GPIO as GPIO
+import time
+from math import sin
+
+MICRO = 1000000 # Microseconds in a second
 
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in Athena.
@@ -10,8 +16,58 @@ class MotorDriverNode(MotorDriverBase):
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+        if not self._simulation_env:
+            self._pwm_containers = {}
+            # Constants
+            self.PWM_FREQUENCY = 50
+            self.ESC_PW_INTERVAL_CENTER = 1500 # The center of the supported PW interval
+            self.ESC_FULL_POWER = 400 # Full power in either direction
+            # Initialize pwns and setup GPIO
+            GPIO.setmode(GPIO.BOARD)
+            for motor in self._motor_interface:
+                # Set the motor's pin as output
+                GPIO.setup(motor["pin"], GPIO.OUT)
+                # Create and start the pwn
+                pwm = GPIO.PWM(motor["pin"], )
+                pwm.start(0)
+                self._pwm_containers[motor["id"]] = {
+                    "pwm": pwm,
+                    "pin": motor["pin"]
+                }
+            # Initialize the ESCs
+            self._esc_init_pulse_width = MotorDriverNode.get_pulse_width(self.ESC_PW_INTERVAL_CENTER, self.PWM_FREQUENCY)
+            for motor_id, pwm_container in self._pwm_containers.items():
+                self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
+                pwm_container.pwm.ChangeDutyCycle(self._esc_init_pulse_width)
+            # Sleep for a few seconds to allow the ESCs to initialize
+            self.create_rate(3).sleep()
 
+    def __del__(self):
+        """Overrides the del function to ensure that the PWMs are cleaned up properly if the node is destroyed."""
+        if not self._simulation_env:
+            self.pwm_cleanup()
 
+    def get_duty_cyle(self, pulse_width):
+        """Gets the duty cycle from the pulse width.
+        """
+        # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
+        return 100 * ((pulse_width-(80*MICRO)) / (1/self.PWM_FREQUENCY))
+
+    def get_pulse_width(self, power_percentage):
+        """Gets the pulse width from the power percentage.
+        """
+        clamped = max(-1.0, min(power_percentage, 1.0))
+        return ((self.ESC_FULL_POWER * clamped) + self.ESC_PW_INTERVAL_CENTER) / MICRO
+
+    def set_power(self, motor_id, power):
+        """Sets the motor power to the specfied motor with motor_id.
+
+        Args:
+            motor_id (Int): ID of the motor to set the power for.
+            power (Float): The power to set, value between -1.0 and 1.0
+        """
+        pwm = self._pwm_containers[str(motor_id)]["pwm"]
+        pwm.ChangeDutyCycle(self.get_duty_cyle(self.get_pulse_width(power)))
 
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -19,9 +75,18 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        # TODO: Implement real world drivers
-        pass
+        # Loop through the motor outputs
+        for motor_output in motor_outputs:
+            # Set the specified power for the motor with the specified ID
+            self.set_power(motor_output["motor_id"], motor_output["motor_output"])
 
+    def pwm_cleanup(self):
+        """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
+        """
+        for pwm_container in self._pwm_containers:
+            pwm_container["pwm"].stop()
+            GPIO.output(pwm_container["pin"], GPIO.LOW)
+        GPIO.cleanup()
 
 
 def main(args=None):
@@ -30,7 +95,6 @@ def main(args=None):
     executor = MultiThreadedExecutor()
     rclpy.spin(motor_driver_node, executor)
     rclpy.shutdown()
-
 
 if __name__=="__main__":
     main()
