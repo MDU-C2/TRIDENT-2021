@@ -146,7 +146,7 @@ naiad:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   position:
     ros__parameters:
-      position_update_frequency: 50 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
+      position_update_frequency: 10 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
   motor_driver:
     ros__parameters:
       simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
@@ -158,27 +158,27 @@ naiad:
         [
           {
             "id": 1,
-            "gpio_pin": 42
+            "maestro_id": 1
           },
           {
             "id": 2,
-            "gpio_pin": 42
+            "maestro_id": 2
           },
           {
             "id": 3,
-            "gpio_pin": 42
+            "maestro_id": 3
           },
           {
             "id": 4,
-            "gpio_pin": 42
+            "maestro_id": 4
           },
           {
             "id": 5,
-            "gpio_pin": 42
+            "maestro_id": 5
           },
           {
             "id": 6,
-            "gpio_pin": 42
+            "maestro_id": 6
           }
         ]
           

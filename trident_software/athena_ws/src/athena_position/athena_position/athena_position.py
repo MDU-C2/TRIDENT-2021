@@ -2,7 +2,7 @@ import rclpy
 import numpy as np
 from baseclasses import positionbase
 from trident_msgs.msg import State
-from math import sin, cos
+from math import sin, cos, pi, tau
 from rclpy.executors import MultiThreadedExecutor
 import threading
 from squaternion import Quaternion
