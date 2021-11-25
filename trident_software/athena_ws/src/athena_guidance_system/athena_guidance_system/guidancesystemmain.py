@@ -17,6 +17,8 @@ from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
 from trident_msgs.srv import GuidanceRequest, GetGoalPose, GetState
 
+import signal
+import sys
 
 class GuidanceSystemNode(Node):
     """Node for the guidance system in Athena.
@@ -170,8 +172,13 @@ class GuidanceSystemNode(Node):
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
     rclpy.init(args=args)
+    signal.signal(signal.SIGINT, signal_handler)
     guidance_system_node = GuidanceSystemNode("guidance_system")
     executor = MultiThreadedExecutor()
     rclpy.spin(guidance_system_node, executor)
