@@ -2,6 +2,7 @@ import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
 import jax.numpy as jnp
+from squaternion import Quaternion
 
 from visualization_msgs.msg import MarkerArray
 
@@ -33,15 +34,18 @@ class USBLNode(sensbase.SensorNode):
         else:
             self.get_logger.error("REAL USBL NOT IMPLEMENTED!")
     
-    def ObservationService(self, state):
+    def ObservationService(self, state, dt):
         athena_pos = jnp.transpose(jnp.array([[self.get_parameter('athena_position/x').value,
                       self.get_parameter('athena_position/y').value, 0]]))
         n_pos = -1*state[:3]
-        n_rot = -1*state[3:6]
+        q = -1*Quaternion(state[3], state[4], state[5], state[6])
         translate = jnp.append(jnp.eye(4,3), jnp.append(n_pos, jnp.array([1])).reshape(4,1), axis=1)
-        rotation = jnp.array([[jnp.cos(n_rot[2]), -jnp.sin(n_rot[2]), 0],
+        rotation  = jnp.array([[2*(q[0]**2 + q[1]**2)-1,   2*(q[1]*q[2] - q[0]*q[3]), 2*(q[1]*q[3] + q[0]*q[2])],
+                               [2*(q[1]*q[2] + q[0]*q[3]), 2*(q[0]**2 + q[2]**2)-1,   2*(q[2]*q[3] - q[0]*q[1])],
+                               [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[2]*q[3] + q[0]*q[1]), 2*(q[0]**2 + q[3]**2)-1  ]])
+        '''rotation = jnp.array([[jnp.cos(n_rot[2]), -jnp.sin(n_rot[2]), 0],
                               [jnp.sin(n_rot[2]), jnp.cos(n_rot[2]), 0],
-                              [0, 0, 1]])
+                              [0, 0, 1]])'''
         local_pos = jnp.matmul(rotation, jnp.matmul(translate, jnp.append(athena_pos, jnp.array([[1]])).reshape(4,1))[:3])
         #self.get_logger().info(jnp.array_str(local_pos.flatten()))
         return local_pos.flatten()
