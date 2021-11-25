@@ -146,7 +146,7 @@ naiad:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   position:
     ros__parameters:
-      position_update_frequency: 50 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
+      position_update_frequency: 10 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
   motor_driver:
     ros__parameters:
       simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation

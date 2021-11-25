@@ -71,7 +71,7 @@ athena:
       placeholder: 0 # Placeholder since there are no params for this node atm.
   position:
     ros__parameters:
-      position_update_frequency: 50 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
+      position_update_frequency: 10 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
   motor_driver:
     ros__parameters:
       motor_output_silence_period: 0.4   # Allowed time period in seconds that the motor driver
