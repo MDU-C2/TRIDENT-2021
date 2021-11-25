@@ -62,7 +62,7 @@ class SensorNode(Node, ABC):
             obs_mat = self.obs_jacob(jnp.array(state.flatten()), dt)
             self.last_run = time()
             
-        residual = self.measure - np.matmul(obs_mat, state)
+        residual = self.measure - np.matmul(obs_mat, state) + np.matmul(self.m_noise, np.random.randn(self.measure.shape[0], 1))
         residual_covar = np.matmul(np.matmul(
                              obs_mat,
                              covar),
