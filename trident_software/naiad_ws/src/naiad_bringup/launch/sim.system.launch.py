@@ -34,7 +34,9 @@ def generate_launch_description():
             executable='motor_control',
             output='screen',
             name='motor_control',
-            parameters=[config]
+            parameters=[config,
+                {'use_sim_odom': True}
+            ]
         ),
         Node(
             package='naiad_driver',
@@ -43,7 +45,8 @@ def generate_launch_description():
             output='screen',
             name='motor_driver',
             parameters=[config,
-                {'simulation': True}
+                {'simulation': True},
+                {'motor_output_scale': 0.8}
             ]
         ),
         Node(
@@ -54,4 +57,47 @@ def generate_launch_description():
             name='guidance_system',
             parameters=[config]
         ),
+        # Position and sensor nodes
+        Node(
+            package='naiad_position',
+            namespace='/naiad/position/',
+            executable='position_node',
+            name='pos',
+        ),
+        Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='imu_node',
+            name='imu',
+            parameters=[
+                {"simulated": True}
+            ]
+        ),
+        Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='gps_node',
+            name='gps',
+            parameters=[
+                {"simulated": True}
+            ]
+        ),
+        Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='usbl_node',
+            name='usbl',
+            parameters=[
+                {"simulated": True}
+            ]
+        ),
+        Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='pressure_node',
+            name='pressure',
+            parameters=[
+                {"simulated": True}
+            ]
+        )
     ])

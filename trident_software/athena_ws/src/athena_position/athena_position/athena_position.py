@@ -2,15 +2,19 @@ import rclpy
 import numpy as np
 from baseclasses import positionbase
 from trident_msgs.msg import State
-from math import sin, cos
+from math import sin, cos, pi, tau
+from rclpy.executors import MultiThreadedExecutor
+import threading
 from squaternion import Quaternion
+
+import jax.numpy as jnp
 
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
         
         init_state = np.zeros((6,1))  # Starts at 0,0
         init_covar = np.zeros((6,6)) # Starts with no uncertainty
-        init_noise = (np.array([0.5, 0.5, 0.4, 0.2, 0.2, 0.1])*np.identity(6))**2 # These are just guesses!
+        init_noise = (np.array([0.05, 0.05, 0.04, 0.02, 0.02, 0.01])*np.identity(6))**2 # These are just guesses!
             
         super().__init__("athena_position_node", "state", 0.5,
                          init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
@@ -36,15 +40,15 @@ class AthenaPosNode(positionbase.PosNode):
             [     0.0,    0.0],  #dy
             [     5.2,   -5.2]]) #dh
         transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)'''
-        x, y, h, dx, dy, dh = prev.flatten().tolist()
-        transition = np.array([[
-            x+dx*cos(h)*dt+dy*sin(h)*dt,
-            y+dy*sin(h)*dt+dy*cos(h)*dt,
-            h+dh*dt,
-            dx+1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
-            dy,
-            dh+5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]]])
-        transition = np.transpose(transition)
+        x, y, h, dx, dy, dh = prev
+        ClampRot = lambda r: (((r)+pi) % tau)-pi
+        transition = jnp.array([
+            x+dx*jnp.cos(h)*dt+dy*jnp.sin(h)*dt,
+            y+dy*jnp.sin(h)*dt+dy*jnp.cos(h)*dt,
+            ClampRot(h+dh*dt),
+            1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
+            0,
+            5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]])
         return transition
     
     def get_ctrl_vec(self, msg):
@@ -57,7 +61,7 @@ class AthenaPosNode(positionbase.PosNode):
         msg.pose.position.x = self.state[0,0]
         msg.pose.position.y = self.state[1,0]
         msg.pose.position.z = 0.0
-        self.get_logger().info("Heading:%s" % self.state[2,0])
+        #self.get_logger().info("Heading:%s" % self.state[2,0])
         q = Quaternion.from_euler(0, 0, self.state[2,0])
         msg.pose.orientation.x = q.x
         msg.pose.orientation.y = q.y
@@ -74,8 +78,17 @@ class AthenaPosNode(positionbase.PosNode):
 def main(args=None):
     rclpy.init(args=args)
     athena_pos_node = AthenaPosNode()
+    # Create an executor thread that spins the node
+    executor = MultiThreadedExecutor()
+    executor.add_node(athena_pos_node)
+    executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.start()
+    # Run the main loop in the node
     athena_pos_node.spin()
-    athena_pos_node.destroy_node()
+    # Wait for the executor to finish
+    executor_thread.join()
+
+    naiad_pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

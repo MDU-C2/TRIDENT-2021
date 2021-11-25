@@ -34,7 +34,9 @@ def generate_launch_description():
             executable='motor_control',
             output='screen',
             name='motor_control',
-            parameters=[config]
+            parameters=[config,
+                {'use_sim_odom': True}
+            ]
         ),
         Node(
             package='athena_driver',
@@ -43,7 +45,8 @@ def generate_launch_description():
             output='screen',
             name='motor_driver',
             parameters=[config,
-                {'simulation': True}
+                {'simulation': True},
+                {'motor_output_scale': 0.5}
             ]
         ),
         Node(

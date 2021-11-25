@@ -32,11 +32,13 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             parameters=[
                 ('motor_output_silence_period',  0.3), # Seconds
                 ('motor_interface',  ""),
+                ('motor_output_scale', 0.1),
                 ('simulation', False) # Specifies if the motor driver should send motor ouputs to the simulation
             ])                        # environment or the real motors. Defaults to False, and is set to True in the simulation
                                       # launch file.
         # Load parameters
         self._motor_output_silence_period = self.get_parameter('motor_output_silence_period').get_parameter_value().double_value # Seconds
+        self._motor_output_scale = self.get_parameter('motor_output_scale').get_parameter_value().double_value # Percentage
         self._motor_interface = json.loads(self.get_parameter('motor_interface').get_parameter_value().string_value)
         self._simulation_env = self.get_parameter('simulation').get_parameter_value().bool_value
         # Check if we are supposed to run in the simulation environment
@@ -67,7 +69,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             # Publisher for the motors in stonefish simulator
             self._sim_motor_publisher = self.create_publisher(
                 Setpoints,
-                'thruster_setpoints',
+                'simulation/thruster_setpoints',
                 10
             )
 
@@ -104,9 +106,9 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         msg = Setpoints()
         outputs = []
         for motor_output in motor_outputs:
-            # Scale the output value to stonefish values (-1, 1)
-            val = float(motor_output.value / 100)
-            outputs.append(val)
+            # Scale the output according to the motor_output_scale parameter
+            outputs.append(float(motor_output.value * self._motor_output_scale))
+
         msg.setpoints = outputs
         self.get_logger().info(f"Publishing motor outputs to simulation. Outputs: {msg}")
         self._sim_motor_publisher.publish(msg)
@@ -133,7 +135,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
             output.id, output.value = motor["id"], 0.0
             outputs.append(output)
         # motor_outputs.motor_outputs = outputs
-        self._send_motor_outputs(outputs)
+        self._send_motor_outputs_fn(outputs)
 
     #                   Callbacks
     # -----------------------------------------        
@@ -200,7 +202,7 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         # Check if the motors are supposed to be killed
         if not self.motors_killed:
             motor_outputs = msg.motor_outputs
-            self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
+            # self.get_logger().info(f'Publishing motor output values to the motors. Motor values: {motor_outputs}')
             self._motor_driver_state = MotorDriverState.ACTIVE
             # for motor_num, value in motor_outputs:
             self.__send_motor_outputs(motor_outputs)
