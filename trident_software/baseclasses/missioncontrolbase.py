@@ -500,6 +500,12 @@ class MissionControlBase(Node):
             response.success = False
             response.message = "Cannot load a mission with 0 waypoints."
             return response
+        # Mission in progress
+        if self._mission_control_state == MissionControlState.EXECUTING_MISSION:
+            response.success = False
+            response.message = "Cannot load a mission when a mission is in progress. Cancel the mission first."
+            return response
+
 
         try:
             self.get_logger().info(f"Received mission with {len(request.mission.waypoints)} waypoints.")
