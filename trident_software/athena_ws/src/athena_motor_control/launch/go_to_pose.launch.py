@@ -10,6 +10,7 @@ import launch.substitutions
 import launch_testing.actions
 import launch_testing_ros
 
+from threading import Thread
 import pytest
 import rclpy
 from rclpy.node import Node
@@ -23,6 +24,7 @@ from baseclasses.motorcontrolbase import MotorControlBase
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
 from std_srvs.srv import SetBool
 from trident_msgs.action import GotoPose, HoldPose
+from trident_msgs.srv import GetState
 import os
 from ament_index_python.packages import get_package_share_directory
 
@@ -49,11 +51,23 @@ def generate_test_description():
     ])
 
 
-class MinimalClientAsync(Node):
+class MinimalServiceClient(Node):
+    def __init__(self):
+        super().__init__('service_clientent_async')
+        self.sercli = self.create_client(GetState, 'athena/motor_control/state/get')
+        while not self.sercli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = GetState.Request()
+
+    def send_request(self):
+        self.finalresult = self.sercli.call(self.req)
+
+class MinimalActionClient(Node):
 
     def __init__(self):
         super().__init__('minimal_client_async')
         self.actcli = ActionClient(self, GotoPose, 'athena/motor_control/pose/go')
+        self.action_finished = False
 
     def send_goal(self, x, y, z, yaw, pitch, roll):
         goal_msg = GotoPose.Goal()
@@ -76,35 +90,30 @@ class MinimalClientAsync(Node):
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.get_logger().info('Goal rejected :(')
+            self.get_logger().info('Goal rejected.')
             return
 
-        self.get_logger().info('Goal accepted :)')
+        self.get_logger().info('Goal accepted.')
 
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self.get_result_callback)
+        self.result_future = goal_handle.get_result_async()
+        self.result_future.add_done_callback(self.get_result_callback)
 
     def feedback_callback(self, feedback):
         self.get_logger().info(f"Goto pose feedback: Distance to goal: {feedback.feedback.distance_to_goal}" \
                                f"status: {feedback.feedback.status}, Message: {feedback.feedback.message}")
 
         self.get_logger().info('Propagating feedback to GotoWaypoint client.')
-        # Propagate feedback to the GotoWaypoint client
-        goto_waypoint_feedback_msg = GotoWaypoint.Feedback()
-        goto_waypoint_feedback_msg.distance_to_goal = feedback.feedback.distance_to_goal
-        goto_waypoint_feedback_msg.status = GotoWaypointStatus.MOVING
-        goto_waypoint_feedback_msg.message = "Moving to waypoint."
 
     def get_result_callback(self, future):
-        result = future.result().result
-        status = future.result().status
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.get_logger().info('Goal succeeded! Result: {0}'.format(result.distance_to_goal))
+        self.finalresult = future.result().result
+        self.finalstatus = future.result().status
+        if self.finalstatus == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info('Goal succeeded! Result: {0}'.format(self.finalresult.distance_to_goal))
         else:
-            self.get_logger().info('Goal failed with status: {0}'.format(status))
+            self.get_logger().info('Goal failed with status: {0}'.format(self.finalstatus))
 
-        # Shutdown after receiving a result
-        #rclpy.shutdown()
+        self.action_finished = True
+
 
 class TestTalkerListenerLink(unittest.TestCase):
 
@@ -125,24 +134,23 @@ class TestTalkerListenerLink(unittest.TestCase):
     def tearDown(self):
         self.node.destroy_node()
 
-    def test_manual_override_service(self):
-        minimal_actcli = MinimalClientAsync()
-        future = minimal_actcli.send_goal(2.0, 2.0, 0.0, 0.0, 0.0, 0.0)
-        rclpy.spin(minimal_actcli)
+    def test_goto_pose(self):
+        # Create and start the Action client that sends the GotoPose service call
+        action_client = MinimalActionClient()
+        action_client.send_goal(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        while(not action_client.action_finished):
+            rclpy.spin_once(action_client)
+
+        # When above is finished, create and start the Service client that requests the GetState information
+        service_client = MinimalServiceClient()
+        spin_thread = Thread(target=rclpy.spin, args=(service_client,))
+        spin_thread.start()
+        service_client.send_request()
+
+        # Print and check if the goal was reached and if the motor controller was IDLE afterwards
+        print("Action result: %s" % (action_client.finalstatus))
+        self.assertEqual(action_client.finalstatus, GoalStatus.STATUS_SUCCEEDED, "Goal pose failed.")
+        print("Motor control state: %s" % (service_client.finalresult.state))
+        self.assertEqual(service_client.finalresult.state, 'IDLE', "Motor control state parameter should be: IDLE")
         
-        """
-        while rclpy.ok():
-            rclpy.spin(minimal_actcli)
-            if minimal_actcli.future.done():
-                try:
-                    response = minimal_client.future.result()
-                except Exception as e:
-                    minimal_client.get_logger().info(
-                        'Service call failed %r' % (e,))
-                else:
-                    self.assertTrue(response.success)
-                break
-            
-        """
-        #minimal_actcli.destroy_node()
-        rclpy.shutdown()
+
