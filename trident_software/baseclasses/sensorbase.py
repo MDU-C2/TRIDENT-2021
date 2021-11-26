@@ -1,13 +1,11 @@
-import numpy as np
 import rclpy
 from rclpy.node import Node
+import numpy as np
 from abc import ABC, abstractmethod
 import types
 from time import time
-from jax import jacfwd
-import jax.numpy as jnp
 
-from trident_msgs.srv import KalmanSensorService
+from trident_msgs.srv import BasicSensorService
 
 class SensorNode(Node, ABC):
     def __init__(self, sensor_type, mounted_on, read_interval,
