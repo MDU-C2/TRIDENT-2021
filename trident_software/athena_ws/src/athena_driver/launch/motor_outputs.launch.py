@@ -5,6 +5,7 @@ from cola2_msgs.msg import Setpoints
 from rclpy.node import Node
 from std_srvs.srv import SetBool
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
+from threading import Thread
 import launch
 import launch.actions
 import launch.substitutions
@@ -34,22 +35,35 @@ def generate_test_description():
             default_value=[launch.substitutions.EnvironmentVariable('USER'), '_'],
             description='Prefix for node names'),
         launch_ros.actions.Node(
-            namespace='athena', package='athena_motor_driver', executable='motor_driver', output='screen', parameters=[config],
+            namespace='athena', package='athena_driver', executable='motor_driver', output='screen', parameters=[config, {'simulation': True}, {'motor_output_scale': 0.5}],
             name=['motor_driver']),
         
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
     ])
 
-class Publisher(Node):
+class TestNode(Node):
     def __init__(self):
-        super().__Init__('publisher')
-        self.publisher = self.create_publisher(MotorOutputs, 'athena/motor_control/motor_output', 10)
+        super().__init__('publisher')
 
-class Subscriber(Node):
-    def __init__(self):
-        super().__Init__('subscriber')
-        self.publisher = self.create_subscriber(SetPoints, 'athena/simulation/thruster_setpoints', 10)
+        self.msg = MotorOutputs()
+
+        self.publisher = self.create_publisher(MotorOutputs, 'athena/motor_control/motor_output', 10)
+        timer_period = 1
+        self.timer = self.create_timer(timer_period, self.pub_callback)
+        self.subscriber = self.create_subscription(Setpoints, 'athena/simulation/thruster_setpoints', self.sub_callback, 10)
+        self.done = False
+
+    def pub_callback(self):
+        self.msg.motor_outputs = [MotorOutput(id=1, value=0.4), MotorOutput(id=2, value=0.3)]
+        self.publisher.publish(self.msg)
+            
+    def sub_callback(self, msg):
+        self.msg = msg
+        self.get_logger().info('SETPOINTS: %s' % self.msg.setpoints)
+        self.publisher.destroy()
+        self.destroy_node()
+        self.done = True
 
 class TestTalkerListenerLink(unittest.TestCase):
 
@@ -70,4 +84,11 @@ class TestTalkerListenerLink(unittest.TestCase):
     def tearDown(self):
         self.node.destroy_node()
 
-    def test_manual_override_service(self):
+    def test_motor_outputs(self):
+        test_node = TestNode()
+
+        while not test_node.done:
+            rclpy.spin_once(test_node)
+
+        self.assertEqual()
+

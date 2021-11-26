@@ -1,4 +1,6 @@
 import rclpy
+import signal
+import sys
 from rclpy.executors import MultiThreadedExecutor
 from baseclasses.motordriverbase import MotorDriverBase
 from trident_msgs.msg import MotorOutputs
@@ -23,8 +25,12 @@ class MotorDriverNode(MotorDriverBase):
         pass
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
