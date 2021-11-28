@@ -11,7 +11,7 @@ from squaternion import Quaternion
 class NaiadPosNode(posbase.PosNode):
     def __init__(self):
         
-        init_state = np.zeros(12)  # Starts at 0,0
+        init_state = np.zeros(13)  # Starts at 0,0
         init_noise = np.array([0.25, 0.25, 0.25, 0.4, 0.4, 0.4, 0.4, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]) # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,

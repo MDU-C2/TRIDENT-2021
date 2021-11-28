@@ -31,14 +31,23 @@ class USBLNode(sensbase.SensorNode):
         athena_pos = np.array([self.get_parameter('athena_position/x').value,
                       self.get_parameter('athena_position/y').value, 0])
         q = Quaternion(current_state[3], current_state[4], current_state[5], current_state[6])
-        rotation = np.array([[2*(q[0]**2 + q[1]**2)-1,   2*(q[1]*q[2] - q[0]*q[3]), 2*(q[1]*q[3] + q[0]*q[2])],
-                             [2*(q[1]*q[2] + q[0]*q[3]), 2*(q[0]**2 + q[2]**2)-1,   2*(q[2]*q[3] - q[0]*q[1])],
-                             [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[2]*q[3] + q[0]*q[1]), 2*(q[0]**2 + q[3]**2)-1  ]])
-        relative_world_pos = np.matmul(self.measure, rotation)
+        rotation = np.array([[1-2*(q[2]**2 + q[3]**2),   2*(q[1]*q[2] - q[0]*q[3]), 2*(q[0]*q[2] + q[1]*q[3])],
+                             [2*(q[1]*q[2] + q[0]*q[3]), 1-2*(q[1]**2 + q[3]**2),   2*(q[2]*q[3] - q[0]*q[1])],
+                             [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[0]*q[1] + q[2]*q[3]), 1-2*(q[1]**2 + q[2]**2)  ]])
+
+        relative_world_pos = np.matmul(rotation, self.measure)
         absolute_world_pos = relative_world_pos + athena_pos
         
         self.get_logger().info("USBL Absolute pos guess: %s" % np.array_str(absolute_world_pos))
-        return absolute_world_pos
+        guess = np.array([absolute_world_pos[0], absolute_world_pos[1], absolute_world_pos[2],
+                         0,0,0,0,
+                         0,0,0,
+                         0,0,0])
+        noise = np.array([noise_mat[0],noise_mat[1],noise_mat[2],
+                          0,0,0,0,
+                          0,0,0,
+                          0,0,0])
+        return guess, noise
     
     def TakeMeasurement(self):
         pass
