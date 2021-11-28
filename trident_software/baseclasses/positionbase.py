@@ -153,7 +153,7 @@ class PosNode(Node, ABC):
                 self.get_logger().warn("Skipping sensor due to failure! Error:" + str(e))
             
             # Finally, set the state to the new "composite" state.
-            self.state = np.average(all_guesses, axis=0, weights=all_noises)
+            self.state = np.average(all_guesses, axis=0, weights=1/all_noises)
             
             # AND publish the new state
             self.state_publish()

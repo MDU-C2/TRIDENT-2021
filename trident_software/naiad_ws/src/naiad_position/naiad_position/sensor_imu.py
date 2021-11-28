@@ -4,40 +4,17 @@ import baseclasses.sensorbase as sensbase
 from collections import deque
 from time import time
 from math import sin, cos, pi
+from math import degrees as todeg
 from squaternion import Quaternion
 
 from sensor_msgs.msg import Imu
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
-        '''The IMU measurement vector will look like this
-           yaw pitch roll accelx accely accelz gyrox gyroy gyroz
-           Since accel will have to always be updated, it will start as 1.
-           heading and delta_heading can be copied over directly (after conversion)'''
-        todeg = 180/3.14
-        init_obs_mat = np.array([
-            #x y z     r     p     h dx dy dz dr dp dh 
-            #[0,0,0,todeg,    0,    0, 0, 0, 0, 0, 0, 0], #r
-            #[0,0,0,    0,todeg,    0, 0, 0, 0, 0, 0, 0], #p
-            #[0,0,0,    0,    0,todeg, 0, 0, 0, 0, 0, 0], #h
-            [0,0,0,    1,    0,    0, 0, 0, 0, 0, 0, 0], #r ###
-            [0,0,0,    0,    1,    0, 0, 0, 0, 0, 0, 0], #p # modded for simulation 
-            [0,0,0,    0,    0,    1, 0, 0, 0, 0, 0, 0], #h ###
-            [0,0,0,    0,    0,    0, 1, 0, 0, 0, 0, 0], #ddx
-            [0,0,0,    0,    0,    0, 0, 1, 0, 0, 0, 0], #ddy
-            [0,0,0,    0,    0,    0, 0, 0, 1, 0, 0, 0], #ddz
-            [0,0,0,    0,    0,    0, 0, 0, 0, 1, 0, 0], #dr
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0], #dp
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]], dtype=np.float32)#dh
-        
-        noise_mat = (np.array([[.3, .3, .5, .1, .1, .1, .17, .17, .17]])*np.identity(9))**2
+        noise_mat = np.array([.3, .3, .5, .1, .1, .1, .17, .17, .17])
         
         super().__init__('imu', 'naiad', 0.25,
-                         init_obs_mat, 9, noise_mat)
-                         
-        self.acc_history = deque(maxlen=3)
-        self.prev_state = np.zeros((12,1))
-        self.prev_state_time = time()
+                         9, noise_mat)
         
         self.imu_history = deque(maxlen=30)
             
@@ -54,47 +31,21 @@ class IMUNode(sensbase.SensorNode):
             ser = serial.Serial(port="COM7",baudrate=115200,timeout=0.5)
             ser.close()
     
-    # Redefined to allow dynamic changing of observation matrix
-    # Maybe make this a full-fledged function?
-    def SensorService(self, request, response):
-        state = np.reshape(request.state, (-1,1))
-        dt = time() - self.prev_state_time
-        self.acc_history.append([
-            self.prev_state[6,0]-state[6,0] / dt,
-            self.prev_state[7,0]-state[7,0] / dt,
-            self.prev_state[8,0]-state[8,0] / dt,
-        ])
-        mean_accs = [
-            sum([acc[0] for acc in self.acc_history]) / len(self.acc_history),
-            sum([acc[1] for acc in self.acc_history]) / len(self.acc_history),
-            sum([acc[2] for acc in self.acc_history]) / len(self.acc_history),
-        ]
-        self.obs_mod[3, 6] = mean_accs[0] / state[6,0]
-                             
-        self.obs_mod[4, 7] = mean_accs[1] / state[7,0]
-                             
-        self.obs_mod[5, 8] = mean_accs[2] / state[8,0]
-        
-        #Test fix for "yaw spin"
-        '''if  (self.measure[2,0] - state[5,0]) >  pi:
-            self.measure[2,0] = -pi - self.measure[2,0]-state[5,0]
-        elif(self.measure[2,0] - state[5,0]) < -pi:
-            self.measure[2,0] =  pi + self.measure[2,0]-state[5,0]'''
-
-        # self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
-        #                      (dt*state[6,0])
-        # self.obs_mod[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
-        #                      (dt*state[7,0])
-        # self.obs_mod[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
-        #                      (dt*state[8,0])
-
-        self.get_logger().info(f"x accel:{self.obs_mod[3, 6]*state[6,0]}")
-        self.get_logger().info(f"y accel:{self.obs_mod[4, 7]*state[7,0]}")
-        self.get_logger().info(f"z accel:{self.obs_mod[5, 8]*state[8,0]}")
-        self.prev_state = np.copy(state)
-        self.prev_state_time = time()
-        
-        return super().SensorService(request, response)
+    def state_guess(self, current_state):
+        if(self.get_parameter('simulated').value):
+            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2])
+        else:
+            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2],
+            degrees = True)
+        guess = np.array([0,0,0,
+                          quat.w,quat.x,quat.y,quat.z,
+                          0,0,0,
+                          self.measure[6],self.measure[7],self.measure[8]])
+        noise = np.array([np.inf,np.inf,np.inf,
+                          0.2,0.2,0.2,0.2,
+                          np.inf,np.inf,np.inf,
+                          self.measue_noise[6],self.measue_noise[7],self.measue_noise[8]])
+        return guess, noise
     
     def TakeMeasurement(self):
         ser.open()
@@ -105,15 +56,15 @@ class IMUNode(sensbase.SensorNode):
             type_list = ("yaw", "pitch", "roll", "magx", "magy", "magz",
                          "accelx", "accely", "accelz", "gyrox", "gyroy", "gyroz")
             imu_dict = dict(zip(type_list, line))
-            self.measure[0,0] = imu_dict["roll"]
-            self.measure[1,0] = imu_dict["pitch"]
-            self.measure[2,0] = imu_dict["yaw"]
-            self.measure[3,0] = imu_dict["accelx"]
-            self.measure[4,0] = imu_dict["accely"]
-            self.measure[5,0] = imu_dict["accelz"]
-            self.measure[6,0] = imu_dict["gyrox"]
-            self.measure[7,0] = imu_dict["gyroy"]
-            self.measure[8,0] = imu_dict["gyroz"]
+            self.measure[0] = imu_dict["roll"]
+            self.measure[1] = imu_dict["pitch"]
+            self.measure[2] = imu_dict["yaw"]
+            self.measure[3] = imu_dict["accelx"]
+            self.measure[4] = imu_dict["accely"]
+            self.measure[5] = imu_dict["accelz"]
+            self.measure[6] = imu_dict["gyrox"]
+            self.measure[7] = imu_dict["gyroy"]
+            self.measure[8] = imu_dict["gyroz"]
         except:
             print("Error reading IMU in the NAIAD!")
         ser.close()
@@ -132,7 +83,7 @@ class IMUNode(sensbase.SensorNode):
             msg.angular_velocity.y,
             msg.angular_velocity.z
         ])
-        self.measure[:,0] = np.sum(self.imu_history, axis=0) / len(self.imu_history)
+        self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
 def main(args=None):
     rclpy.init(args=args)

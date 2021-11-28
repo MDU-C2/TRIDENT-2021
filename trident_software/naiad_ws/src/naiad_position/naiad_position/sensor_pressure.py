@@ -6,14 +6,8 @@ from sensor_msgs.msg import FluidPressure
 
 class PressureNode(sensbase.SensorNode):
     def __init__(self):
-        init_obs_mat = np.array([
-            #x y z  r p h dx dy dz dr dp dh 
-            [0,0,1.,0,0,0, 0, 0, 0, 0, 0, 0]]) #Depth
-        
-        noise_mat = (np.array([[1.]]))**2
-        
         super().__init__('pressure', 'naiad', 0.25,
-                         init_obs_mat, 1, noise_mat)
+                         1, np.array([1.]))
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
@@ -26,6 +20,17 @@ class PressureNode(sensbase.SensorNode):
         else:
             from naiad_driver.naiad_driver import depth_sensor_driver
             self.depth_sensor = depth_sensor_driver()
+    
+    def state_guess(self, current_state):
+        guess = np.array([0,0,self.measure[0],
+                          0,0,0,0
+                          0,0,0
+                          0,0,0])
+        noise = np.array([np.inf,np.inf,self.measure_noise[0],
+                          np.inf,np.inf,np.inf,np.inf,
+                          np.inf,np.inf,np.inf,
+                          np.inf,np.inf,np.inf])
+        return guess, noise
     
     def TakeMeasurement(self):
         self.measure[0,0] = self.depth_sensor.read_sensor()[2]
