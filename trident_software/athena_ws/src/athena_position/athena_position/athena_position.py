@@ -3,76 +3,57 @@ import numpy as np
 from baseclasses import positionbase
 from trident_msgs.msg import State
 from math import sin, cos, pi, tau
+
 from rclpy.executors import MultiThreadedExecutor
 import threading
 from squaternion import Quaternion
 
-import jax.numpy as jnp
-
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
         
-        init_state = np.zeros((6,1))  # Starts at 0,0
-        init_covar = np.zeros((6,6)) # Starts with no uncertainty
-        init_noise = (np.array([0.05, 0.05, 0.04, 0.02, 0.02, 0.01])*np.identity(6))**2 # These are just guesses!
+        init_state = np.zeros(7)  # Starts at 0,0
+        init_noise = np.array([0.05, 0.05, 0.04, 0.04, 0.02, 0.02, 0.01]) # These are just guesses!
             
         super().__init__("athena_position_node", "state", 0.5,
-                         init_state, init_covar, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
+                         init_state, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
                          2, "/athena/simulation/thruster_setpoints")
     
     def state_trans(self, prev, dt):
-        '''h = prev[2,0]
-        trans_mat = np.array([
-            #x  y  h         dx         dy  dh
-            [1, 0, 0, dt*sin(h), dt*cos(h),  0], #x
-            [0, 1, 0, dt*cos(h), dt*sin(h),  0], #y
-            [0, 0, 1,         0,         0, dt], #h
-            [0, 0, 0,         1,         0,  0], #dx
-            [0, 0, 0,         0,         1,  0], #dy
-            [0, 0, 0,         0,         0,  1]])#dh
-        # TODO: add the contol vector, using the motor config.
-        ctrl_mat = np.array([
-            # Motor 1 Motor 2
-            [     0.0,    0.0],  #x
-            [     0.0,    0.0],  #y
-            [     0.0,    0.0],  #h
-            [     1.1,    1.1],  #dx
-            [     0.0,    0.0],  #dy
-            [     5.2,   -5.2]]) #dh
-        transition = np.matmul(trans_mat,prev) + np.matmul(ctrl_mat,self.control_vec)'''
-        x, y, h, dx, dy, dh = prev
-        ClampRot = lambda r: (((r)+pi) % tau)-pi
-        transition = jnp.array([
-            x+dx*jnp.cos(h)*dt+dy*jnp.sin(h)*dt,
-            y+dy*jnp.sin(h)*dt+dy*jnp.cos(h)*dt,
-            ClampRot(h+dh*dt),
-            1.1*self.control_vec[0,0]+1.1*self.control_vec[1,0],
+        x, y, qw, qz, dx, dy, dh = prev
+        quat = Quaternion(qw,0,0,qz)
+        ang_vel_quat = Quaternion(0,0,0,dh)*dt*.5
+        rotated = (ang_vel_quat*quat)+quat
+        heading = np.arctan2(2*(qw*qz + qx*qy), 1-2*(pow(qy, 2)+pow(qz, 2)))
+        transition = np.array([
+            x+dx*np.cos(heading)*dt+dy*np.sin(heading)*dt,
+            y+dy*np.sin(heading)*dt+dy*np.cos(heading)*dt,
+            rotated.w,
+            rotated.z,
+            1.1*self.control_vec[0]+1.1*self.control_vec[1],
             0,
-            5.2*self.control_vec[0,0]-5.2*self.control_vec[1,0]])
+            5.2*self.control_vec[0]-5.2*self.control_vec[1]])
         return transition
     
     def get_ctrl_vec(self, msg):
         self.get_logger().info("Control vector: %s" % msg)
-        self.control_vec[0,0] = msg.setpoints[0]
-        self.control_vec[1,0] = msg.setpoints[1]
+        self.control_vec[0] = msg.setpoints[0]
+        self.control_vec[1] = msg.setpoints[1]
     
     def state_publish(self):
         msg = State()
-        msg.pose.position.x = self.state[0,0]
-        msg.pose.position.y = self.state[1,0]
+        msg.pose.position.x = self.state[0]
+        msg.pose.position.y = self.state[1]
         msg.pose.position.z = 0.0
-        #self.get_logger().info("Heading:%s" % self.state[2,0])
-        q = Quaternion.from_euler(0, 0, self.state[2,0])
-        msg.pose.orientation.x = q.x
-        msg.pose.orientation.y = q.y
-        msg.pose.orientation.z = q.z
-        msg.pose.orientation.w = q.w
-        msg.twist.linear.x  = self.state[3,0]
-        msg.twist.linear.y  = self.state[4,0]
+        msg.pose.orientation.w = self.state[2]
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = self.state[3]
+        msg.twist.linear.x  = self.state[4]
+        msg.twist.linear.y  = self.state[5]
         msg.twist.linear.z  = 0.0
         msg.twist.angular.x = 0.0
         msg.twist.angular.y = 0.0
-        msg.twist.angular.z = self.state[5,0]
+        msg.twist.angular.z = self.state[6]
         self.publisher_.publish(msg)
     
 def main(args=None):

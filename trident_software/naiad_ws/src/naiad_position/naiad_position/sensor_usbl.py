@@ -35,8 +35,8 @@ class USBLNode(sensbase.SensorNode):
                              [2*(q[1]*q[2] + q[0]*q[3]), 1-2*(q[1]**2 + q[3]**2),   2*(q[2]*q[3] - q[0]*q[1])],
                              [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[0]*q[1] + q[2]*q[3]), 1-2*(q[1]**2 + q[2]**2)  ]])
 
-        relative_world_pos = np.matmul(rotation, self.measure)
-        absolute_world_pos = relative_world_pos + athena_pos
+        global_athena_distance = np.matmul(rotation, self.measure)
+        absolute_world_pos = athena_pos - global_athena_distance
         
         self.get_logger().info("USBL Absolute pos guess: %s" % np.array_str(absolute_world_pos))
         guess = np.array([absolute_world_pos[0], absolute_world_pos[1], absolute_world_pos[2],

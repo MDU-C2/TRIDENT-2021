@@ -1,7 +1,7 @@
 import baseclasses.sensorbase as sensbase
 import rclpy
 import numpy as np
-from math import sin, cos, sqrt, asin, inf
+from math import sin, cos, sqrt, asin
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
 

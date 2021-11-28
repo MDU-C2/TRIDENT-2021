@@ -1,6 +1,6 @@
 import rclpy
 import numpy as np
-import baseclasses.positionbase as posbase
+from baseclasses import positionbase
 from trident_msgs.msg import State
 from math import sin, cos, pi, tau
 
@@ -8,14 +8,14 @@ from rclpy.executors import MultiThreadedExecutor
 import threading
 from squaternion import Quaternion
 
-class NaiadPosNode(posbase.PosNode):
+class NaiadPosNode(positionbase.PosNode):
     def __init__(self):
         
         init_state = np.zeros(13)  # Starts at 0,0
         init_noise = np.array([0.25, 0.25, 0.25, 0.4, 0.4, 0.4, 0.4, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]) # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,
-                         init_state, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/gps", "/naiad/sensor/pressure"],
+                         init_state, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/imu", "/naiad/sensor/gps", "/naiad/sensor/pressure"],
                          6, "/naiad/simulation/thruster_setpoints")
     
     def state_trans(self, prev, dt):
