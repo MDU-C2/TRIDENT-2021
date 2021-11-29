@@ -423,8 +423,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                             x=self._agent_state.pose.orientation.x,
                             y=self._agent_state.pose.orientation.y,
                             z=self._agent_state.pose.orientation.z).to_euler(degrees=False)
-        self._pids["roll"].auto_mode = True
-        self._pids["pitch"].auto_mode = True
         roll_control = self._pids["roll"](curr_orientation[0])
         pitch_control = self._pids["pitch"](curr_orientation[1])
 
@@ -438,9 +436,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             output.value = (motor["pose_effect"]["x"] * twist_msg.linear.x +
                             motor["pose_effect"]["y"] * twist_msg.linear.y +
                             motor["pose_effect"]["z"] * twist_msg.linear.z +
-                            motor["pose_effect"]["yaw"] * twist_msg.angular.z)
-                            # motor["pose_effect"]["roll"] * roll_control +
-                            # motor["pose_effect"]["pitch"] * pitch_control)
+                            motor["pose_effect"]["yaw"] * twist_msg.angular.z +
+                            motor["pose_effect"]["roll"] * roll_control +
+                            motor["pose_effect"]["pitch"] * pitch_control)
 
             output.value *= base_speed
             motor_outputs.append(output)
@@ -521,6 +519,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             response.message = f"Successfully set manual override to {request.data}."
             if request.data == True:
                 self.disable_pids()
+                # Enable only roll and pitch so that the agents stays level (only works on NAIAD)
+                self._pids["roll"].auto_mode = True
+                self._pids["pitch"].auto_mode = True
                 self._update_node_state(MotorControlState.MANUAL_OVERRIDE)
             else:
                 self.enable_pids()
