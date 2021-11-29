@@ -26,7 +26,7 @@ from example_interfaces.srv import AddTwoInts
 
 import sys
 
-@pytest.mark.rostest
+@pytest.mark.launch_test
 def generate_test_description():
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -36,15 +36,10 @@ def generate_test_description():
         launch_ros.actions.Node(
             package='athena_mission_control', executable='mission_control', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'mission_control']),
-        launch.actions.DeclareLaunchArgument(
-            'target',
-            default_value='athena',
-            description='Passed to specify target',
-        ),
+
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
     ])
-
 
 class ServiceTester(Node):
 
