@@ -49,9 +49,11 @@ class TestNode(Node):
         self.msg = MotorOutputs()
 
         self.publisher = self.create_publisher(MotorOutputs, 'athena/motor_control/motor_output', 10)
+        self.get_logger().info('Publishing motor_outputs at 1Hz...')
         timer_period = 1
         self.timer = self.create_timer(timer_period, self.pub_callback)
         self.subscriber = self.create_subscription(Setpoints, 'athena/simulation/thruster_setpoints', self.sub_callback, 10)
+        self.get_logger().info('Listening for thruster setpoints...')
         self.done = False
 
     def pub_callback(self):
@@ -60,7 +62,7 @@ class TestNode(Node):
             
     def sub_callback(self, msg):
         self.msg = msg
-        self.get_logger().info('SETPOINTS: %s' % self.msg.setpoints)
+        self.get_logger().info('Recieved message: %s' % self.msg.setpoints)
         self.publisher.destroy()
         self.destroy_node()
         self.done = True
@@ -90,5 +92,5 @@ class TestTalkerListenerLink(unittest.TestCase):
         while not test_node.done:
             rclpy.spin_once(test_node)
 
-        self.assertEqual()
+        self.assertTrue(type(test_node.msg) is Setpoints, "Did not recieve message with type \"Setpoints\"")
 
