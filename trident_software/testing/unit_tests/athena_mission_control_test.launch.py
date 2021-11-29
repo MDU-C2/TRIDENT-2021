@@ -24,6 +24,8 @@ from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
 from example_interfaces.srv import AddTwoInts
 
+import sys
+
 @pytest.mark.rostest
 def generate_test_description():
     return launch.LaunchDescription([
@@ -34,7 +36,11 @@ def generate_test_description():
         launch_ros.actions.Node(
             package='athena_mission_control', executable='mission_control', output='screen',
             name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'mission_control']),
-        
+        launch.actions.DeclareLaunchArgument(
+            'target',
+            default_value='athena',
+            description='Passed to specify target',
+        ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
     ])
@@ -100,7 +106,7 @@ class TestTalkerListenerLink(unittest.TestCase):
     def tearDown(self):
         self.node.destroy_node()
 
-    def test_service1(self):
+    def test_service1(self,test_args):
         minimal_client = ServiceTester()
         minimal_client.send_request_LoadMission()
         
