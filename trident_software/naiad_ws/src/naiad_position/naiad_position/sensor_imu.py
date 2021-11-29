@@ -5,6 +5,7 @@ from collections import deque
 from time import time
 from math import sin, cos, pi
 from squaternion import Quaternion
+import jax.numpy as jnp
 
 from sensor_msgs.msg import Imu
 
@@ -15,7 +16,7 @@ class IMUNode(sensbase.SensorNode):
            Since accel will have to always be updated, it will start as 1.
            heading and delta_heading can be copied over directly (after conversion)'''
         todeg = 180/3.14
-        init_obs_mat = np.array([
+        '''init_obs_mat = np.array([
             #x y z     r     p     h dx dy dz dr dp dh 
             #[0,0,0,todeg,    0,    0, 0, 0, 0, 0, 0, 0], #r
             #[0,0,0,    0,todeg,    0, 0, 0, 0, 0, 0, 0], #p
@@ -28,15 +29,15 @@ class IMUNode(sensbase.SensorNode):
             [0,0,0,    0,    0,    0, 0, 0, 1, 0, 0, 0], #ddz
             [0,0,0,    0,    0,    0, 0, 0, 0, 1, 0, 0], #dr
             [0,0,0,    0,    0,    0, 0, 0, 0, 0, 1, 0], #dp
-            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]], dtype=np.float32)#dh
+            [0,0,0,    0,    0,    0, 0, 0, 0, 0, 0, 1]], dtype=np.float32)#dh'''
         
-        noise_mat = (np.array([[.3, .3, .5, .1, .1, .1, .17, .17, .17]])*np.identity(9))**2
+        noise_mat = (np.array([[.3, .3, .3, .3, .17, .17, .17]])*np.identity(7))**2
         
         super().__init__('imu', 'naiad', 0.25,
-                         init_obs_mat, 9, noise_mat)
+                         self.ObservationService, 7, noise_mat)
                          
         self.acc_history = deque(maxlen=3)
-        self.prev_state = np.zeros((12,1))
+        self.prev_state = np.zeros((13,1))
         self.prev_state_time = time()
         
         self.imu_history = deque(maxlen=30)
@@ -54,9 +55,17 @@ class IMUNode(sensbase.SensorNode):
             ser = serial.Serial(port="COM7",baudrate=115200,timeout=0.5)
             ser.close()
     
+    def ObservationService(self, state, dt):
+        #qw, qx, qy, qz = state[3], state[4], state[5], state[6]
+        #roll  = jnp.arctan2(2*(qw*qx + qy*qz), 1-2*(pow(qx,2)+pow(qy,2)))
+        #pitch = jnp.arcsin(2*(qw*qy - qz*qx))
+        #head  = jnp.arctan2(2*(qw*qz + qx*qy), 1-2*(pow(qy,2)+pow(qz,2)))
+        
+        return jnp.array([state[3], state[4], state[5], state[6], state[10], state[11], state[12]])
+    
     # Redefined to allow dynamic changing of observation matrix
     # Maybe make this a full-fledged function?
-    def SensorService(self, request, response):
+    '''def SensorService(self, request, response):
         state = np.reshape(request.state, (-1,1))
         dt = time() - self.prev_state_time
         self.acc_history.append([
@@ -75,26 +84,13 @@ class IMUNode(sensbase.SensorNode):
                              
         self.obs_mod[5, 8] = mean_accs[2] / state[8,0]
         
-        #Test fix for "yaw spin"
-        '''if  (self.measure[2,0] - state[5,0]) >  pi:
-            self.measure[2,0] = -pi - self.measure[2,0]-state[5,0]
-        elif(self.measure[2,0] - state[5,0]) < -pi:
-            self.measure[2,0] =  pi + self.measure[2,0]-state[5,0]'''
-
-        # self.obs_mod[3, 6] = (self.prev_state[6,0]-state[6,0]) /\
-        #                      (dt*state[6,0])
-        # self.obs_mod[4, 7] = (self.prev_state[7,0]-state[7,0]) /\
-        #                      (dt*state[7,0])
-        # self.obs_mod[5, 8] = (self.prev_state[8,0]-state[8,0]) /\
-        #                      (dt*state[8,0])
-
         self.get_logger().info(f"x accel:{self.obs_mod[3, 6]*state[6,0]}")
         self.get_logger().info(f"y accel:{self.obs_mod[4, 7]*state[7,0]}")
         self.get_logger().info(f"z accel:{self.obs_mod[5, 8]*state[8,0]}")
         self.prev_state = np.copy(state)
         self.prev_state_time = time()
         
-        return super().SensorService(request, response)
+        return super().SensorService(request, response)'''
     
     def TakeMeasurement(self):
         ser.open()
@@ -105,29 +101,28 @@ class IMUNode(sensbase.SensorNode):
             type_list = ("yaw", "pitch", "roll", "magx", "magy", "magz",
                          "accelx", "accely", "accelz", "gyrox", "gyroy", "gyroz")
             imu_dict = dict(zip(type_list, line))
-            self.measure[0,0] = imu_dict["roll"]
-            self.measure[1,0] = imu_dict["pitch"]
-            self.measure[2,0] = imu_dict["yaw"]
-            self.measure[3,0] = imu_dict["accelx"]
-            self.measure[4,0] = imu_dict["accely"]
-            self.measure[5,0] = imu_dict["accelz"]
-            self.measure[6,0] = imu_dict["gyrox"]
-            self.measure[7,0] = imu_dict["gyroy"]
-            self.measure[8,0] = imu_dict["gyroz"]
+            quat = Quaternion.form_euler(imu_dict["roll"],imu_dict["pitch"],imu_dict["yaw"])
+            self.imu_history.append([
+                quat.w,
+                quat.x,
+                quat.y,
+                quat.z,
+                imu_dict["gyrox"],
+                imu_dict["gyroy"],
+                imu_dict["gyroz"]
+            ])
+            
+            self.measure[:,0] = np.sum(self.imu_history, axis=0) / len(self.imu_history)
         except:
             print("Error reading IMU in the NAIAD!")
         ser.close()
         
     def SimulatedMeasurement(self, msg):
-        q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
-        euler = q.to_euler()
         self.imu_history.append([
-            euler[0],
-            euler[1],
-            euler[2],
-            msg.linear_acceleration.x,
-            msg.linear_acceleration.y,
-            msg.linear_acceleration.z,
+            msg.orientation.w,
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
             msg.angular_velocity.x,
             msg.angular_velocity.y,
             msg.angular_velocity.z

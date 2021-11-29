@@ -24,9 +24,9 @@ class GPSNode(sensbase.SensorNode):
         self.origin = origin
 
         init_obs_mat = np.array([
-            #              x                y  z  r  p  h dx dy dz dr dp dh
-            [1/m_per_deg_lat,               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  #x (latitude)
-            [0,               1/m_per_deg_lon, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]) #y (longitude)
+            #              x                y  z qw qx qy qz dx dy dz dr dp dh
+            [1/m_per_deg_lat,               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  #x (latitude)
+            [0,               1/m_per_deg_lon, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]) #y (longitude)
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'naiad', 0,
                          init_obs_mat, 2, np.identity(2)*0.000005**2)

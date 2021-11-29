@@ -7,8 +7,8 @@ from sensor_msgs.msg import FluidPressure
 class PressureNode(sensbase.SensorNode):
     def __init__(self):
         init_obs_mat = np.array([
-            #x y z  r p h dx dy dz dr dp dh 
-            [0,0,1.,0,0,0, 0, 0, 0, 0, 0, 0]]) #Depth
+            #x y z  qw qx qy qz dx dy dz dr dp dh 
+            [0,0,1., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]) #Depth
         
         noise_mat = (np.array([[1.]]))**2
         

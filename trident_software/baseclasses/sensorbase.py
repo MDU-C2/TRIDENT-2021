@@ -31,6 +31,9 @@ class SensorNode(Node, ABC):
         self.timer = self.create_timer(read_interval, self.TakeMeasurement)
         
         self.ismatrix = isinstance(self.obs_mod, np.ndarray)
+        if(not self.ismatrix):
+            self.obs_jacob = jacfwd(self.obs_mod)
+            self.last_run = time()
     
     '''def jacobian(self, func, state, dt):
         new_state = func(state, dt)
@@ -54,11 +57,12 @@ class SensorNode(Node, ABC):
         if(self.ismatrix):
             obs_mat = self.obs_mod
         else:
-            obs_jacob = jacfwd(self.obs_mod)
             #self.get_logger().info("TEST %s" % jnp.array_str(jnp.array(state.flatten())))
-            obs_mat = obs_jacob(jnp.array(state.flatten()))#self.jacobian(self.obs_mod, state, dt)
+            dt = time() - self.last_run
+            obs_mat = self.obs_jacob(jnp.array(state.flatten()), dt)
+            self.last_run = time()
             
-        residual = self.measure - np.matmul(obs_mat, state)
+        residual = self.measure - np.matmul(obs_mat, state) + np.matmul(self.m_noise, np.random.randn(self.measure.shape[0], 1))
         residual_covar = np.matmul(np.matmul(
                              obs_mat,
                              covar),
