@@ -2,6 +2,7 @@ import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
 from squaternion import Quaternion
+from time import time
 
 from visualization_msgs.msg import MarkerArray
 
@@ -16,6 +17,7 @@ class USBLNode(sensbase.SensorNode):
         # These value that will be read/written to to get the athenas position
         self.declare_parameter('athena_position/x', 0.)
         self.declare_parameter('athena_position/y', 0.)
+        self.last_read = time()
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
@@ -47,7 +49,9 @@ class USBLNode(sensbase.SensorNode):
                          0,0,0,0,
                          0,0,0,
                          0,0,0])
-        noise = np.array([0.5,0.5,2,
+        dt = time() - self.last_read
+        n_fact = (10**dt)+(10**(3*current_state[12]))
+        noise = np.array([0.5*n_fact,0.5*n_fact,2*n_fact,
                           np.inf,np.inf,np.inf,np.inf,
                           np.inf,np.inf,np.inf,
                           np.inf,np.inf,np.inf])
@@ -60,6 +64,7 @@ class USBLNode(sensbase.SensorNode):
         self.measure[0] = msg.markers[0].pose.position.x
         self.measure[1] = msg.markers[0].pose.position.y
         self.measure[2] = msg.markers[0].pose.position.z
+        self.last_read = time()
 
 def main(args=None):
     rclpy.init(args=args)

@@ -12,12 +12,12 @@ from sensor_msgs.msg import Imu
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
-        noise_mat = np.array([.3, .3, .3, .3, .1, .1, .1, .17, .17, .17])
+        noise_mat = np.array([.7, .7, .7, .7, .1, .1, .1, .5, .5, .5])
         
         super().__init__('imu', 'naiad', 0.25,
                          10, noise_mat)
         
-        self.imu_history = deque(maxlen=30)
+        self.imu_history = deque(maxlen=5)
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.

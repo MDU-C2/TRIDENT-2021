@@ -80,7 +80,7 @@ class GPSNode(sensbase.SensorNode):
             self.measure[1] = msg.longitude
             self.measure_noise = np.array([1., 1.])
         else:
-            self.measure_noise = np.array([inf, inf]) # Set the noise to inifnite if the gps in unavailable
+            self.measure_noise = np.array([np.inf, np.inf]) # Set the noise to inifnite if the gps in unavailable
 
 def main(args=None):
     rclpy.init(args=args)
