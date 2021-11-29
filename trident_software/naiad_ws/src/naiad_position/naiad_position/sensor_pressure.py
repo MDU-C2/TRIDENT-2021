@@ -23,8 +23,8 @@ class PressureNode(sensbase.SensorNode):
     
     def state_guess(self, current_state):
         guess = np.array([0,0,self.measure[0],
-                          0,0,0,0
-                          0,0,0
+                          0,0,0,0,
+                          0,0,0,
                           0,0,0])
         noise = np.array([np.inf,np.inf,self.measure_noise[0],
                           np.inf,np.inf,np.inf,np.inf,
@@ -33,10 +33,10 @@ class PressureNode(sensbase.SensorNode):
         return guess, noise
     
     def TakeMeasurement(self):
-        self.measure[0,0] = self.depth_sensor.read_sensor()[2]
+        self.measure[0] = self.depth_sensor.read_sensor()[2]
         
     def SimulatedMeasurement(self, msg):
-        self.measure[0,0] = msg.fluid_pressure * 0.00010197
+        self.measure[0] = msg.fluid_pressure * 0.00010197
 
 def main(args=None):
     rclpy.init(args=args)

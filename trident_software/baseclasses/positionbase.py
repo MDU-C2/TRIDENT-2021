@@ -106,7 +106,7 @@ class PosNode(Node, ABC):
         self.get_logger().info('Publishing new state')
     
     # This SHOULDN'T be changed! This function calls and receives values from services
-    def service_call(self, sensor_handle, pred_state, pred_covar):
+    def service_call(self, sensor_handle, pred_state):
         req = BasicSensorService.Request()
         req.state = pred_state.tolist()
         try:
@@ -115,8 +115,8 @@ class PosNode(Node, ABC):
             # so they won't block and will be handled simultaneously, which also works as an extra precaution against deadlocks.
             resp = sensor_handle.call(req)
 
-            return(np.array(guess),
-                   np.array(noise))
+            return(np.array(resp.guess),
+                   np.array(resp.noise))
         except Exception as e:
                 self.get_logger().info(f"Couldn't get values from a service: {e}")
     
@@ -136,7 +136,6 @@ class PosNode(Node, ABC):
             pool_futures = self._service_call_pool.map(self.service_call,
                                                        self.sensor_handles,
                                                        [pred_state]*len(self.sensor_handles),
-                                                       [pred_covar]*len(self.sensor_handles),
                                                        timeout=1)
             try:
                 # Loop through the results

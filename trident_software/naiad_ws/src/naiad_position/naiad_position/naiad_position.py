@@ -15,7 +15,7 @@ class NaiadPosNode(positionbase.PosNode):
         init_noise = np.array([0.25, 0.25, 0.25, 0.4, 0.4, 0.4, 0.4, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]) # These are just guesses!
             
         super().__init__("naiad_position_node", "state", 0.5,
-                         init_state, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/imu", "/naiad/sensor/gps", "/naiad/sensor/pressure"],
+                         init_state, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/pressure", "/naiad/sensor/usbl"],
                          6, "/naiad/simulation/thruster_setpoints")
     
     def state_trans(self, prev, dt):

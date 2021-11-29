@@ -5,16 +5,17 @@ from collections import deque
 from time import time
 from math import sin, cos, pi
 from math import degrees as todeg
+from math import radians as torad
 from squaternion import Quaternion
 
 from sensor_msgs.msg import Imu
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
-        noise_mat = np.array([.3, .3, .5, .1, .1, .1, .17, .17, .17])
+        noise_mat = np.array([.3, .3, .3, .3, .1, .1, .1, .17, .17, .17])
         
         super().__init__('imu', 'naiad', 0.25,
-                         9, noise_mat)
+                         10, noise_mat)
         
         self.imu_history = deque(maxlen=30)
             
@@ -32,19 +33,14 @@ class IMUNode(sensbase.SensorNode):
             ser.close()
     
     def state_guess(self, current_state):
-        if(self.get_parameter('simulated').value):
-            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2])
-        else:
-            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2],
-            degrees = True)
         guess = np.array([0,0,0,
-                          quat.w,quat.x,quat.y,quat.z,
+                          self.measure[0],self.measure[1],self.measure[2],self.measure[3],
                           0,0,0,
-                          self.measure[6],self.measure[7],self.measure[8]])
+                          self.measure[7],self.measure[8],self.measure[9]])
         noise = np.array([np.inf,np.inf,np.inf,
                           0.2,0.2,0.2,0.2,
                           np.inf,np.inf,np.inf,
-                          self.measue_noise[6],self.measue_noise[7],self.measue_noise[8]])
+                          self.measure_noise[7],self.measure_noise[8],self.measure_noise[9]])
         return guess, noise
     
     def TakeMeasurement(self):
@@ -56,26 +52,30 @@ class IMUNode(sensbase.SensorNode):
             type_list = ("yaw", "pitch", "roll", "magx", "magy", "magz",
                          "accelx", "accely", "accelz", "gyrox", "gyroy", "gyroz")
             imu_dict = dict(zip(type_list, line))
-            self.measure[0] = imu_dict["roll"]
-            self.measure[1] = imu_dict["pitch"]
-            self.measure[2] = imu_dict["yaw"]
-            self.measure[3] = imu_dict["accelx"]
-            self.measure[4] = imu_dict["accely"]
-            self.measure[5] = imu_dict["accelz"]
-            self.measure[6] = imu_dict["gyrox"]
-            self.measure[7] = imu_dict["gyroy"]
-            self.measure[8] = imu_dict["gyroz"]
+            q = Quaternion.from_euler(imu_dict["roll"], imu_dict["pitch"], mu_dict["yaw"], degrees=True)
+            self.imu_history.append([
+                q.w,
+                q.x,
+                q.y,
+                q.z,
+                imu_dict["accelx"],
+                imu_dict["accely"],
+                imu_dict["accelz"],
+                imu_dict["gyrox"],
+                imu_dict["gyroy"],
+                imu_dict["gyroz"]
+            ])
+            self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
         except:
             print("Error reading IMU in the NAIAD!")
         ser.close()
         
     def SimulatedMeasurement(self, msg):
-        q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
-        euler = q.to_euler()
         self.imu_history.append([
-            euler[0],
-            euler[1],
-            euler[2],
+            msg.orientation.w,
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
             msg.linear_acceleration.x,
             msg.linear_acceleration.y,
             msg.linear_acceleration.z,
