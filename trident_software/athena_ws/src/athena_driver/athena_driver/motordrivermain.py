@@ -4,7 +4,6 @@ from rclpy.executors import MultiThreadedExecutor
 from baseclasses.motordriverbase import MotorDriverBase
 from trident_msgs.msg import MotorOutputs
 
-import RPi.GPIO as GPIO
 import time
 from math import sin
 
@@ -17,6 +16,7 @@ class MotorDriverNode(MotorDriverBase):
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
         if not self._simulation_env:
+            import RPi.GPIO as GPIO
             self._pwm_containers = {}
             # Constants
             self.PWM_FREQUENCY = 50
