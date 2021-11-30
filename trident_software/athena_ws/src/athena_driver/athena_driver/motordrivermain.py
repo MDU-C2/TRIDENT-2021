@@ -88,7 +88,7 @@ class MotorDriverNode(MotorDriverBase):
         # Loop through the motor outputs
         for motor_output in motor_outputs:
             # Set the specified power for the motor with the specified ID
-            self.set_power(motor_output.motor_id, motor_output.motor_output)
+            self.set_power(motor_output.id, motor_output.value)
 
     def pwm_cleanup(self):
         """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
