@@ -44,7 +44,7 @@ class MotorDriverNode(MotorDriverBase):
                 pwm_container["pwm"].ChangeDutyCycle(self._esc_init_duty_cycle)
             # Sleep for a few seconds to allow the ESCs to initialize
             rate = self.create_rate(3)
-            rate.sleep()
+            # rate.sleep()
             self.get_logger().info("PWMs initialized.")
 
 
