@@ -75,7 +75,10 @@ class MotorDriverNode(MotorDriverBase):
             power (Float): The power to set, value between -1.0 and 1.0
         """
         pwm = self._pwm_containers[str(motor_id)]["pwm"]
-        pwm.ChangeDutyCycle(self.get_duty_cycle(self.get_pulse_width(power)))
+        pw = self.get_pulse_width(power)
+        dc = self.get_duty_cycle(pw)
+        self.get_logger().info(f"PW: {pw} - DC: {dc}")
+        pwm.ChangeDutyCycle(dc)
         self.get_logger().info(f"Set motor {motor_id} power to {power}")
 
 
