@@ -6,6 +6,8 @@ tell the navigation module when a new reference position is needed.
 Author: Johannes Deivard 2021-11
 """
 import rclpy
+import signal
+import sys
 from baseclasses.tridentstates import GotoWaypointStatus, NaiadGuidanceSystemState
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
@@ -170,7 +172,12 @@ class GuidanceSystemNode(Node):
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     guidance_system_node = GuidanceSystemNode("guidance_system")
     executor = MultiThreadedExecutor()
