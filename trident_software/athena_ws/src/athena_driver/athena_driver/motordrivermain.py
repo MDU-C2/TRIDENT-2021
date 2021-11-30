@@ -43,11 +43,13 @@ class MotorDriverNode(MotorDriverBase):
                 pwm_container["pwm"].ChangeDutyCycle(self._esc_init_duty_cycle)
             # Sleep for a few seconds to allow the ESCs to initialize
             self.create_rate(3).sleep()
+            self.get_logger().info("PWMs initialized.")
 
-    def __del__(self):
-        """Overrides the del function to ensure that the PWMs are cleaned up properly if the node is destroyed."""
-        if not self._simulation_env:
-            self.pwm_cleanup()
+
+    # def __del__(self):
+    #     """Overrides the del function to ensure that the PWMs are cleaned up properly if the node is destroyed."""
+    #     if not self._simulation_env:
+    #         self.pwm_cleanup()
 
     def get_duty_cycle(self, pulse_width):
         """Gets the duty cycle from the pulse width.
@@ -102,6 +104,7 @@ def main(args=None):
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
     rclpy.spin(motor_driver_node, executor)
+    motor_driver_node.pwm_cleanup
     rclpy.shutdown()
 
 
