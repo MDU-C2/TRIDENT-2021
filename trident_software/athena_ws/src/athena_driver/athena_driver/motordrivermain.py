@@ -39,7 +39,7 @@ class MotorDriverNode(MotorDriverBase):
             self._esc_init_pulse_width = MotorDriverNode.get_pulse_width(ESC_PW_INTERVAL_CENTER, PWM_FREQUENCY)
             for motor_id, pwm_container in self._pwm_containers.items():
                 self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
-                pwm_container.pwm.ChangeDutyCycle(self._esc_init_pulse_width)
+                pwm_container["pwm"].ChangeDutyCycle(self._esc_init_pulse_width)
             # Sleep for a few seconds to allow the ESCs to initialize
             self.create_rate(3).sleep()
 
