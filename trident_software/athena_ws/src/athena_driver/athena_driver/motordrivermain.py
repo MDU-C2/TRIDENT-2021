@@ -1,3 +1,4 @@
+import sys
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
@@ -48,7 +49,7 @@ class MotorDriverNode(MotorDriverBase):
         if not self._simulation_env:
             self.pwm_cleanup()
 
-    def get_duty_cyle(self, pulse_width):
+    def get_duty_cycle(self, pulse_width):
         """Gets the duty cycle from the pulse width.
         """
         # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
@@ -68,7 +69,7 @@ class MotorDriverNode(MotorDriverBase):
             power (Float): The power to set, value between -1.0 and 1.0
         """
         pwm = self._pwm_containers[str(motor_id)]["pwm"]
-        pwm.ChangeDutyCycle(self.get_duty_cyle(self.get_pulse_width(power)))
+        pwm.ChangeDutyCycle(self.get_duty_cycle(self.get_pulse_width(power)))
 
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -84,19 +85,28 @@ class MotorDriverNode(MotorDriverBase):
     def pwm_cleanup(self):
         """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
         """
-        import RPi.GPIO as GPIO
-        for pwm_container in self._pwm_containers.values():
-            pwm_container["pwm"].stop()
-            GPIO.output(pwm_container["pin"], GPIO.LOW)
-        GPIO.cleanup()
+        if not self._simulation_env:
+            import RPi.GPIO as GPIO
+            for pwm_container in self._pwm_containers.values():
+                pwm_container["pwm"].stop()
+                GPIO.output(pwm_container["pin"], GPIO.LOW)
+            GPIO.cleanup()
 
 
 def main(args=None):
-    rclpy.init(args=args)
-    motor_driver_node = MotorDriverNode("motor_driver")
-    executor = MultiThreadedExecutor()
-    rclpy.spin(motor_driver_node, executor)
-    rclpy.shutdown()
+    try:
+        rclpy.init(args=args)
+        motor_driver_node = MotorDriverNode("motor_driver")
+        executor = MultiThreadedExecutor()
+        rclpy.spin(motor_driver_node, executor)
+    # Catch the keyboard interrupt
+    except KeyboardInterrupt as e:
+        motor_driver_node.pwm_cleanup()
+        rclpy.shutdown()
+        sys.exit(e)
+        # except SystemExit:
+            # os._exit(e)
+
 
 if __name__=="__main__":
     main()
