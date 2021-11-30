@@ -16,10 +16,10 @@ class GPSNode(sensbase.SensorNode):
         self.origin = (59.6175744, 16.5609494)
         earth_radius = 6362257 # Approximate! (but good enough at C2's latitude)
         self.m_per_deg_lat = 2*earth_radius*asin(sqrt(
-            hav(torad(1.0)) + cos(torad(origin[0]))*cos(torad(origin[0]+1))*hav(0.0)
+            hav(torad(1.0)) + cos(torad(self.origin[0]))*cos(torad(self.origin[0]+1))*hav(0.0)
         ))
         self.m_per_deg_lon = 2*earth_radius*asin(sqrt(
-            hav(0.0) + cos(torad(origin[0]))**2 *hav(torad(1.0))
+            hav(0.0) + cos(torad(self.origin[0]))**2 *hav(torad(1.0))
         ))
         
         # NOTE: the noise value may need to be changed

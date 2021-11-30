@@ -151,19 +151,22 @@ class PosNode(Node, ABC):
             except Exception as e:
                 self.get_logger().warn("Skipping sensor due to failure! Error:" + str(e))
             
-            # Finally, set the state to the new "composite" state.
-            self.state = np.average(all_guesses, axis=0, weights=1/all_noises)
             # The quaternions are special, and so must be computed separately
             # WARNING: Doing the quats separately means this base isn't entirely flexible!
             # Source: https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
-            all_quats   = all_guesses[:,3:7]
-            all_q_noise = all_noises[:,3:7]
-            weights_sum_to_one = (1/all_q_noise) / np.sum((1/all_q_noise), axis=0)
-            weighted_quat_T = np.transpose(all_quats * weights_sum_to_one)
-            eigen_vecs = np.linalg.eig(np.matmul(weighted_quat_T, np.transpose(weighted_quat_T)))[1]
-            largest_eigen_vec = eigen_vecs[:,0] # This is almost certainly wrong!
-            
-            self.state[3:7] = largest_eigen_vec
+            try:
+                all_quats   = all_guesses[:,3:7]
+                all_q_noise = all_noises[:,3:7]
+                weights_sum_to_one = (1/all_q_noise) / np.sum((1/all_q_noise), axis=0)
+                weighted_quat_T = np.transpose(all_quats * weights_sum_to_one)
+                eigen_vecs = np.linalg.eig(np.matmul(weighted_quat_T, np.transpose(weighted_quat_T)))[1]
+                largest_eigen_vec = eigen_vecs[:,0] # This is almost certainly wrong!
+                
+                # Finally, set the state to the new "composite" state.
+                self.state = np.average(all_guesses, axis=0, weights=1/all_noises)
+                self.state[3:7] = largest_eigen_vec
+            except Exception as e:
+                self.get_logger().warn("Skipping writing new value! Error:" + str(e))
             
             # AND publish the new state
             self.state_publish()

@@ -52,15 +52,15 @@ class IMUNode(sensbase.SensorNode):
     def TakeMeasurement(self):
         # TODO: Check that these are all correct!
         self.imu_history.append([
-            self.sensor.euler[2]               # Roll  ???
-            self.sensor.euler[1]               # Pitch ???
-            self.sensor.euler[0]               # Yaw
-            self.sensor.linear_acceleration[0] # X Accel
-            self.sensor.linear_acceleration[1] # Y Accel
-            self.sensor.linear_acceleration[2] # Z Accel
-            self.sensor.gyro[0]                # X Rot
-            self.sensor.gyro[1]                # Y Rot
-            self.sensor.gyro[2]                # Z Rot
+            self.sensor.euler[2],               # Roll  ???
+            self.sensor.euler[1],               # Pitch ???
+            self.sensor.euler[0],               # Yaw
+            self.sensor.linear_acceleration[0], # X Accel
+            self.sensor.linear_acceleration[1], # Y Accel
+            self.sensor.linear_acceleration[2], # Z Accel
+            self.sensor.gyro[0],                # X Rot
+            self.sensor.gyro[1],                # Y Rot
+            self.sensor.gyro[2]                 # Z Rot
         ])
         self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
