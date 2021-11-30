@@ -4,6 +4,7 @@ import numpy as np
 from math import sin, cos, sqrt, asin
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
+from time import time
 
 def hav(theta):
     return (1-cos(theta))/2
@@ -21,17 +22,18 @@ class GPSNode(sensbase.SensorNode):
         self.m_per_deg_lon = 2*earth_radius*asin(sqrt(
             hav(0.0) + cos(torad(self.origin[0]))**2 *hav(torad(1.0))
         ))
+        self.last_read = time()
         
         # NOTE: the noise value may need to be changed
-        super().__init__('gps', 'naiad', 0,
-                         2, np.array([0.000005, 0.000005]))
+        super().__init__('gps', 'athena', 0,
+                         2, np.array([0.5, 0.5]))
         
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('simulated', False)
         if(self.get_parameter('simulated').value):
             self.simul_sensor = self.create_subscription(
-                                NavSatFix, '/naiad/simulation/gps',
+                                NavSatFix, '/athena/simulation/gps',
                                 self.SimulatedMeasurement, 10)
             self.timer.destroy() # Stop the original timed sensor from running
         else:
@@ -42,12 +44,14 @@ class GPSNode(sensbase.SensorNode):
             self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
     
     def state_guess(self, current_state):
-        guess = np.array([(self.measure[0]-self.origin[0])/self.m_per_deg_lat,
-                          (self.measure[1]-self.origin[1])/self.m_per_deg_lon, 0,
+        guess = np.array([(self.measure[0]-self.origin[0])*self.m_per_deg_lat,
+                          (self.measure[1]-self.origin[1])*self.m_per_deg_lon, 0,
                           0,0,0,0,
                           0,0,0,
                           0,0,0])
-        noise = np.array([self.measure_noise[0], self.measure_noise[1],np.inf,
+        dt = time() - self.last_read
+        trust_factor = 10**(2*dt)
+        noise = np.array([self.measure_noise[0]*trust_factor, self.measure_noise[1]*trust_factor, np.inf,
                           np.inf,np.inf,np.inf,np.inf,
                           np.inf,np.inf,np.inf,
                           np.inf,np.inf,np.inf])
@@ -75,11 +79,12 @@ class GPSNode(sensbase.SensorNode):
 
     def SimulatedMeasurement(self, msg):
         if msg.status.status != -1:
-            self.measure[0] = msg.latitude  - self.origin[0]
-            self.measure[1] = msg.longitude - self.origin[1]
-            self.measure_noise = np.array([0.000005, 0.000005])
+            self.measure[0] = msg.latitude
+            self.measure[1] = msg.longitude
+            self.measure_noise = np.array([.5, .5])
+            self.last_read = time()
         else:
-            self.measure_noise = np.array([inf, inf]) # Set the noise to inifnite if the gps in unavailable
+            self.measure_noise = np.array([np.inf, np.inf]) # Set the noise to inifnite if the gps in unavailable
 
 def main(args=None):
     rclpy.init(args=args)

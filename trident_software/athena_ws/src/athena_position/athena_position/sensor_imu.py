@@ -11,12 +11,12 @@ from sensor_msgs.msg import Imu
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
-        noise_mat = np.array([.3, .3, .5, .1, .1, .1, .17, .17, .17])
+        noise_mat = np.array([.3, .3, .3, .3, .1, .1, .1, .17, .17, .17])
         
         super().__init__('imu', 'athena', 0.25,
-                         9, noise_mat)
+                         10, noise_mat)
         
-        self.imu_history = deque(maxlen=30)
+        self.imu_history = deque(maxlen=5)
             
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
@@ -34,27 +34,23 @@ class IMUNode(sensbase.SensorNode):
             self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
     
     def state_guess(self, current_state):
-        if(self.get_parameter('simulated').value):
-            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2])
-        else:
-            quat = Quaternion.from_euler(self.measure[0],self.measure[1],self.measure[2],
-            degrees = True)
         guess = np.array([0,0,0,
-                          quat.w,quat.x,quat.y,quat.z,
+                          self.measure[0],self.measure[1],self.measure[2],self.measure[3],
                           0,0,0,
-                          self.measure[6],self.measure[7],self.measure[8]])
+                          self.measure[7],self.measure[8],self.measure[9]])
         noise = np.array([np.inf,np.inf,np.inf,
-                          0.2,0.2,0.2,0.2,
+                          0.1,0.1,0.1,0.1,
                           np.inf,np.inf,np.inf,
-                          self.measue_noise[6],self.measue_noise[7],self.measue_noise[8]])
+                          self.measure_noise[7],self.measure_noise[8],self.measure_noise[9]])
         return guess, noise
     
     def TakeMeasurement(self):
         # TODO: Check that these are all correct!
         self.imu_history.append([
-            self.sensor.euler[2],               # Roll  ???
-            self.sensor.euler[1],               # Pitch ???
-            self.sensor.euler[0],               # Yaw
+            self.sensor.quaternion[0],          # QW
+            self.sensor.quaternion[1],          # QX
+            self.sensor.quaternion[2],          # QY
+            self.sensor.quaternion[3],          # QZ
             self.sensor.linear_acceleration[0], # X Accel
             self.sensor.linear_acceleration[1], # Y Accel
             self.sensor.linear_acceleration[2], # Z Accel
@@ -65,12 +61,11 @@ class IMUNode(sensbase.SensorNode):
         self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
     def SimulatedMeasurement(self, msg):
-        q = Quaternion(w=msg.orientation.w, x=msg.orientation.x, y=msg.orientation.y, z=msg.orientation.z)
-        euler = q.to_euler()
         self.imu_history.append([
-            euler[0],
-            euler[1],
-            euler[2],
+            msg.orientation.w,
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
             msg.linear_acceleration.x,
             msg.linear_acceleration.y,
             msg.linear_acceleration.z,
