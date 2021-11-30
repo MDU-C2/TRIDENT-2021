@@ -7,6 +7,10 @@ from trident_msgs.msg import MotorOutputs
 import time
 from math import sin
 
+# Constants
+PWM_FREQUENCY = 50
+ESC_PW_INTERVAL_CENTER = 1500 # The center of the supported PW interval
+ESC_FULL_POWER = 400 # Full power in either direction
 MICRO = 1000000 # Microseconds in a second
 
 class MotorDriverNode(MotorDriverBase):
@@ -18,24 +22,20 @@ class MotorDriverNode(MotorDriverBase):
         if not self._simulation_env:
             import RPi.GPIO as GPIO
             self._pwm_containers = {}
-            # Constants
-            self.PWM_FREQUENCY = 50
-            self.ESC_PW_INTERVAL_CENTER = 1500 # The center of the supported PW interval
-            self.ESC_FULL_POWER = 400 # Full power in either direction
             # Initialize pwns and setup GPIO
             GPIO.setmode(GPIO.BOARD)
             for motor in self._motor_interface:
                 # Set the motor's pin as output
                 GPIO.setup(motor["pin"], GPIO.OUT)
                 # Create and start the pwn
-                pwm = GPIO.PWM(motor["pin"], self.PWM_FREQUENCY)
+                pwm = GPIO.PWM(motor["pin"], PWM_FREQUENCY)
                 pwm.start(0)
                 self._pwm_containers[motor["id"]] = {
                     "pwm": pwm,
                     "pin": motor["pin"]
                 }
             # Initialize the ESCs
-            self._esc_init_pulse_width = MotorDriverNode.get_pulse_width(self.ESC_PW_INTERVAL_CENTER, self.PWM_FREQUENCY)
+            self._esc_init_pulse_width = MotorDriverNode.get_pulse_width(ESC_PW_INTERVAL_CENTER, PWM_FREQUENCY)
             for motor_id, pwm_container in self._pwm_containers.items():
                 self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
                 pwm_container.pwm.ChangeDutyCycle(self._esc_init_pulse_width)
@@ -51,13 +51,13 @@ class MotorDriverNode(MotorDriverBase):
         """Gets the duty cycle from the pulse width.
         """
         # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
-        return 100 * ((pulse_width-(80*MICRO)) / (1/self.PWM_FREQUENCY))
+        return 100 * ((pulse_width-(80*MICRO)) / (1/PWM_FREQUENCY))
 
     def get_pulse_width(self, power_percentage):
         """Gets the pulse width from the power percentage.
         """
         clamped = max(-1.0, min(power_percentage, 1.0))
-        return ((self.ESC_FULL_POWER * clamped) + self.ESC_PW_INTERVAL_CENTER) / MICRO
+        return ((ESC_FULL_POWER * clamped) + ESC_PW_INTERVAL_CENTER) / MICRO
 
     def set_power(self, motor_id, power):
         """Sets the motor power to the specfied motor with motor_id.
