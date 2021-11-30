@@ -77,8 +77,9 @@ class MotorDriverNode(MotorDriverBase):
         try:
             pwm = self._pwm_containers[str(motor_id)]["pwm"]
             pw = self.get_pulse_width(power)
+            self.get_logger().info(f"PW: {pw}")
             dc = self.get_duty_cycle(pw)
-            self.get_logger().info(f"PW: {pw} - DC: {dc}")
+            self.get_logger().info(f"DC: {dc}")
             pwm.ChangeDutyCycle(dc)
             self.get_logger().info(f"Set motor {motor_id} power to {power}")
         except Exception as e:
