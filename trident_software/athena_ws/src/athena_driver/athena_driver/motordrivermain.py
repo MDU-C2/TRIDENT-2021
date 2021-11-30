@@ -1,4 +1,5 @@
 import sys
+import threading
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
@@ -103,8 +104,9 @@ def main(args=None):
     rclpy.init(args=args)
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
-    rclpy.spin(motor_driver_node, executor)
-    motor_driver_node.pwm_cleanup
+    spin_thread = threading.Thread(target=rclpy.spin, args=(motor_driver_node, executor), daemon=True)
+    spin_thread.start()
+    # motor_driver_node.pwm_cleanup()
     rclpy.shutdown()
 
 
