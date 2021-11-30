@@ -34,7 +34,7 @@ class MotorDriverNode(MotorDriverBase):
                     "pwm": pwm,
                     "pin": motor["pin"]
                 }
-                self.get_logger().info(self._pwm_containers)
+                # self.get_logger().info(self._pwm_containers)
             # Initialize the ESCs
             self._esc_init_pulse_width = MotorDriverNode.get_pulse_width(ESC_PW_INTERVAL_CENTER, PWM_FREQUENCY)
             for motor_id, pwm_container in self._pwm_containers.items():
@@ -85,7 +85,7 @@ class MotorDriverNode(MotorDriverBase):
         """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
         """
         import RPi.GPIO as GPIO
-        for pwm_container in self._pwm_containers:
+        for pwm_container in self._pwm_containers.values():
             pwm_container["pwm"].stop()
             GPIO.output(pwm_container["pin"], GPIO.LOW)
         GPIO.cleanup()
