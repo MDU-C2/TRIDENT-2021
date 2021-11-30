@@ -54,7 +54,7 @@ class MotorDriverNode(MotorDriverBase):
         """
         # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
         # return 100 * ((pulse_width-(80*MICRO)) / (1/PWM_FREQUENCY))
-        return 100 * (pulse_width - 6) / (1/PWM_FREQUENCY)
+        return 100 * (pulse_width - 60/MICRO) / (1/PWM_FREQUENCY)
 
     def get_pulse_width(self, power_percentage):
         """Gets the pulse width from the power percentage.
