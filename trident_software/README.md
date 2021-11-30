@@ -100,3 +100,13 @@ Jax and jaxlib (for Jacobians calculations);
 pip install jax && pip install jaxlib
 ```
 
+## Running on RasperyPi
+### Known issues:
+For RPi.GPIO to work on Ubuntu, change permission of all gpio files in /dev by running these commands:
+
+(solution found here: https://github.com/gpiozero/gpiozero/issues/837#issuecomment-703743142)
+```
+cd /dev
+sudo chmod og+rwx gpio*
+```
+
