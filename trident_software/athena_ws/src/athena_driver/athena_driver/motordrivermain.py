@@ -28,7 +28,7 @@ class MotorDriverNode(MotorDriverBase):
                 # Set the motor's pin as output
                 GPIO.setup(motor["pin"], GPIO.OUT)
                 # Create and start the pwn
-                pwm = GPIO.PWM(motor["pin"], )
+                pwm = GPIO.PWM(motor["pin"], self.PWM_FREQUENCY)
                 pwm.start(0)
                 self._pwm_containers[motor["id"]] = {
                     "pwm": pwm,
@@ -83,6 +83,7 @@ class MotorDriverNode(MotorDriverBase):
     def pwm_cleanup(self):
         """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
         """
+        import RPi.GPIO as GPIO
         for pwm_container in self._pwm_containers:
             pwm_container["pwm"].stop()
             GPIO.output(pwm_container["pin"], GPIO.LOW)
