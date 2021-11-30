@@ -36,7 +36,6 @@ class MotorDriverNode(MotorDriverBase):
                     "pwm": pwm,
                     "pin": motor["pin"]
                 }
-                # self.get_logger().info(self._pwm_containers)
             # Initialize the ESCs
             self._esc_init_duty_cycle = self.get_duty_cycle(ESC_PW_INTERVAL_CENTER/MICRO)
             for motor_id, pwm_container in self._pwm_containers.items():
@@ -46,7 +45,7 @@ class MotorDriverNode(MotorDriverBase):
             # Sleep for a few seconds to allow the ESCs to initialize
             # rate = self.create_rate(3, self.get_clock())
             # rate.sleep()
-            self.get_logger().info("PWMs initialized.")
+            self.get_logger().info("PWMs initialized (ish).")
 
 
     # def __del__(self):
@@ -75,20 +74,10 @@ class MotorDriverNode(MotorDriverBase):
             motor_id (Int): ID of the motor to set the power for.
             power (Float): The power to set, value between -1.0 and 1.0
         """
-        try:
-
-            self.get_logger().info(f"containers: {self._pwm_containers}")
-            pwm = self._pwm_containers[motor_id]["pwm"]
-            pw = self.get_pulse_width(power)
-            self.get_logger().info(f"PW: {pw}")
-            dc = self.get_duty_cycle(pw)
-            self.get_logger().info(f"DC: {dc}")
-            pwm.ChangeDutyCycle(dc)
-            self.get_logger().info(f"Set motor {motor_id} power to {power}")
-        except Exception as e:
-            self.get_logger().info(f"Error: {e}")
-
-
+        pw = self.get_pulse_width(power)
+        dc = self.get_duty_cycle(pw)
+        pwm = self._pwm_containers[motor_id]["pwm"]
+        pwm.ChangeDutyCycle(dc)
 
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -96,10 +85,8 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        self.get_logger().info(f"Send motor outputs: {motor_outputs}")
         # Loop through the motor outputs
         for motor_output in motor_outputs:
-            self.get_logger().info(f"In loop: {motor_output}")
             # Set the specified power for the motor with the specified ID
             self.set_power(motor_output.id, motor_output.value)
 
