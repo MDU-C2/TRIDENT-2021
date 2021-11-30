@@ -57,4 +57,28 @@ def generate_launch_description():
             name='guidance_system',
             parameters=[config]
         ),
+        Node(
+            package='athena_position',
+            namespace='/athena/position/',
+            executable='position_node',
+            name='pos'
+        ),
+        Node(
+            package='athena_position',
+            namespace='/athena/sensor/',
+            executable='imu_node',
+            name='imu',
+            parameters=[
+                {"is_simulated": True}
+            ]
+        ),
+        Node(
+            package='athena_position',
+            namespace='/athena/sensor/',
+            executable='gps_node',
+            name='gps',
+            parameters=[
+                {"is_simulated": True}
+            ]
+        )
     ])
