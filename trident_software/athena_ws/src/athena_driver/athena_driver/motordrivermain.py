@@ -79,6 +79,7 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
+        self.get_logger().info(f"Send motor outputs: {motor_outputs}")
         # Loop through the motor outputs
         for motor_output in motor_outputs:
             # Set the specified power for the motor with the specified ID
@@ -88,6 +89,7 @@ class MotorDriverNode(MotorDriverBase):
         """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
         """
         if not self._simulation_env:
+            self.get_logger().info(f"Node deletion in progress. Cleaning up GPIO.")
             import RPi.GPIO as GPIO
             for pwm_container in self._pwm_containers.values():
                 pwm_container["pwm"].stop()
@@ -96,19 +98,11 @@ class MotorDriverNode(MotorDriverBase):
 
 
 def main(args=None):
-    try:
-        rclpy.init(args=args)
-        motor_driver_node = MotorDriverNode("motor_driver")
-        executor = MultiThreadedExecutor()
-        rclpy.spin(motor_driver_node, executor)
-    # Catch the keyboard interrupt
-    except KeyboardInterrupt as e:
-        motor_driver_node.pwm_cleanup()
-        rclpy.shutdown()
-        try:
-            sys.exit(e)
-        except SystemExit:
-            os._exit(e)
+    rclpy.init(args=args)
+    motor_driver_node = MotorDriverNode("motor_driver")
+    executor = MultiThreadedExecutor()
+    rclpy.spin(motor_driver_node, executor)
+    rclpy.shutdown()
 
 
 if __name__=="__main__":
