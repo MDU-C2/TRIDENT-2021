@@ -517,6 +517,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             response.message = f"Successfully set manual override to {request.data}."
             if request.data == True:
                 self.disable_pids()
+                # Enable only roll and pitch so that the agents stays level (only works on NAIAD)
+                self._pids["roll"].auto_mode = True
+                self._pids["pitch"].auto_mode = True
                 self._update_node_state(MotorControlState.MANUAL_OVERRIDE)
             else:
                 self.enable_pids()
