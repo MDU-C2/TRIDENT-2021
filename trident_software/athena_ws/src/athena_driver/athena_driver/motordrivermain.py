@@ -43,8 +43,8 @@ class MotorDriverNode(MotorDriverBase):
                 self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
                 pwm_container["pwm"].ChangeDutyCycle(self._esc_init_duty_cycle)
             # Sleep for a few seconds to allow the ESCs to initialize
-            rate = self.create_rate(3)
-            # rate.sleep()
+            rate = self.create_rate(0.1)
+            rate.sleep()
             self.get_logger().info("PWMs initialized.")
 
 
