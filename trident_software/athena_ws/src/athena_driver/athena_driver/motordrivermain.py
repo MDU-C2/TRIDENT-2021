@@ -11,8 +11,8 @@ from math import sin
 # Constants
 PWM_FREQUENCY = 50
 MICRO = 1000000 # Microseconds in a second
-ESC_PW_INTERVAL_CENTER = 1500 / MICRO # The center of the supported PW interval (1500 microseconds)
-ESC_FULL_POWER = 400 # Full power in either direction
+ESC_PW_INTERVAL_CENTER = 1500  # The center of the supported PW interval (1500 microseconds)
+ESC_FULL_POWER = 400  # Full power in either direction
 
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in Athena.
@@ -37,7 +37,7 @@ class MotorDriverNode(MotorDriverBase):
                 }
                 # self.get_logger().info(self._pwm_containers)
             # Initialize the ESCs
-            self._esc_init_duty_cycle = self.get_duty_cycle(ESC_PW_INTERVAL_CENTER)
+            self._esc_init_duty_cycle = self.get_duty_cycle(ESC_PW_INTERVAL_CENTER/MICRO)
             for motor_id, pwm_container in self._pwm_containers.items():
                 self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
                 pwm_container["pwm"].ChangeDutyCycle(self._esc_init_duty_cycle)
@@ -54,7 +54,7 @@ class MotorDriverNode(MotorDriverBase):
         """
         # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
         # return 100 * ((pulse_width-(80*MICRO)) / (1/PWM_FREQUENCY))
-        return 100 * (pulse_width) / (1/PWM_FREQUENCY)
+        return 100 * (pulse_width - 60000) / (1/PWM_FREQUENCY)
 
     def get_pulse_width(self, power_percentage):
         """Gets the pulse width from the power percentage.
