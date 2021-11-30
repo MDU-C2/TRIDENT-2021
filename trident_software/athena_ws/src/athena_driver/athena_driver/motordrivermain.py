@@ -107,6 +107,7 @@ def main(args=None):
     executor = MultiThreadedExecutor()
     spin_thread = threading.Thread(target=rclpy.spin, args=(motor_driver_node, executor), daemon=True)
     spin_thread.start()
+    spin_thread.join()
     # motor_driver_node.pwm_cleanup()
     rclpy.shutdown()
 
