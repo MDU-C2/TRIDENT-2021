@@ -10,9 +10,9 @@ from math import sin
 
 # Constants
 PWM_FREQUENCY = 50
-ESC_PW_INTERVAL_CENTER = 1500 # The center of the supported PW interval
-ESC_FULL_POWER = 400 # Full power in either direction
 MICRO = 1000000 # Microseconds in a second
+ESC_PW_INTERVAL_CENTER = 1500 / MICRO # The center of the supported PW interval (1500 microseconds)
+ESC_FULL_POWER = 400 # Full power in either direction
 
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in Athena.
