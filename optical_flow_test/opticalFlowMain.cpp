@@ -11,78 +11,27 @@
 #include <opencv2/ml.hpp>
 #include <opencv2/core/utility.hpp>
 
+#define WITHOUT_NUMPY
+#include "matplotlib-cpp/matplotlibcpp.h"
+#include "/usr/include/python3.6m/object.h"
+
 #define LK_DENSE 0
 #define FARNEBACK 1
 #define RLOF 2
 
 using namespace cv;
 using namespace std;
+namespace plt = matplotlibcpp;
 
 
-int lucas_kanade(const string& filename, bool save)
+Mat getCurl(Mat fx, Mat fy)
 {
-    VideoCapture capture(filename);
-    if (!capture.isOpened()){
-        //error in opening the video input
-        cerr << "Unable to open file!" << endl;
-        return 0;
-    }
-    // Create some random colors
-    vector<Scalar> colors;
-    RNG rng;
-    for(int i = 0; i < 100; i++)
-    {
-        int r = rng.uniform(0, 256);
-        int g = rng.uniform(0, 256);
-        int b = rng.uniform(0, 256);
-        colors.push_back(Scalar(r,g,b));
-    }
-    Mat old_frame, old_gray;
-    vector<Point2f> p0, p1;
-    // Take first frame and find corners in it
-    capture >> old_frame;
-    cvtColor(old_frame, old_gray, COLOR_BGR2GRAY);
-    goodFeaturesToTrack(old_gray, p0, 100, 0.3, 7, Mat(), 7, false, 0.04);
-    // Create a mask image for drawing purposes
-    Mat mask = Mat::zeros(old_frame.size(), old_frame.type());
-    int counter = 0;
-    while(true){
-        Mat frame, frame_gray;
-        capture >> frame;
-        if (frame.empty())
-            break;
-        cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
-        // calculate optical flow
-        vector<uchar> status;
-        vector<float> err;
-        TermCriteria criteria = TermCriteria((TermCriteria::COUNT) + (TermCriteria::EPS), 10, 0.03);
-        calcOpticalFlowPyrLK(old_gray, frame_gray, p0, p1, status, err, Size(15,15), 2, criteria);
-        vector<Point2f> good_new;
-        for(uint i = 0; i < p0.size(); i++)
-        {
-            // Select good points
-            if(status[i] == 1) {
-                good_new.push_back(p1[i]);
-                // draw the tracks
-                line(mask,p1[i], p0[i], colors[i], 2);
-                circle(frame, p1[i], 5, colors[i], -1);
-            }
-        }
-        Mat img;
-        add(frame, mask, img);
-        if (save) {
-            string save_path = "./optical_flow_frames/frame_" + to_string(counter) + ".jpg";
-            imwrite(save_path, img);
-        }
-        imshow("flow", img);
-        int keyboard = waitKey(25);
-        if (keyboard == 'q' || keyboard == 27)
-            break;
-        // Now update the previous frame and previous points
-        old_gray = frame_gray.clone();
-        p0 = good_new;
-        counter++;
-    }
+    int nRows = fx.rows;
+    int nCols = fx.cols;
+
+    Mat dfydx = fy(cv::Range(0, nRows-1), cv::Range(1, nCols)) - fy(cv::Range(0, nRows-1), cv::Range(0, nCols-1));
+    Mat dfxdy = fx(cv::Range(1, nRows), cv::Range(0, nCols-1)) - fx(cv::Range(0, nRows-1), cv::Range(0, nCols-1));
+    return dfydx - dfydx.mul(dfxdy) - dfxdy;   // = curl
 }
 
 
@@ -161,14 +110,20 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         merge(_hsv, 3, hsv);
         hsv.convertTo(hsv8, CV_8U, 255.0);
         cvtColor(hsv8, bgr, COLOR_HSV2BGR);
+
         // draw arrow on video image
         arrowedLine(frame2, pt1, pt2, Scalar(130,100,100), 5);
+
         // finding max values
-        double maxA, maxM, max1, max2;
-        minMaxLoc(angle, 0, &maxA, 0, 0 );
-        minMaxLoc(magnitude, 0, &maxM, 0, 0 );
-        minMaxLoc(flow_parts[0], 0, &max1, 0, 0 );
-        minMaxLoc(flow_parts[1], 0, &max2, 0, 0 );
+        // double maxA, maxM, max1, max2;
+        // minMaxLoc(angle, 0, &maxA, 0, 0 );
+        // minMaxLoc(magnitude, 0, &maxM, 0, 0 );
+        // minMaxLoc(flow_parts[0], 0, &max1, 0, 0 );
+        // minMaxLoc(flow_parts[1], 0, &max2, 0, 0 );
+
+        // create curl image
+        Mat curl = getCurl(flow_parts[0], flow_parts[1]);
+
         // show video and optical flow result
         imshow("frame", frame2);
         imshow("flow", bgr);
@@ -176,6 +131,7 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         imshow("angle", angle);
         imshow("flow_parts[0]", flow_parts[0]/20);
         imshow("flow_parts[1]", flow_parts[1]/20);
+        imshow("curl", curl);
         // cout << "image types:" << endl << "   magnitude: " << maxM << endl << "   angle: " << maxA << endl << "   flow_parts[0]: " << max1 << endl << "   flow_parts[1]: " << max2 << endl;
         int keyboard = waitKey(30);
         // quit 
@@ -195,12 +151,27 @@ int main(int argc, char** argv)
     // imshow("window", im);
     // waitKey(0);
 
+    // u and v are respectively the x and y components of the arrows we're plotting
+    std::vector<int> x, y, u, v;
+    for (int i = -5; i <= 5; i++) {
+        for (int j = -5; j <= 5; j++) {
+            x.push_back(i);
+            u.push_back(-i);
+            y.push_back(j);
+            v.push_back(-j);
+        }
+    }
+
+    plt::quiver(x, y, u, v);
+    plt::show();
+    waitKey(0);
+
 
     string filename = "../Naiad_in_trondheim_firstTrial_pt1_2.mp4";
     bool save = true;
     bool to_gray = true;        // FARNEBACK-true, RLOF-false
     // lucas_kanade(filename, save);
-    dense_optical_flow(filename, save, to_gray, FARNEBACK);        // For last argument, select from LK_DENSE, FARNEBACK, RLOF
+    dense_optical_flow(filename, save, to_gray, LK_DENSE);        // For last argument, select from LK_DENSE, FARNEBACK, RLOF
 
     return 0;
 }
