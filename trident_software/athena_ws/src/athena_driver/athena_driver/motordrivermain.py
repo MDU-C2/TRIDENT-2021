@@ -77,6 +77,7 @@ class MotorDriverNode(MotorDriverBase):
         """
         try:
             pwm = self._pwm_containers[str(motor_id)]["pwm"]
+            self.get_logger().info(f"PWM: {pwm}")
             pw = self.get_pulse_width(power)
             self.get_logger().info(f"PW: {pw}")
             dc = self.get_duty_cycle(pw)
