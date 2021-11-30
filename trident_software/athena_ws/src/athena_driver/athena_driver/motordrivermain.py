@@ -63,7 +63,6 @@ class MotorDriverNode(MotorDriverBase):
     def get_pulse_width(self, power_percentage):
         """Gets the pulse width from the power percentage.
         """
-        self.get_logger().info(f"Power: {power_percentage}")
         clamped = max(-1.0, min(power_percentage, 1.0))
         return ((ESC_FULL_POWER * clamped) + ESC_PW_INTERVAL_CENTER) / MICRO
 
