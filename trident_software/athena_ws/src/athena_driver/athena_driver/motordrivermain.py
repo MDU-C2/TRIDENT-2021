@@ -84,7 +84,7 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        # self.get_logger().info(f"Send motor outputs: {motor_outputs}")
+        self.get_logger().info(f"Send motor outputs: {motor_outputs}")
         # Loop through the motor outputs
         for motor_output in motor_outputs:
             # Set the specified power for the motor with the specified ID
