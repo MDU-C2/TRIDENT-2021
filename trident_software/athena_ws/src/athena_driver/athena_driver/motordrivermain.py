@@ -28,7 +28,7 @@ class MotorDriverNode(MotorDriverBase):
                 # Set the motor's pin as output
                 GPIO.setup(motor["pin"], GPIO.OUT)
                 # Create and start the pwn
-                pwm = GPIO.PWM(motor["pin"], )
+                pwm = GPIO.PWM(motor["pin"], self.PWM_FREQUENCY)
                 pwm.start(0)
                 self._pwm_containers[motor["id"]] = {
                     "pwm": pwm,
