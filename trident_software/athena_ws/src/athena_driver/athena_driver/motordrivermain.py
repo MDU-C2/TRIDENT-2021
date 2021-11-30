@@ -87,6 +87,7 @@ class MotorDriverNode(MotorDriverBase):
         self.get_logger().info(f"Send motor outputs: {motor_outputs}")
         # Loop through the motor outputs
         for motor_output in motor_outputs:
+            self.get_logger().info(f"In loop: {motor_output}")
             # Set the specified power for the motor with the specified ID
             self.set_power(motor_output.id, motor_output.value)
 
@@ -106,9 +107,10 @@ def main(args=None):
     rclpy.init(args=args)
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
-    spin_thread = threading.Thread(target=rclpy.spin, args=(motor_driver_node, executor), daemon=True)
-    spin_thread.start()
-    spin_thread.join()
+    rclpy.spin(motor_driver_node, executor)
+    # spin_thread = threading.Thread(target=rclpy.spin, args=(motor_driver_node, executor), daemon=True)
+    # spin_thread.start()
+    # spin_thread.join()
     # motor_driver_node.pwm_cleanup()
     rclpy.shutdown()
 
