@@ -11,9 +11,9 @@
 #include <opencv2/ml.hpp>
 #include <opencv2/core/utility.hpp>
 
-#define WITHOUT_NUMPY
-#include "matplotlib-cpp/matplotlibcpp.h"
-#include "/usr/include/python3.6m/object.h"
+// #define WITHOUT_NUMPY
+// #include "matplotlib-cpp/matplotlibcpp.h"
+// #include "/usr/include/python3.6m/object.h"
 
 #define LK_DENSE 0
 #define FARNEBACK 1
@@ -21,7 +21,7 @@
 
 using namespace cv;
 using namespace std;
-namespace plt = matplotlibcpp;
+// namespace plt = matplotlibcpp;
 
 
 Mat getCurl(Mat fx, Mat fy)
@@ -34,6 +34,15 @@ Mat getCurl(Mat fx, Mat fy)
     return dfydx - dfydx.mul(dfxdy) - dfxdy;   // = curl
 }
 
+void fullLine(Mat *img, Point a, float angle, Scalar colour)
+{
+    float n = 1000;
+    double slope = tan(angle);
+
+    Point p(a.x + n, a.y+n*slope), q(a.x - n, a.y-n*slope);
+
+    line(*img, p, q, colour);
+}
 
 void dense_optical_flow(string filename, bool save, bool to_gray, int method)
 {
@@ -73,13 +82,13 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         {
         case LK_DENSE:
             // Dense Lucas-Kanade algorithm
-            optflow::calcOpticalFlowSparseToDense(prvs, next, flow);
+            // optflow::calcOpticalFlowSparseToDense(prvs, next, flow);
             break;
         case FARNEBACK:
             calcOpticalFlowFarneback(prvs, next, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
             break;
         case RLOF:
-            optflow::calcOpticalFlowDenseRLOF(prvs, next, flow);
+            // optflow::calcOpticalFlowDenseRLOF(prvs, next, flow);
             break;
         default:
             cout << "ERROR NO OPTICAL FLOW ALGORITHM \n";
@@ -102,7 +111,20 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         cout << "pt1 = " << pt1 << ", pt2 = " << pt2 << ", angle = " << avgAngle[0] << ", magnitude = " << avgMagn[0] << endl;
 
 
-        //build hsv image
+        // Calculate rotation center
+        int n = 2;      // number of rows and cols angle image will be averaged into
+        Mat normals = Mat::zeros(angle.size(), CV_32FC1);
+        for (int r = 0; r < n; r++)     // rows
+            for (int c = 0; c < n; c++) // cols
+            {
+                Scalar tempAvgAng = mean(angle(Range(r*nRows/n, (r+1)*nRows/n), Range(c*nCols/n, (c+1)*nCols/n)));
+                fullLine(&normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), tempAvgAng[0]+90, Scalar(130,100,100));
+                circle(normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), 6, Scalar(100,100,100));
+                imshow("normals", normals);
+            }
+        
+
+        // build hsv image
         Mat _hsv[3], hsv, hsv8, bgr;
         _hsv[0] = angle;
         _hsv[1] = Mat::ones(angle.size(), CV_32F);
@@ -146,32 +168,34 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
 
 int main(int argc, char** argv)
 {
+    // --------------- TEST ----------------------------------------------------------------------------
     // Mat im = imread("/home/Documents/TRIDENT-2021/seafloor.bmp");
     // namedWindow("window");
     // imshow("window", im);
     // waitKey(0);
 
+    // ---------------- MATPLOTLIB STUFF ------------------------------------------------------------------
     // u and v are respectively the x and y components of the arrows we're plotting
-    std::vector<int> x, y, u, v;
-    for (int i = -5; i <= 5; i++) {
-        for (int j = -5; j <= 5; j++) {
-            x.push_back(i);
-            u.push_back(-i);
-            y.push_back(j);
-            v.push_back(-j);
-        }
-    }
+    // std::vector<int> x, y, u, v;
+    // for (int i = -5; i <= 5; i++) {
+    //     for (int j = -5; j <= 5; j++) {
+    //         x.push_back(i);
+    //         u.push_back(-i);
+    //         y.push_back(j);
+    //         v.push_back(-j);
+    //     }
+    // }
 
-    plt::quiver(x, y, u, v);
-    plt::show();
-    waitKey(0);
+    // plt::quiver(x, y, u, v);
+    // plt::show();qq
+    // waitKey(0);
 
-
+    // ---------------- OPTICAL FLOW ---------------------------------------------------------------------------
     string filename = "../Naiad_in_trondheim_firstTrial_pt1_2.mp4";
     bool save = true;
     bool to_gray = true;        // FARNEBACK-true, RLOF-false
     // lucas_kanade(filename, save);
-    dense_optical_flow(filename, save, to_gray, LK_DENSE);        // For last argument, select from LK_DENSE, FARNEBACK, RLOF
+    dense_optical_flow(filename, save, to_gray, FARNEBACK);        // For last argument, select from LK_DENSE, FARNEBACK, RLOF
 
     return 0;
 }

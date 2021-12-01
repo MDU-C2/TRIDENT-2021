@@ -1,4 +1,0 @@
-To run optical flow with opencv, clone opencv_contrib from 
-https://github.com/opencv/opencv_contrib
-
-Also install cmake to run test files

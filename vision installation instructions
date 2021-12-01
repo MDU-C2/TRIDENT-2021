@@ -1,0 +1,8 @@
+To run optical flow with opencv, clone opencv_contrib from 
+https://github.com/opencv/opencv_contrib
+
+Also install cmake to run test files
+
+Get CMake by cloning 
+https://github.com/Kitware/CMake.git
+I installed in /usr/share/ 
