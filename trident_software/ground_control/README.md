@@ -53,7 +53,7 @@ Run `bash start_gc.sh` script in the ground control folder. Table shown below sh
 | -g                | Generate ROS2 messages from Trident project in to the ground control  | Optional      |
 
 ###### Method 2:
-`source ~/ros2_foxy/ros2-linux/setup.bash`, alternatively `source /opt/ros/foxy/setup.bash`
-Head to trident_software folder and run `colcon build`
-`source install/setup.bash`
-Head to ground_control folder and run `node index.js` to start server or `node tester.js` to start tester.
+1. `source ~/ros2_foxy/ros2-linux/setup.bash`, alternatively `source /opt/ros/foxy/setup.bash`
+2. Head to trident_software folder and run `colcon build`
+3. `source install/setup.bash`
+4. Head to ground_control folder and run `node index.js` to start server or `node tester.js` to start tester.
