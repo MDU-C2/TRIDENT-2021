@@ -34,3 +34,26 @@ The state window shows the current sub state of each module in Athena and Naiad.
 | Motor driver      | KILLED                | Motor power is turned off.                                                        |
 | Motor driver      | MOTOR OUTPUT SILENCE  | Motor power turned off due to watchdog timer not beingserved in time.             |
 | Motor driver      | ACTIVE                | Motor power is turned on.                                                         |
+
+## Setup
+The following packages needs to be installed:
+1. ROS2 Foxy
+2. Nodejs version 10.23.1-12.x, the version may be updated in the future depending on what version rclnodejs (bridge between javascript and ROS2) is installed. Check https://github.com/RobotWebTools/rclnodejs for more information.
+3. npm, express, socket.io, three js.
+
+## Usage
+There are two ways of starting the ground control:
+###### Method 1:
+Run `bash start_gc.sh` script in the ground control folder. Table shown below shows the mandatory and optional parameters for the script.
+
+| Argument          | Description                                                           | Type          |
+| :--------------   | :-------------------------------------------------------------------- | :------------ |
+| index OR tester   | Start the server script OR the tester script                          | Mandatory     |
+| -b                | Build the Trident project before sourcing                             | Optional      |
+| -g                | Generate ROS2 messages from Trident project in to the ground control  | Optional      |
+
+###### Method 2:
+`source ~/ros2_foxy/ros2-linux/setup.bash`, alternatively `source /opt/ros/foxy/setup.bash`
+Head to trident_software folder and run `colcon build`
+`source install/setup.bash`
+Head to ground_control folder and run `node index.js` to start server or `node tester.js` to start tester.
