@@ -12,7 +12,13 @@ end=$'\e[0m'
 
 #Source ROS2 environment
 printf "${cyn}\n=========================\nSourcing ROS2 environment\n=========================\n${end}"
-source ~/ros2_foxy/ros2-linux/setup.bash
+if [ -f "~/ros2_foxy/ros2-linux/setup.bash" ]; then
+    source ~/ros2_foxy/ros2-linux/setup.bash
+elif [ -f "/opt/ros/foxy/setup.bash" ]; then
+    source /opt/ros/foxy/setup.bash
+else
+    printf "${red}WARNING: ROS setup file not found in ~/ros2_foxy/ros2-linux/setup.bash or /opt/ros/foxy/setup.bash.\n${end}"
+fi
 
 printf "${cyn}\n=========================\nBuilding Trident project\n=========================\n${end}"
 cd ../../
