@@ -4,6 +4,8 @@ from time import time
 import numpy as np
 from sensor_msgs.msg import Imu
 from squaternion import Quaternion
+import signal
+import sys
 
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
@@ -81,7 +83,12 @@ class IMUNode(sensbase.SensorNode):
         self.measure[2,0] = q.to_euler()[2]
         self.measure[3,0] = msg.angular_velocity.z
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = IMUNode()
     rclpy.spin(node)

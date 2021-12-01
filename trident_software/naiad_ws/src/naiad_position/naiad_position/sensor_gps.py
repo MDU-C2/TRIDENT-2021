@@ -4,6 +4,8 @@ import numpy as np
 from math import sin, cos, sqrt, asin, inf
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
+import signal
+import sys
 
 def hav(theta):
     return (1-cos(theta))/2
@@ -73,7 +75,12 @@ class GPSNode(sensbase.SensorNode):
         else:
             self.m_noise = np.array([[inf, 0], [0, inf]]) # Set the noise to inifnite if the gps in unavailable
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = GPSNode()
     rclpy.spin(node)

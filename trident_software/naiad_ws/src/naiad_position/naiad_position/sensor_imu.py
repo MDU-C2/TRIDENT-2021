@@ -5,6 +5,8 @@ from collections import deque
 from time import time
 from math import sin, cos, pi
 from squaternion import Quaternion
+import signal
+import sys
 
 from sensor_msgs.msg import Imu
 
@@ -134,7 +136,12 @@ class IMUNode(sensbase.SensorNode):
         ])
         self.measure[:,0] = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = IMUNode()
     rclpy.spin(node)

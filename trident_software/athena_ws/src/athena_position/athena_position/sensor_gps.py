@@ -4,6 +4,8 @@ import numpy as np
 from math import sin, cos, sqrt, asin
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
+import signal
+import sys
 
 def hav(theta):
     return (1-cos(theta))/2
@@ -69,7 +71,12 @@ class GPSNode(sensbase.SensorNode):
         self.measure[0,0] = msg.latitude  - self.origin[0]
         self.measure[1,0] = msg.longitude - self.origin[1]
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = GPSNode()
     rclpy.spin(node)
