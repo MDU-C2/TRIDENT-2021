@@ -1,5 +1,7 @@
 //const tridentstates = require("../../gui_backend_ws/tridentstates");
 
+//const { Console } = require("console");
+
 /*
 	Trident states class
 	 - Contains states for each submodule in Athena and Naiad
@@ -245,7 +247,7 @@ class Server {
 					break;
 			}
 		});
-		this.socket.on('state/get/navigaton', resp => {
+		this.socket.on('state/get/navigation', resp => {
 			switch(resp.intState)
 			{
 				case state.navigationState.IDLE:

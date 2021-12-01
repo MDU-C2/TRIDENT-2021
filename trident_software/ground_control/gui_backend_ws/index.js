@@ -83,7 +83,7 @@ class Server
       //Get state from Athena navigation module
       ROS2handle.getStatesAthena.navigation.waitForService(1900).then((result) => {
         if (!result) {
-          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.missionControl._serviceName+' not available'});
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.navigation._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.navigation.sendRequest(request, (response) => {
