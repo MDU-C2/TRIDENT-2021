@@ -125,13 +125,13 @@ class Server
       });
 
       //Get state from Athena guidance module
-      ROS2handle.getStatesAthena.position.waitForService(1900).then((result) => {
+      ROS2handle.getStatesAthena.guidance.waitForService(1900).then((result) => {
         if (!result) {
-          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.position._serviceName+' not available'});
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.guidance._serviceName+' not available'});
           return;
         }
-        ROS2handle.getStatesAthena.position.sendRequest(request, (response) => {
-          this.io.emit('state/get/position',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
+        ROS2handle.getStatesAthena.guidance.sendRequest(request, (response) => {
+          this.io.emit('state/get/guidance_system',{target:'Athena',module:'guidance_system',state:response.state,intState:response.int_state})
         });
       });
 
@@ -190,6 +190,17 @@ class Server
         }
         ROS2handle.getStatesNaiad.position.sendRequest(request, (response) => {
           this.io.emit('state/get/position',{target:'Naiad',module:'position',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Naiad guidance module
+      ROS2handle.getStatesNaiad.guidance.waitForService(1900).then((result) => {
+        if (!result) {
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.guidance._serviceName+' not available'});
+          return;
+        }
+        ROS2handle.getStatesNaiad.guidance.sendRequest(request, (response) => {
+          this.io.emit('state/get/guidance_system',{target:'Naiad',module:'guidance_system',state:response.state,intState:response.int_state})
         });
       });
     },500);
@@ -452,12 +463,14 @@ class ROS2
     this.getStatesAthena.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_control/state/get');
     this.getStatesAthena.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_driver/state/get');
     this.getStatesAthena.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/position/state/get');
+    this.getStatesAthena.guidance       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/guidance_system/state/get');
 
     this.getStatesNaiad.missionControl = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/mission_control/state/get');
     this.getStatesNaiad.navigation     = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/navigation/state/get');
     this.getStatesNaiad.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_control/state/get');
     this.getStatesNaiad.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_driver/state/get');
     this.getStatesNaiad.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/position/state/get');
+    this.getStatesNaiad.guidance       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/guidance_system/state/get');
 
     //Create service: abort
     this.abortAthena = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');

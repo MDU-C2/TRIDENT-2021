@@ -296,6 +296,23 @@ class Server {
 					break;
 			}
 		});
+		this.socket.on('state/get/guidance_system', resp => {
+			switch(resp.intState)
+			{
+				case state.guidanceState.IDLE:
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").className = 'badge bg-secondary';
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").innerHTML = "IDLE";
+					break;
+				case state.guidanceState.PREPARING_GUIDANCE:
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").className = 'badge bg-info';
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").innerHTML = "PREPARING_GUIDANCE";
+					break;
+				case state.guidanceState.GUIDING:
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").className = 'badge bg-primary';
+					document.getElementById("system"+resp.target+"SubstateGuidanceSystem").innerHTML = "GUIDING";
+					break;
+			}
+		});
 		//If an error occured during get state service, display in logger.
 		this.socket.on('getStates/error', resp => {
 			logger.printLogger('loggerMainWindow',resp.errMsg, 'red');
