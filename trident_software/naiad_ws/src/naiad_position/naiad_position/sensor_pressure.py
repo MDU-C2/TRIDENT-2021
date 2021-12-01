@@ -1,6 +1,8 @@
 import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
+import signal
+import sys
 
 from sensor_msgs.msg import FluidPressure
 
@@ -38,7 +40,12 @@ class PressureNode(sensbase.SensorNode):
     def SimulatedMeasurement(self, msg):
         self.measure[0] = msg.fluid_pressure * 0.00010197
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = PressureNode()
     rclpy.spin(node)

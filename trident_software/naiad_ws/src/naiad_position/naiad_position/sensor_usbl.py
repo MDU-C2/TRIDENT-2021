@@ -1,8 +1,9 @@
 import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
-from squaternion import Quaternion
-from time import time
+import jax.numpy as jnp
+import signal
+import sys
 
 from visualization_msgs.msg import MarkerArray
 
@@ -66,7 +67,12 @@ class USBLNode(sensbase.SensorNode):
         self.measure[2] = msg.markers[0].pose.position.z
         self.last_read = time()
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = USBLNode()
     rclpy.spin(node)

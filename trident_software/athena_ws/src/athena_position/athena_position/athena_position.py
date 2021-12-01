@@ -7,6 +7,13 @@ from math import sin, cos, pi, tau
 from rclpy.executors import MultiThreadedExecutor
 import threading
 from squaternion import Quaternion
+import signal
+import sys
+import time
+
+import jax.numpy as jnp
+
+executor_thread = None
 
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
@@ -62,20 +69,26 @@ class AthenaPosNode(positionbase.PosNode):
         msg.twist.angular.z = self.state[12]
         self.publisher_.publish(msg)
     
+def signal_handler(sig, frame):
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     athena_pos_node = AthenaPosNode()
     # Create an executor thread that spins the node
     executor = MultiThreadedExecutor()
     executor.add_node(athena_pos_node)
     executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.daemon = True
     executor_thread.start()
     # Run the main loop in the node
     athena_pos_node.spin()
     # Wait for the executor to finish
-    executor_thread.join()
+    while executor_thread.is_alive():
+        time.sleep(1)
 
-    naiad_pos_node.destroy_node()
+    athena_pos_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
