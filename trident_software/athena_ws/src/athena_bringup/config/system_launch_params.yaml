@@ -81,10 +81,10 @@ athena:
         [
           {
             "id": 1,
-            "pin": 32
+            "maestro_id": 1
           },
           {
             "id": 2,
-            "pin": 33
+            "maestro_id": 2
           }
         ]          
