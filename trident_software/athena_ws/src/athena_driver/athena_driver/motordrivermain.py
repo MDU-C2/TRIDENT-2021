@@ -59,9 +59,9 @@ class MotorDriverNode(MotorDriverBase):
             # Translate the motor id to the correct mini maestro id
             maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
             mm_query[1] =  maestro_id
-            motor_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
-            mm_query[2:] = self.integer_to_maestro_bytes(motor_output)
-            self.get_logger().info(f"Sending motor value {motor_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+            mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
+            mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
+            self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
             self.ser.write(mm_query)
 
 
