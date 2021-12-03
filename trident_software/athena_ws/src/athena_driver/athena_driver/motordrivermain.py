@@ -16,7 +16,18 @@ class MotorDriverNode(MotorDriverBase):
         self.get_logger().info("Created motor driver node.")
 
         if not self._simulation_env:
-            self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
+            # import subprocess
+            # process = subprocess.Popen(
+            #     "ls -l /dev/serial/by-id | grep usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+            #     stdout=subprocess.PIPE)
+            # result = process.stdout.read()
+            # if "ttyACM" not in result:
+            #     self.get_logger().info("Could not find MiniMaestry tty.")
+            #     raise Exception("Could not find MiniMaestro tty.")
+            # ttyacm = result.split("tty")[-1]
+
+            # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
+            self.ser = serial.Serial(port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",baudrate=9600,timeout=0.5)
         
 
     @staticmethod
@@ -44,13 +55,13 @@ class MotorDriverNode(MotorDriverBase):
         """
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
-        for id_, value in motor_outputs.motor_outputs:
+        for motor_output in motor_outputs:
             # Translate the motor id to the correct mini maestro id
-            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == id_][0]
+            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
             mm_query[1] =  maestro_id
-            motor_output = MotorDriverNode.motor_output_to_mm_output(value * self._motor_output_scale)
+            motor_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
             mm_query[2:] = self.integer_to_maestro_bytes(motor_output)
-            self.get_logger().info(f"Sending motor value {motor_output} to motor with id {id_} (on maestro_id={maestro_id})")
+            self.get_logger().info(f"Sending motor value {motor_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
             self.ser.write(mm_query)
 
 
