@@ -389,6 +389,7 @@ class NavigationBase(Node):
             feedback_msg.message = "Moving to waypoint."
             goal_handle.publish_feedback(feedback_msg)
             self._update_goto_waypoint_status(GotoWaypointStatus.MOVING)
+            self._navigation_state = NavigationState.EXECUTING
             # Send the desired state to the motor controller
             self._goto_pose_send_goal(pose)
             # ... and await the result via the appropriate event
@@ -419,4 +420,5 @@ class NavigationBase(Node):
         result.distance_to_goal = self.distance_to_goal(self._agent_state.pose.position, goal_handle.request.waypoint.pose.position)
 
         self.get_logger().info(f'Returning result: {result}')
+        self._navigation_state = NavigationState.IDLE
         return result
