@@ -13,7 +13,7 @@ class MotorDriverNode(MotorDriverBase):
         self.get_logger().info("Created motor driver node.")
 
         if not self._simulation_env:
-            self.ser = serial.Serial(port="COM7",baudrate=9600,timeout=0.5)
+            self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
         
 
     @staticmethod
