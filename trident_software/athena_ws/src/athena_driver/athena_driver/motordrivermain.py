@@ -1,3 +1,6 @@
+import sys
+import threading
+from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 import serial
 from baseclasses.motordriverbase import MotorDriverBase
@@ -56,6 +59,10 @@ def main(args=None):
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
     rclpy.spin(motor_driver_node, executor)
+    # spin_thread = threading.Thread(target=rclpy.spin, args=(motor_driver_node, executor), daemon=True)
+    # spin_thread.start()
+    # spin_thread.join()
+    # motor_driver_node.pwm_cleanup()
     rclpy.shutdown()
 
 

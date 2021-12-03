@@ -426,7 +426,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         roll_control = self._pids["roll"](curr_orientation[0])
         pitch_control = self._pids["pitch"](curr_orientation[1])
 
-        self.get_logger().info("Converting twist_msg to motor outputs.")
+        # self.get_logger().info(f"Roll_control = {roll_control}")
+        # self.get_logger().info(f"pitch_control = {pitch_control}")
+        # self.get_logger().info("Converting twist_msg to motor outputs.")
         for motor in self._motor_config:
             output = MotorOutput()
             output.id = motor["id"]
