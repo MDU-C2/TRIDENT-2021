@@ -117,10 +117,19 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         for (int r = 0; r < n; r++)     // rows
             for (int c = 0; c < n; c++) // cols
             {
-                Scalar tempAvgAng = mean(angle(Range(r*nRows/n, (r+1)*nRows/n), Range(c*nCols/n, (c+1)*nCols/n)));
+                // Calculate avg angle
+                Mat roi = angle(Range(r*nRows/n, (r+1)*nRows/n), Range(c*nCols/n, (c+1)*nCols/n));
+                Mat mask = magnitude(Range(r*nRows/n, (r+1)*nRows/n), Range(c*nCols/n, (c+1)*nCols/n)) > 0.01;
+                Scalar tempAvgAng = mean(roi, mask);
+                double minVal;
+                minMaxLoc(magnitude(Range(r*nRows/n, (r+1)*nRows/n), Range(c*nCols/n, (c+1)*nCols/n)), &minVal, 0, 0, 0);
+                cout << tempAvgAng[0] << " / " << mean(roi)[0] << endl;
+
+                // Draw lines
                 fullLine(&normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), tempAvgAng[0]+90, Scalar(130,100,100));
                 circle(normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), 6, Scalar(100,100,100));
                 imshow("normals", normals);
+                waitKey(0);
             }
         
 
