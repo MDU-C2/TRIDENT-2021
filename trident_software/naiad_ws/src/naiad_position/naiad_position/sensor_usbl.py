@@ -37,24 +37,15 @@ class USBLNode(sensbase.SensorNode):
     def ObservationService(self, state, dt):
         athena_pos = jnp.transpose(jnp.array([[self.get_parameter('athena_position/x').value,
                       self.get_parameter('athena_position/y').value, 0]]))
-        n_pos = -1*state[:3]
-        q = -1*Quaternion(state[3], state[4], state[5], state[6])
-        translate = jnp.append(jnp.eye(4,3), jnp.append(n_pos, jnp.array([1])).reshape(4,1), axis=1)
-        rotation  = jnp.array([[2*(q[0]**2 + q[1]**2)-1,   2*(q[1]*q[2] - q[0]*q[3]), 2*(q[1]*q[3] + q[0]*q[2])],
-                               [2*(q[1]*q[2] + q[0]*q[3]), 2*(q[0]**2 + q[2]**2)-1,   2*(q[2]*q[3] - q[0]*q[1])],
-                               [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[2]*q[3] + q[0]*q[1]), 2*(q[0]**2 + q[3]**2)-1  ]])
-        '''rotation = jnp.array([[jnp.cos(n_rot[2]), -jnp.sin(n_rot[2]), 0],
-                              [jnp.sin(n_rot[2]), jnp.cos(n_rot[2]), 0],
-                              [0, 0, 1]])'''
-        local_pos = jnp.matmul(rotation, jnp.matmul(translate, jnp.append(athena_pos, jnp.array([[1]])).reshape(4,1))[:3])
+        n_pos = state[:3]
+        q = (state[3], state[4], state[5], state[6])
+        rotation  = jnp.array([[1-2*(q[2]**2 + q[3]**2),   2*(q[1]*q[2] - q[0]*q[3]), 2*(q[0]*q[2] + q[1]*q[3])],
+                               [2*(q[1]*q[2] + q[0]*q[3]), 1-2*(q[1]**2 + q[3]**2),   2*(q[2]*q[3] - q[0]*q[1])],
+                               [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[0]*q[1] + q[2]*q[3]), 1-2*(q[1]**2 + q[2]**2)  ]])
+        global_athena_distance = athena_pos - n_pos
+        local_athena_distance = jnp.matmul(global_athena_distance, jnp.linalg.inv(rotation)) # This may be wrong way around!
         #self.get_logger().info(jnp.array_str(local_pos.flatten()))
-        return local_pos.flatten()
-        '''diffpos = [a-b for a, b in zip(athena_pos, naiad_pos)]
-        diffang = atan2(diffpos[1], diffpos[0])
-        local_pos = [ # Doesn't account for pitch and roll!
-        diffpos[0]*cos(state[5])+diffpos[1]*sin(state[5]),
-        diffpos[1]*cos(state[5])-diffpos[0]*sin(state[5]),
-        diffpos[2]]'''
+        return local_athena_distance
     
     def TakeMeasurement(self):
         pass
