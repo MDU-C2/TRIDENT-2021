@@ -10,6 +10,22 @@ from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
 
 
+def serial_write_thread_fn(write_queue, node):
+   ser = serial.Serial(
+       port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+       baudrate=9600,
+       timeout=0.5,
+       write_timeout=1
+   )
+   while True:
+       try:
+           values = write_queue.popleft()
+           node.get_logger().info(f"Attempting to write values to serial: {values}")
+           ser.write(values)
+       except IndexError as e:
+           pass
+       node.get_logger().info(f"No serial value to write, sleeping.")
+       node.serial_max_write_rate.sleep()
 
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in NAIAD.
@@ -33,6 +49,7 @@ class MotorDriverNode(MotorDriverBase):
             # ttyacm = result.split("tty")[-1]
 
             # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
+            # self.ser = None
             self.ser = serial.Serial(
                 port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
                 baudrate=9600,
@@ -40,25 +57,10 @@ class MotorDriverNode(MotorDriverBase):
                 write_timeout=1
             )
             # Start write thread
-            self.serial_write_thread = threading.Thread(target=self.serial_write_thread_fn, args=(self.serial_write_deque))
+            self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
             self.serial_write_thread.start()
         
-    def serial_write_thread_fn(self, write_queue):
-        # ser = serial.Serial(
-        #     port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
-        #     baudrate=9600,
-        #     timeout=0.5,
-        #     write_timeout=1
-        # )
-        while True:
-            try:
-                values = write_queue.popleft()
-                self.get_logger().info(f"Attempting to write values to serial: {values}")
-                self.ser.write(values)
-            except IndexError as e:
-                pass
-            self.get_logger().info(f"No serial value to write, sleeping.")
-            self.serial_max_write_rate.sleep()
+   
 
     @staticmethod
     def integer_to_maestro_bytes(value):
