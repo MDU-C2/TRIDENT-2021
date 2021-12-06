@@ -507,6 +507,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         timestamp = self.get_clock().now().nanoseconds()
         time_delta = timestamp - self._last_teleop_handled_timestamp
         if 1/(time_delta*1000000000) < self._teleop_handle_hz:
+            self.get_logger().info("Received teleop, discarding due to rate limit.")
             return
         self._last_teleop_handled_timestamp = timestamp
 
