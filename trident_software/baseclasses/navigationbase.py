@@ -372,6 +372,7 @@ class NavigationBase(Node):
         self.path_to_waypoint = self.compute_path(goal_handle.request.waypoint)
         feedback_msg = GotoWaypoint.Feedback()
         self.get_logger().info('Path computed.')
+        self._navigation_state = NavigationState.EXECUTING
 
         # Future work: Start a timer to continously compute the path to the waypoint.
         # Store goal handle for feedback propagation
@@ -389,7 +390,6 @@ class NavigationBase(Node):
             feedback_msg.message = "Moving to waypoint."
             goal_handle.publish_feedback(feedback_msg)
             self._update_goto_waypoint_status(GotoWaypointStatus.MOVING)
-            self._navigation_state = NavigationState.EXECUTING
             # Send the desired state to the motor controller
             self._goto_pose_send_goal(pose)
             # ... and await the result via the appropriate event
