@@ -14,6 +14,7 @@ class MotorDriverNode(MotorDriverBase):
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+        self.writing_serial = False
 
         if not self._simulation_env:
             # import subprocess
@@ -58,6 +59,8 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
+        if self.writing_serial:
+            return
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
         for motor_output in motor_outputs:
