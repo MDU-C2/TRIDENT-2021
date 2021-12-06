@@ -43,10 +43,17 @@ class MotorDriverNode(MotorDriverBase):
             self.serial_write_thread = threading.Thread(target=self.serial_write_thread_fn, args=(self.serial_write_deque))
         
     def serial_write_thread_fn(self, write_queue: deque):
+        ser = serial.Serial(
+            port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+            baudrate=9600,
+            timeout=0.5,
+            write_timeout=1
+        )
         while True:
             try:
                 values = write_queue.popleft()
-                self.ser.write(values)
+                self.get_logger().info(f"Attempting to write values to serial: {values}")
+                ser.write(values)
             except IndexError as e:
                 pass
             self.serial_max_write_rate.sleep()
