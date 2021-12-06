@@ -130,7 +130,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             )
         self._teleop_twist_subscription = self.create_subscription(
             Twist,
-            'motor_control/teleop/cmd_vel',
+            # 'motor_control/teleop/cmd_vel', # TODO
+            'cmd_vel',
             self._teleop_twist_callback,
             2 # Keep 2 messages to act as a tiny buffer
         )
