@@ -41,6 +41,7 @@ class MotorDriverNode(MotorDriverBase):
             )
             # Start write thread
             self.serial_write_thread = threading.Thread(target=self.serial_write_thread_fn, args=(self.serial_write_deque))
+            self.serial_write_thread.start()
         
     def serial_write_thread_fn(self, write_queue: deque):
         ser = serial.Serial(
