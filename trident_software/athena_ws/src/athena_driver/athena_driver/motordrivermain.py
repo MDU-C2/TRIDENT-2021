@@ -57,8 +57,8 @@ class MotorDriverNode(MotorDriverBase):
                 write_timeout=1
             )
             # Start write thread
-            self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
-            self.serial_write_thread.start()
+            # self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
+            # self.serial_write_thread.start()
         
    
 
