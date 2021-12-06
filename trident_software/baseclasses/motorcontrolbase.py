@@ -504,7 +504,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         if not self._manual_override:
             self.get_logger().info("Received teleop message but manual override is currently not active. Discarding message.")
             return
-        timestamp = self.get_clock().now().nanoseconds*1000000000
+        timestamp = self.get_clock().now().nanoseconds/1000000000
         time_delta = timestamp - self._last_teleop_handled_timestamp
         self.get_logger().info(f"Timestamp: {timestamp}. Time delta: {time_delta}")
         if time_delta < 1/self._teleop_handle_hz:
