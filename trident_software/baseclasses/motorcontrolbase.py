@@ -636,7 +636,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         of the motors.
         """
         self.get_logger().info(f'Received HoldPose goal: {goal_handle.request}')
-        self._update_node_state(MotorControlState.EXECUTING)
         # Update object properties
         self._goal_pose = goal_handle.request.pose
         # Compute and update initial PaS orientation
@@ -680,6 +679,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
             else:
+                self._update_node_state(MotorControlState.EXECUTING)
                 motor_outputs_msg = self.pid(self._agent_state.pose, desired_pose)
                 # self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
                 self._motor_outputs_publisher.publish(motor_outputs_msg)
@@ -759,7 +759,6 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         shoot approach.
         """
         self.get_logger().info(f'Received goal: {goal_handle.request}')
-        self._update_node_state(MotorControlState.EXECUTING)
         # Update object properties
         self._goal_pose = goal_handle.request.pose
         # Compute and update initial PaS orientation
@@ -793,6 +792,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                 feedback_msg.message = "Manual override is active. Objetive will continue once manual override is switched off."
 
             else:
+                self._update_node_state(MotorControlState.EXECUTING)
                 motor_outputs_msg = self.pid(self._agent_state.pose, desired_pose)
                 # self.get_logger().info(f'Publishing motor output values to the motor driver. Motor values: {motor_outputs_msg.motor_outputs}')
                 self._motor_outputs_publisher.publish(motor_outputs_msg)
