@@ -61,6 +61,7 @@ class MotorDriverNode(MotorDriverBase):
         """
         if self.writing_serial:
             return
+        self.writing_serial = True
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
         for motor_output in motor_outputs:
@@ -75,6 +76,7 @@ class MotorDriverNode(MotorDriverBase):
                 self.get_logger().info(f"Successfully wrote to serial.")
             except serial.SERIAL_TIMEOUT_EXCEPTION:
                 self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
+        self.writing_serial = False
 
 
 
