@@ -109,7 +109,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
 
-        self._last_teleop_handled_timestamp = np.inf
+        self._last_teleop_handled_timestamp = -np.inf
         self._teleop_handle_hz = 10
 
         # Subscriptions
