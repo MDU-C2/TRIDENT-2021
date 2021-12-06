@@ -12,7 +12,7 @@ fi
 
 #Source ROS2 environment
 echo "Sourcing ROS2 environment"
-source ~/ros2_foxy/ros2-linux/local_setup.bash
+source /opt/ros/foxy/setup.bash
 
 #Check if build argument is set
 if [[ "$*" =~ "-b" ]]
@@ -38,6 +38,9 @@ then
     npx generate-ros-messages
     cd ../
 fi
+
+echo "Starting teleop in new terminal"
+gnome-terminal -e 'bash -c "source /opt/ros/foxy/setup.bash; ros2 run teleop_twist_keyboard teleop_twist_keyboard"'
 
 #Start selected target
 cd gui_backend_ws/
