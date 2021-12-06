@@ -37,7 +37,9 @@ Mat getCurl(Mat fx, Mat fy)
 void fullLine(Mat *img, Point a, float angle, Scalar colour)
 {
     float n = 1000;
-    double slope = tan(angle);
+    double slope = tan(angle * CV_PI / 180.0);
+
+    cout << "angle = " << angle << " / " << angle * CV_PI / 180.0 << ", point = " << a << ", slope " << slope << endl;
 
     Point p(a.x + n, a.y+n*slope), q(a.x - n, a.y-n*slope);
 
@@ -102,14 +104,12 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
         cartToPolar(flow_parts[0], flow_parts[1], magnitude, angle, true);
         Scalar avgAngle = mean(angle);
         normalize(magnitude, magn_norm, 0.0f, 1.0f, NORM_MINMAX);
-        angle *= ((1.f / 360.f) * (180.f / 255.f));
 
         // Scalar avgAngle = angle.at<uchar>(Point2i(pt1));
         Scalar avgMagn = mean(magn_norm);
         int scale = 90;
         pt2 = pt1 + Point2i(scale * avgMagn[0] * cos(avgAngle[0] * CV_PI / 180), scale * avgMagn[0] * sin(avgAngle[0] * CV_PI / 180));
         cout << "pt1 = " << pt1 << ", pt2 = " << pt2 << ", angle = " << avgAngle[0] << ", magnitude = " << avgMagn[0] << endl;
-
 
         // Calculate rotation center
         int n = 2;      // number of rows and cols angle image will be averaged into
@@ -129,10 +129,12 @@ void dense_optical_flow(string filename, bool save, bool to_gray, int method)
                 fullLine(&normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), tempAvgAng[0]+90, Scalar(130,100,100));
                 circle(normals, Point((c+0.5)*nCols/n, (r+0.5)*nRows/n), 6, Scalar(100,100,100));
                 imshow("normals", normals);
-                waitKey(0);
+                // waitKey(0);
             }
+        // Calculate point where normals kind of cross, and let this be the rotation center
+        // Then calculate rotation of some center points around this rotation center, result in rad or deg
         
-
+        angle *= ((1.f / 360.f) * (180.f / 255.f));
         // build hsv image
         Mat _hsv[3], hsv, hsv8, bgr;
         _hsv[0] = angle;
