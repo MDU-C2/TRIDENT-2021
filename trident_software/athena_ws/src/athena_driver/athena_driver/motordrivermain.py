@@ -2,81 +2,50 @@ import sys
 import threading
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
-from rclpy.executors import MultiThreadedExecutor
+import serial
 from baseclasses.motordriverbase import MotorDriverBase
+from cola2_msgs.msg import Setpoints
+from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
 
-import time
-from math import sin
-
-# Constants
-PWM_FREQUENCY = 50
-MICRO = 1000000 # Microseconds in a second
-ESC_PW_INTERVAL_CENTER = 1500  # The center of the supported PW interval (1500 microseconds)
-ESC_FULL_POWER = 400  # Full power in either direction
-
 class MotorDriverNode(MotorDriverBase):
-    """The main node for the motor driver module in Athena.
+    """The main node for the motor driver module in NAIAD.
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+
         if not self._simulation_env:
-            import RPi.GPIO as GPIO
-            self._pwm_containers = {}
-            # Initialize pwns and setup GPIO
-            GPIO.setmode(GPIO.BOARD)
-            for motor in self._motor_interface:
-                # Set the motor's pin as output
-                GPIO.setup(motor["pin"], GPIO.OUT)
-                # Create and start the pwn
-                pwm = GPIO.PWM(motor["pin"], PWM_FREQUENCY)
-                pwm.start(0)
-                self._pwm_containers[motor["id"]] = {
-                    "pwm": pwm,
-                    "pin": motor["pin"]
-                }
-            # Initialize the ESCs
-            self._esc_init_duty_cycle = self.get_duty_cycle(ESC_PW_INTERVAL_CENTER/MICRO)
-            for motor_id, pwm_container in self._pwm_containers.items():
-                self.get_logger().info(f"Initializing PWM for motor {motor_id} on pin {pwm_container['pin']}.")
-                pwm_container["pwm"].ChangeDutyCycle(self._esc_init_duty_cycle)
-            # NOTE: This is not working!
-            # Sleep for a few seconds to allow the ESCs to initialize
-            # rate = self.create_rate(3, self.get_clock())
-            # rate.sleep()
-            self.get_logger().info("PWMs initialized (ish).")
+            # import subprocess
+            # process = subprocess.Popen(
+            #     "ls -l /dev/serial/by-id | grep usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+            #     stdout=subprocess.PIPE)
+            # result = process.stdout.read()
+            # if "ttyACM" not in result:
+            #     self.get_logger().info("Could not find MiniMaestry tty.")
+            #     raise Exception("Could not find MiniMaestro tty.")
+            # ttyacm = result.split("tty")[-1]
 
+            # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
+            self.ser = serial.Serial(port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",baudrate=9600,timeout=0.5)
+        
 
-    # def __del__(self):
-    #     """Overrides the del function to ensure that the PWMs are cleaned up properly if the node is destroyed."""
-    #     if not self._simulation_env:
-    #         self.pwm_cleanup()
+    @staticmethod
+    def integer_to_maestro_bytes(value):
+        mm_value = bytearray(2)
+        mm_value[0] = (value & 0x7f)
+        mm_value[1] = ((value >> 7) & 0x7f)
 
-    def get_duty_cycle(self, pulse_width):
-        """Gets the duty cycle from the pulse width.
-        """
-        # Minus 80*MICRO here because the pi's PWM is shit and inaccurate and this makes it "right"
-        # return 100 * ((pulse_width-(80*MICRO)) / (1/PWM_FREQUENCY))
-        return 100 * (pulse_width - 60/MICRO) / (1/PWM_FREQUENCY)
+        return mm_value
 
-    def get_pulse_width(self, power_percentage):
-        """Gets the pulse width from the power percentage.
-        """
-        clamped = max(-1.0, min(power_percentage, 1.0))
-        return ((ESC_FULL_POWER * clamped) + ESC_PW_INTERVAL_CENTER) / MICRO
+    @staticmethod
+    def clamp(minim, value, maxim):
+        return max(minim, min(value, maxim))
 
-    def set_power(self, motor_id, power):
-        """Sets the motor power to the specfied motor with motor_id.
-
-        Args:
-            motor_id (Int): ID of the motor to set the power for.
-            power (Float): The power to set, value between -1.0 and 1.0
-        """
-        pw = self.get_pulse_width(power)
-        dc = self.get_duty_cycle(pw)
-        pwm = self._pwm_containers[motor_id]["pwm"]
-        pwm.ChangeDutyCycle(dc)
+    @staticmethod
+    def motor_output_to_mm_output(output):
+        clamped = MotorDriverNode.clamp(-1.0, output, 1.0)
+        return int(6000+(clamped*2000))
 
     def _send_motor_outputs(self, motor_outputs: MotorOutputs):
         """Sends the specified motor value to the motor with specified motor_number.
@@ -84,21 +53,16 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
-        # Loop through the motor outputs
+        mm_query = bytearray(4)
+        mm_query[0] = 0x84 # Set target
         for motor_output in motor_outputs:
-            # Set the specified power for the motor with the specified ID
-            self.set_power(motor_output.id, motor_output.value)
-
-    def pwm_cleanup(self):
-        """Cleans up the PWMs by stopping them and setting the GPIO outputs to low.
-        """
-        if not self._simulation_env:
-            self.get_logger().info(f"Node deletion in progress. Cleaning up GPIO.")
-            import RPi.GPIO as GPIO
-            for pwm_container in self._pwm_containers.values():
-                pwm_container["pwm"].stop()
-                GPIO.output(pwm_container["pin"], GPIO.LOW)
-            GPIO.cleanup()
+            # Translate the motor id to the correct mini maestro id
+            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
+            mm_query[1] =  maestro_id
+            mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
+            mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
+            self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+            self.ser.write(mm_query)
 
 
 def main(args=None):

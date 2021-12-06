@@ -1,0 +1,10 @@
+# The current state estimate (sent as a simple flat array)
+float32[] state
+
+---
+# The state guessed by the sensor
+float32[] guess
+
+# The sensor's uncertainty in each element of its guesses
+# (a value of inf means no guess was/could be made)
+float32[] noise

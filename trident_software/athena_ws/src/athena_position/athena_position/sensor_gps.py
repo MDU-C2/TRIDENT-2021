@@ -4,6 +4,7 @@ import numpy as np
 from math import sin, cos, sqrt, asin
 from math import radians as torad
 from sensor_msgs.msg import NavSatFix
+from time import time
 
 def hav(theta):
     return (1-cos(theta))/2
@@ -13,27 +14,24 @@ class GPSNode(sensbase.SensorNode):
         # NOTE: having an interval of 0 sec may not work! Fix a cleaner solution!
 
         # Values which convert meters-from-C2 to degrees latitude-longitude
-        origin = (59.6175744, 16.5609494)
+        self.origin = (59.6175744, 16.5609494)
         earth_radius = 6362257 # Approximate! (but good enough at C2's latitude)
-        m_per_deg_lat = 2*earth_radius*asin(sqrt(
-            hav(torad(1.0)) + cos(torad(origin[0]))*cos(torad(origin[0]+1))*hav(0.0)
+        self.m_per_deg_lat = 2*earth_radius*asin(sqrt(
+            hav(torad(1.0)) + cos(torad(self.origin[0]))*cos(torad(self.origin[0]+1))*hav(0.0)
         ))
-        m_per_deg_lon = 2*earth_radius*asin(sqrt(
-            hav(0.0) + cos(torad(origin[0]))**2 *hav(torad(1.0))
+        self.m_per_deg_lon = 2*earth_radius*asin(sqrt(
+            hav(0.0) + cos(torad(self.origin[0]))**2 *hav(torad(1.0))
         ))
-        self.origin = origin
-
-        init_obs_mat = np.array([
-            #              x                y  yaw dx dy dyaw
-            [1/m_per_deg_lat,               0,   0, 0, 0,   0],  #x (latitude)
-            [0,               1/m_per_deg_lon,   0, 0, 0,   0]]) #y (longitude)
+        self.last_read = time()
+        
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
-                         init_obs_mat, 2, np.identity(2)*0.000005**2)
+                         2, np.array([0.5, 0.5]))
+        
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
-        self.declare_parameter('is_simulated', False)
-        if(self.get_parameter('is_simulated').value):
+        self.declare_parameter('simulated', False)
+        if(self.get_parameter('simulated').value):
             self.simul_sensor = self.create_subscription(
                                 NavSatFix, '/athena/simulation/gps',
                                 self.SimulatedMeasurement, 10)
@@ -44,6 +42,20 @@ class GPSNode(sensbase.SensorNode):
             import pynmea2
             self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
             self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
+    
+    def state_guess(self, current_state):
+        guess = np.array([(self.measure[0]-self.origin[0])*self.m_per_deg_lat,
+                          (self.measure[1]-self.origin[1])*self.m_per_deg_lon, 0,
+                          0,0,0,0,
+                          0,0,0,
+                          0,0,0])
+        dt = time() - self.last_read
+        trust_factor = 10**(2*dt)
+        noise = np.array([self.measure_noise[0]*trust_factor, self.measure_noise[1]*trust_factor, np.inf,
+                          np.inf,np.inf,np.inf,np.inf,
+                          np.inf,np.inf,np.inf,
+                          np.inf,np.inf,np.inf])
+        return guess, noise
     
     def TakeMeasurement(self):
         try:
@@ -58,16 +70,21 @@ class GPSNode(sensbase.SensorNode):
                     if(msg.lat_dir == 'S'): deci_lat *= -1
                     if(msg.lon_dir == 'W'): deci_lon *= -1
                     ''' NOTE: This returns the distance in lat+long from the origin '''
-                    self.measure[0,0] = deci_lat-self.origin[0]
-                    self.measure[1,0] = deci_lon-self.origin[1]
+                    self.measure[0] = deci_lat
+                    self.measure[1] = deci_lon
         except serial.SerialException as e:
             print('Device error: {}'.format(e))
         except pynmea2.ParseError as e:
             print('Parse error: {}'.format(e))
 
     def SimulatedMeasurement(self, msg):
-        self.measure[0,0] = msg.latitude  - self.origin[0]
-        self.measure[1,0] = msg.longitude - self.origin[1]
+        if msg.status.status != -1:
+            self.measure[0] = msg.latitude
+            self.measure[1] = msg.longitude
+            self.measure_noise = np.array([.5, .5])
+            self.last_read = time()
+        else:
+            self.measure_noise = np.array([np.inf, np.inf]) # Set the noise to inifnite if the gps in unavailable
 
 def main(args=None):
     rclpy.init(args=args)

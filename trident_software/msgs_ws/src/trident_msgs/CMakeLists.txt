@@ -59,6 +59,7 @@ set(msg_files
   "srv/GetGoalPose.srv"
   "srv/GetState.srv"
   "srv/KalmanSensorService.srv"
+  "srv/BasicSensorService.srv"
   "action/StartMission.action"
   "action/GotoWaypoint.action"
   "action/GotoPose.action"

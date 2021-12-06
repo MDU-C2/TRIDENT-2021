@@ -35,7 +35,7 @@ def generate_launch_description():
             output='screen',
             name='motor_control',
             parameters=[config,
-                {'use_sim_odom': True}
+                {'use_sim_odom': False}
             ]
         ),
         Node(

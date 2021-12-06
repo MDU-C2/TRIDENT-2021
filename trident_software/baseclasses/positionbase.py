@@ -7,17 +7,14 @@ from abc import ABC, abstractmethod
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-from jax import jacfwd
-import jax.numpy as jnp
-
 from std_msgs.msg import String
 from trident_msgs.msg import State
-from trident_msgs.srv import KalmanSensorService
+from trident_msgs.srv import BasicSensorService
 from cola2_msgs.msg import Setpoints
 
 class PosNode(Node, ABC):
     def __init__(self, name, pub_topic_name, interval,
-                 start_state, start_covar, proc_noise, sensor_list,
+                 start_state, predict_noise, sensor_list,
                  ctrl_v_size, ctrl_v_top_name):
                  
         # Basic inits to create node, publisher, and periodic func #
@@ -36,8 +33,7 @@ class PosNode(Node, ABC):
         self._service_call_pool = ThreadPoolExecutor(2)
 
         self.publisher_ = self.create_publisher(State, pub_topic_name, 10)
-        #timer_period = interval
-        #self.timer = self.create_timer(timer_period, self.timer_callback)
+        
         self.last_state_time = time()
         self.get_logger().info("If this shows up, the simulation messages are still being used for control vector")
         self.ctrl_vec_sub_ = self.create_subscription(Setpoints, ctrl_v_top_name, self.get_ctrl_vec, 10)
@@ -45,20 +41,15 @@ class PosNode(Node, ABC):
         # Inits for all the Kalman-related variables #
         #--------------------------------------------#
         self.state = np.copy(start_state)
-        self.covar = np.copy(start_covar)
-        self.proc_noise = np.copy(proc_noise)
-        self.control_vec = np.zeros((ctrl_v_size,1))
-        self.jacobian = jacfwd(self.state_trans)
+        self.predict_noise = np.copy(predict_noise)
+        self.control_vec = np.zeros(ctrl_v_size)
         
         # Error detection on the different variables #
         #--------------------------------------------#
-        assert(self.state.shape[1] == 1),\
-               "Given state isn't vertical/isn't a vector!"
-        state_size = self.state.shape[0]
-        assert(self.covar.shape[0] == state_size and self.covar.shape[1] == state_size),\
-               "Covariance matrix dimensions don't match state!"
-        assert(self.proc_noise.shape[0] == state_size and self.proc_noise.shape[1] == state_size),\
-               "Process noise matrix dimensions don't match state!"
+        state_size = np.size(start_state)
+        noise_size = np.size(predict_noise)
+        assert(np.size(predict_noise) == np.size(start_state)),\
+               "Prediction noise array isn't same size as state array!"
                
         assert(type(sensor_list) == list),\
                "Sensor list isn't a list!"
@@ -69,7 +60,7 @@ class PosNode(Node, ABC):
         #-----------------------------------------------#
         self.sensor_handles = []
         for service_name in sensor_list:
-            cli = self.create_client(KalmanSensorService, service_name)
+            cli = self.create_client(BasicSensorService, service_name)
             while not cli.wait_for_service(timeout_sec=1.0):
                 print(service_name,"is taking a while...")
             self.sensor_handles.append(cli)
@@ -77,23 +68,13 @@ class PosNode(Node, ABC):
         #----------------------------------------------------------------#
         # Following are some examples of inputs for the kalman variables #
         #----------------------------------------------------------------#
-        '''A current state estimate (x), containing coordinates, orientation,
-           and velocities. Initialized "upright", as is standard
-                                             x   y   z   pit yaw rol dx  dy  dz  dp  dy  dr'''
-        #np.transpose(np.array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]]))
+        '''A current state estimate, containing coordinates, orientation,
+           and velocities.
+                   X   Y   Z  quatW quatX quatY quatZ  dX  dY  dZ  dRoll  dPtch  dHdng'''
+        #np.array([0., 0., 0.,    0.,   0.,   0.,   0., 0., 0., 0.,    0.,    0.,    0.])
         
-        '''A current estimate covariance (accuracy) matrix (P). The elementwise
-           multiplication with an identity matrix initializes it to a
-           "diagonal" array, making it a simple list of variances.
-           If you're sending in standard deviations, you'll want to square them first!'''
-        #np.multiply(
-        #    np.array([[0.3, 0.3, 0.3, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]]),
-        #    np.identity(12))
-        
-        '''A process noise covariance matrix (Q)'''
-        #np.multiply(
-        #    np.array([[0.3, 0.3, 0.3, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1]]),
-        #    np.identity(12))
+        '''A prediction noise array'''
+        #np.array([0.3, 0.3, 0.3, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1])
         
         '''A sensor list, containing some fake data for the four required points'''
         #[
@@ -102,8 +83,8 @@ class PosNode(Node, ABC):
         #    '/sensor/pressure',
         #    '/sensor/imu',
         #]
-    
-    # The state transition function (predicting the next step)
+
+    # The state transition function (predicting the next state)
     # This is only a placeholder, and should be changed in every implementation!
     @abstractmethod
     def state_trans(self, prev, dt):
@@ -125,118 +106,67 @@ class PosNode(Node, ABC):
         self.get_logger().info('Publishing new state')
     
     # This SHOULDN'T be changed! This function calls and receives values from services
-    def service_call(self, sensor_handle, pred_state, pred_covar):
-        req = KalmanSensorService.Request()
-        req.state = pred_state.flatten().tolist()
-        req.covar = pred_covar.flatten().tolist()
+    def service_call(self, sensor_handle, pred_state):
+        req = BasicSensorService.Request()
+        req.state = pred_state.tolist()
         try:
             # NOTE: This service call is blocking. This only works because rclpy.spin()
             # is called in a separate thread in main. The service calls are also called from a ThreadPoolExecutor,
             # so they won't block and will be handled simultaneously, which also works as an extra precaution against deadlocks.
             resp = sensor_handle.call(req)
-            x_size = len(pred_state)
-            y_size = len(resp.residual)
 
-            return(np.reshape(resp.gain,               (x_size, y_size)),
-                   np.reshape(resp.residual,           (-1,1)          ),
-                   np.reshape(resp.observationmatrix,  (y_size, x_size)))
+            return(np.array(resp.guess),
+                   np.array(resp.noise))
         except Exception as e:
                 self.get_logger().info(f"Couldn't get values from a service: {e}")
-    
-    # This SHOULDN'T be changed! Returns both the new state and the jacobian
-    # Jacobian through complex step differentiation
-    # Source: https://se.mathworks.com/matlabcentral/fileexchange/18189-learning-the-extended-kalman-filter?s_tid=mwa_osa_a
-    '''def jacobian_csd(self, func, state, dt):
-        new_state = func(state, dt)
-        n = state.shape[0]
-        m = new_state.shape[0]
-        A = np.zeros((m,n))
-        
-        dx = 1e-8
-        for j in range(n):
-            Dxj = (abs(state[j,0])*dx if state[j,0] != 0 else dx)
-            x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(state.flatten().tolist())]
-            A[:, j] = (func(np.transpose(np.array([x_plus])), dt) - new_state).flatten()/Dxj
-        return (new_state, A)'''
-    ''' h = n * pow(2,-51) # Just a small number here, I think?
-    for k in range(n):
-        state1 = np.copy(state).astype('complex64')
-        state1[k, 0] = complex(state1[k, 0], h)
-        A[:, k] = np.transpose((func(state1, dt)).imag/h) 
-    return (new_state, A)'''
     
     # This SHOULDN'T be changed! This is the main function, handling EKF and sending state
     def spin(self):
         while True:
-            # Predict new state (and get the state transition matrix thru Jacobian)
+            # Predict new state using motor- and movement values
             dt = time() - self.last_state_time
             self.last_state_time = time()
-            pred_state = np.array(self.state_trans(jnp.array(self.state).flatten(), dt).reshape(-1,1), dtype=float)
-            #self.get_logger().info(np.array_str(pred_state))
-            state_trans_mat = np.array(self.jacobian(jnp.array(self.state).flatten(), dt), dtype=float)
-            #self.get_logger().info(np.array_str(state_trans_mat))
-            #self.get_logger().info("State type: %s Matrix type: %s" % (str(type(pred_state)), str(type(state_trans_mat))))
-            # Add noise
-            pred_state += np.matmul(self.proc_noise, np.random.randn(pred_state.shape[0], 1))
-            # Predict covariance of new state
-            pred_covar = np.matmul(np.matmul(
-                            state_trans_mat,
-                            self.covar),
-                            np.transpose(state_trans_mat)
-                         ) + self.proc_noise
-
+            pred_state = self.state_trans(self.state, dt)
+            
+            # Create two nested arrays containing each sensor's guess and noise
+            all_guesses = np.array(pred_state)
+            all_noises  = np.array(self.predict_noise)
 
             # Send the service calls via the ThreadPoolExecutor
             pool_futures = self._service_call_pool.map(self.service_call,
                                                        self.sensor_handles,
                                                        [pred_state]*len(self.sensor_handles),
-                                                       [pred_covar]*len(self.sensor_handles),
                                                        timeout=1)
             try:
                 # Loop through the results
                 for result, sensor in zip(list(pool_futures), self.sensor_handles):
                         # Get the values from the sensors
-                        gain, resid, obs_mat = result
+                        guess, noise = result
                         # Check for cheeky nans
-                        if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
+                        if(np.isnan(guess).any() or np.isnan(noise).any()):
                             raise Exception("The sensor ", sensor, " returned a NaN!")
-                        # Update the state estimate
-                        #print(gain, resid)
-                        pred_state = pred_state + np.matmul(gain, resid)
-                        # Update the covariance estimate
-                        pred_covar = np.matmul(
-                                        np.identity(pred_state.shape[0]) - np.matmul(
-                                            gain,
-                                            obs_mat),
-                                        pred_covar)
+                        # Add the guess and noise values to their respective piles
+                        all_guesses = np.vstack([all_guesses, guess])
+                        all_noises  = np.vstack([all_noises,  noise])
             except Exception as e:
                 self.get_logger().warn("Skipping sensor due to failure! Error:" + str(e))
-                
-
-            # # Here we go through all of the different sensors
-            # # TODO: none of this truly is implemented yet, since no sensors!
-            # for sensor in self.sensor_handles:
-            #     try:
-            #         # Get the values from the sensors
-            #         gain, resid, obs_mat = self.service_call(sensor, pred_state, pred_covar)
-            #         # Check for cheeky nans
-            #         if(np.isnan(gain).any() or np.isnan(resid).any() or np.isnan(obs_mat).any()):
-            #             raise Exception("The sensor",sensor,"returned a NaN!")
-            #         # Update the state estimate
-            #         #print(gain, resid)
-            #         pred_state = pred_state + np.matmul(gain, resid)
-            #         # Update the covariance estimate
-            #         pred_covar = np.matmul(
-            #                         np.identity(pred_state.shape[0]) - np.matmul(
-            #                             gain,
-            #                             obs_mat),
-            #                         pred_covar)
-            #     except Exception as e:
-            #         self.get_logger().warn("Skipping sensor due to failure! " + str(e))
             
-            # Finally, set the state and covariance to the new ones!
-            self.state = pred_state
-            self.covar = pred_covar
+            # The quaternions are special, and so must be computed separately
+            # WARNING: Doing the quats separately means this base isn't entirely flexible!
+            # Source: https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
+            try:
+                all_quats   = all_guesses[:,3:7]
+                all_q_noise = all_noises[:,3:7]
+                weights_sum_to_one = (1/all_q_noise) / np.sum((1/all_q_noise), axis=0)
+                weighted_quat_T = np.transpose(all_quats * weights_sum_to_one)
+                eigen_vecs = np.linalg.eig(np.matmul(weighted_quat_T, np.transpose(weighted_quat_T)))[1]
+                largest_eigen_vec = eigen_vecs[:,0] # This is almost certainly wrong!
+                
+                # Finally, set the state to the new "composite" state.
+                self.state = np.average(all_guesses, axis=0, weights=1/all_noises)
+                self.state[3:7] = largest_eigen_vec
+            except Exception as e:
+                self.get_logger().warn("Skipping writing new value! Error:" + str(e))
             
             # AND publish the new state
             self.state_publish()
