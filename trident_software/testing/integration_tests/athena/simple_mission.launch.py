@@ -264,10 +264,10 @@ class TestTalkerListenerLink(unittest.TestCase):
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
         self.assertEqual(service_client.mission_control_future.result().state, 'NO_MISSION')
-        #self.assertEqual(service_client.navigation_future.result().state, 'NO_MISSION')
-        #self.assertEqual(service_client.motor_control_future.result().state, 'NO_MISSION')
-        #self.assertEqual(service_client.motor_driver_future.result().state, 'NO_MISSION')
-        #self.assertEqual(service_client.guidance_system_future.result().state, 'NO_MISSION')
+        self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
+        self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
+        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
+        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
         # (2) Load mission
@@ -347,4 +347,3 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         service_client.destroy_node()
-        action_client.destroy_node()
