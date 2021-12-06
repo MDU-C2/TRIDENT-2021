@@ -149,9 +149,7 @@ naiad:
       position_update_frequency: 10 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
   motor_driver:
     ros__parameters:
-      simulation_env: True    # Specifies if the motor driver should send motor ouputs to the simulation
-                              # environment or the real motors.
-      motor_output_silence_period: 0.4   # Allowed time period in seconds that the motor driver
+      motor_output_silence_period: 0.3   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
       motor_output_scale: 1.0 # Scales the motor output values to limit maximum thrust
       motor_interface: >  # The gpio pins that each motor are connected to.
