@@ -27,7 +27,12 @@ class MotorDriverNode(MotorDriverBase):
             # ttyacm = result.split("tty")[-1]
 
             # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
-            self.ser = serial.Serial(port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",baudrate=9600,timeout=0.5)
+            self.ser = serial.Serial(
+                port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+                baudrate=9600,
+                timeout=0.5,
+                write_timeout=1
+            )
         
 
     @staticmethod
