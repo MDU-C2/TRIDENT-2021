@@ -110,7 +110,7 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
 
         self._last_teleop_handled_timestamp = -np.inf
-        self._teleop_handle_hz = 1
+        self._teleop_handle_hz = 10
 
         # Subscriptions
         # -------------
