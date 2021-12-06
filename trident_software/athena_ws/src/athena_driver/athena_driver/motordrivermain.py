@@ -98,8 +98,8 @@ class MotorDriverNode(MotorDriverBase):
             mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
             try:
                 self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-                self.serial_write_deque.append(mm_query)
-                # self.ser.write(mm_query)
+                # self.serial_write_deque.append(mm_query)
+                self.ser.write(mm_query)
                 self.get_logger().info(f"Successfully wrote to serial.")
             except serial.SERIAL_TIMEOUT_EXCEPTION:
                 self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
