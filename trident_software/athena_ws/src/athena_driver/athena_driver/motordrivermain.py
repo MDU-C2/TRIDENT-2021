@@ -1,5 +1,6 @@
 import sys
 import threading
+from collections import deque
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 import serial
@@ -8,13 +9,17 @@ from cola2_msgs.msg import Setpoints
 from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
 
+
+
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in NAIAD.
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+        self.serial_max_write_rate = self.create_rate(100)
         self.writing_serial = False
+        self.serial_write_deque = deque(maxlen=2)
 
         if not self._simulation_env:
             # import subprocess
@@ -34,7 +39,17 @@ class MotorDriverNode(MotorDriverBase):
                 timeout=0.5,
                 write_timeout=1
             )
+            # Start write thread
+            self.serial_write_thread = threading.Thread(target=self.serial_write_thread_fn, args=(self.serial_write_deque))
         
+    def serial_write_thread_fn(self, write_queue: deque):
+        while True:
+            try:
+                values = write_queue.popleft()
+                self.ser.write(values)
+            except IndexError as e:
+                pass
+            self.serial_max_write_rate.sleep()
 
     @staticmethod
     def integer_to_maestro_bytes(value):
@@ -72,7 +87,8 @@ class MotorDriverNode(MotorDriverBase):
             mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
             try:
                 self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-                self.ser.write(mm_query)
+                self.serial_write_deque.append(mm_query)
+                # self.ser.write(mm_query)
                 self.get_logger().info(f"Successfully wrote to serial.")
             except serial.SERIAL_TIMEOUT_EXCEPTION:
                 self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
