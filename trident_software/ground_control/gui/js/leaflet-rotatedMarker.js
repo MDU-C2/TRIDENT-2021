@@ -37,7 +37,7 @@
                     this._icon.style[L.DomUtil.TRANSFORM] = 'rotate(' + this.options.rotationAngle + 'deg)';
                 } else {
                     // for modern browsers, prefer the 3D accelerated version
-                    this._icon.style[L.DomUtil.TRANSITION] += 'transform 0.5s';
+                    this._icon.style[L.DomUtil.TRANSITION] += 'transform 0.1s';
                     this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.rotationAngle + 'deg)';
                 }
             }
