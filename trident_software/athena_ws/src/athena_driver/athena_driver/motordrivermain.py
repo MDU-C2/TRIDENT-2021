@@ -63,6 +63,7 @@ class MotorDriverNode(MotorDriverBase):
             mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
             self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
             self.ser.write(mm_query)
+            self.get_logger().info(f"Successfully wrote to serial.")
 
 
 def main(args=None):
