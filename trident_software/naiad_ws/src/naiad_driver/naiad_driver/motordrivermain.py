@@ -16,7 +16,7 @@ def serial_write_process_fn(write_queue, node):
        timeout=0.5,
     #    write_timeout=1
    )
-   setproctitle.setproctitle(current_process().name)
+   setproctitle.setproctitle("TEST TITLE")
    while True:
         values = write_queue.get()
         node.get_logger().debug(f"Attempting to write values to serial: {values}")
