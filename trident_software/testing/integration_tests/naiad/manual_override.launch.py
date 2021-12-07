@@ -29,50 +29,51 @@ import os
 @pytest.mark.launch_test
 def generate_test_description():
     config = os.path.join(
-        get_package_share_directory('athena_bringup'),
+        get_package_share_directory('naiad_bringup'),
         'config',
         'system_launch_params.yaml'
     )
 
-    args = '--disable-rosout-logs' if True else ''
+    args = ['--ros-args', '--log-level', 'warn'] if True else ''
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
             'node_prefix',
             default_value=[launch.substitutions.EnvironmentVariable('USER'), '_'],
-            description='Prefix for node names'),
+            description='Prefix for node names',
+        ),
         launch_ros.actions.Node(
-            package='athena_mission_control',
-            namespace='athena',
+            package='naiad_mission_control',
+            namespace='naiad',
             executable='mission_control',
             output='screen',
             name='mission_control',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
-            package='athena_navigation',
-            namespace='athena',
+            package='naiad_navigation',
+            namespace='naiad',
             executable='navigation',
             output='screen',
             name='navigation',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
-            package='athena_motor_control',
-            namespace='athena',
+            package='naiad_motor_control',
+            namespace='naiad',
             executable='motor_control',
             output='screen',
             name='motor_control',
             parameters=[config,
                 {'use_sim_odom': True}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
-            package='athena_driver',
-            namespace='athena',
+            package='naiad_driver',
+            namespace='naiad',
             executable='motor_driver',
             output='screen',
             name='motor_driver',
@@ -80,44 +81,64 @@ def generate_test_description():
                 {'simulation': True},
                 {'motor_output_scale': 0.5}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
-            package='athena_guidance_system',
-            namespace='athena',
+            package='naiad_guidance_system',
+            namespace='naiad',
             executable='guidance_system',
             output='screen',
             name='guidance_system',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/position/',
+            package='naiad_position',
+            namespace='/naiad/position/',
             executable='position_node',
             name='pos',
-            arguments=[args]
+            arguments=args
           ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
+            package='naiad_position',
+            namespace='/naiad/sensor/',
             executable='imu_node',
             name='imu',
             parameters=[
                 {"simulated": True}
             ],
-            arguments=[args]
+            arguments=args
           ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
+            package='naiad_position',
+            namespace='/naiad/sensor/',
             executable='gps_node',
             name='gps',
             parameters=[
                 {"simulated": True}
             ],
-            arguments=[args]
+            arguments=args
           ),
+        launch_ros.actions.Node(
+            package='naiad_position',
+            namespace='/naiad/sensor',
+            executable='usbl_node',
+            name='usbl',
+            parameters=[
+                {"simulated": True}
+            ],
+            arguments=args
+        ),
+        launch_ros.actions.Node(
+            package='naiad_position',
+            namespace='/naiad/sensor',
+            executable='pressure_node',
+            name='pressure',
+            parameters=[
+                {"simulated": True}
+            ],
+            arguments=args
+        ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
     ])
@@ -125,13 +146,13 @@ def generate_test_description():
 class MinimalServiceClient(Node):
     def __init__(self):
         super().__init__('get_state_client')
-        self.mission_control_getstate = self.create_client(GetState, 'athena/mission_control/state/get')
-        self.navigation_getstate = self.create_client(GetState, 'athena/navigation/state/get')
-        self.motor_control_getstate = self.create_client(GetState, 'athena/motor_control/state/get')
-        self.motor_driver_getstate = self.create_client(GetState, 'athena/motor_driver/state/get')
-        self.guidance_system_getstate = self.create_client(GetState, 'athena/guidance_system/state/get')
-        self.cliLoadMission = self.create_client(LoadMission, 'athena/mission_control/mission/load')
-        self.manual_override = self.create_client(SetBool, 'athena/motor_control/manual_override')
+        self.mission_control_getstate = self.create_client(GetState, 'naiad/mission_control/state/get')
+        self.navigation_getstate = self.create_client(GetState, 'naiad/navigation/state/get')
+        self.motor_control_getstate = self.create_client(GetState, 'naiad/motor_control/state/get')
+        self.motor_driver_getstate = self.create_client(GetState, 'naiad/motor_driver/state/get')
+        self.guidance_system_getstate = self.create_client(GetState, 'naiad/guidance_system/state/get')
+        self.cliLoadMission = self.create_client(LoadMission, 'naiad/mission_control/mission/load')
+        self.manual_override = self.create_client(SetBool, 'naiad/motor_control/manual_override')
 
         while not self.mission_control_getstate.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('mission control service not available, waiting again...')
@@ -212,7 +233,7 @@ class MinimalActionClient(Node):
 
     def __init__(self):
         super().__init__('load_mission_client')
-        self.cliStartMission = ActionClient(self, StartMission, 'athena/mission_control/mission/start')
+        self.cliStartMission = ActionClient(self, StartMission, 'naiad/mission_control/mission/start')
         self.mission_done = False
         self.start_waypoints_completed = 0
 
@@ -285,8 +306,8 @@ class TestTalkerListenerLink(unittest.TestCase):
         # (2) Load mission
         #--------------------------
         time.sleep(0.5)
-        service_client.send_load_request([[5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2, True],
-                                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2, False]])
+        service_client.send_load_request([[5.0, 5.0, 3.0, 0.0, 0.0, 0.0, 2, True],
+                                          [0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 2, False]])
         print("Sending load mission")
         rclpy.spin_until_future_complete(service_client, service_client.load_future)
         print("Load mission result: %s" % service_client.load_future.result())
