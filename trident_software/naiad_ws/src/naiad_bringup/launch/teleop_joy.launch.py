@@ -33,6 +33,5 @@ def generate_launch_description():
             name='teleop_twist_joy_node', parameters=[config_filepath],
             namespace='naiad',
             remappings={('/naiad/cmd_vel', launch.substitutions.LaunchConfiguration('joy_vel'))},
-            # remappings={('/athena/cmd_vel', 'motor_control/teleop/cmd_vel')},
             ),
     ])
