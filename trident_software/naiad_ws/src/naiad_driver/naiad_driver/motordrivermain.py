@@ -36,6 +36,7 @@ class MotorDriverNode(MotorDriverBase):
 
             # Start serial write process
             self.serial_write_process = Process(target=serial_write_process_fn, args=(self.serial_write_queue, self))
+            self.serial_write_process.name = "serial_write_motor"
             self.serial_write_process.start()
         
 
