@@ -103,7 +103,7 @@ def generate_test_description():
             executable='imu_node',
             name='imu',
             parameters=[
-                {"is_simulated": True}
+                {"simulated": True}
             ],
             arguments=[args]
           ),
@@ -113,10 +113,30 @@ def generate_test_description():
             executable='gps_node',
             name='gps',
             parameters=[
-                {"is_simulated": True}
+                {"simulated": True}
             ],
             arguments=[args]
-          ),
+        ),
+        launch_ros.actions.Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='usbl_node',
+            name='usbl',
+            parameters=[
+                {"simulated": True}
+            ],
+            arguments=[args]
+        ),
+        launch_ros.actions.Node(
+            package='naiad_position',
+            namespace='/naiad/sensor/',
+            executable='pressure_node',
+            name='pressure',
+            parameters=[
+                {"simulated": True}
+            ],
+            arguments=[args]
+        ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
     ])
