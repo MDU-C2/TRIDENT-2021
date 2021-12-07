@@ -19,14 +19,14 @@ def serial_write_process_fn(write_queue, node):
     #    write_timeout=1
    )
    while True:
-       try:
-           values = write_queue.get(True, timeout=0.1)
-           node.get_logger().info(f"Attempting to write values to serial: {values}")
-           ser.write(values)
-           node.get_logger().info(f"Successfully wrote to serial: {values}")
-       except IndexError as e:
-           pass
-       node.get_logger().info(f"No serial value to write, sleeping.")
+    #    try:
+        values = write_queue.get()
+        node.get_logger().info(f"Attempting to write values to serial: {values}")
+        ser.write(values)
+        node.get_logger().info(f"Successfully wrote to serial: {values}")
+    #    except IndexError as e:
+        #    pass
+    #    node.get_logger().info(f"No serial value to write, sleeping.")
     #    node.serial_max_write_rate.sleep()
 
 class MotorDriverNode(MotorDriverBase):
