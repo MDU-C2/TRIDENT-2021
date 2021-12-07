@@ -27,7 +27,7 @@ def serial_write_process_fn(write_queue, node):
        except IndexError as e:
            pass
        node.get_logger().info(f"No serial value to write, sleeping.")
-       node.serial_max_write_rate.sleep()
+    #    node.serial_max_write_rate.sleep()
 
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in NAIAD.
