@@ -100,7 +100,9 @@ class MotorDriverNode(MotorDriverBase):
         self.writing_serial = True
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
+        self.get_logger().info(f"Attempting to get queue lock.")
         with self.serial_write_queue_lock:
+            self.get_logger().info(f"Took queue lock.")
             for motor_output in motor_outputs:
                 # Translate the motor id to the correct mini maestro id
                 maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
