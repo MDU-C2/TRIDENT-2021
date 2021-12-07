@@ -8,7 +8,6 @@ import launch.actions
 import launch.substitutions
 
 import launch_testing.actions
-import launch_testing_ros
 
 import pytest
 import rclpy
@@ -17,17 +16,14 @@ import time
 from squaternion import Quaternion
 from rclpy.action import ActionClient
 
-import std_msgs.msg
-from baseclasses.tridentstates import MissionControlState, GotoWaypointStatus, StartMissionStatus, WaypointActionType
-from geometry_msgs.msg import Pose, Point      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
+from baseclasses.tridentstates import WaypointActionType
+from geometry_msgs.msg import Pose      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from std_srvs.srv import Trigger        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
 from trident_msgs.srv import LoadMission, GetState
-from trident_msgs.action import StartMission, GotoWaypoint
+from trident_msgs.action import StartMission
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
-from example_interfaces.srv import AddTwoInts
 
 from ament_index_python.packages import get_package_share_directory
-import sys
 import os
 
 @pytest.mark.launch_test
@@ -38,7 +34,7 @@ def generate_test_description():
         'system_launch_params.yaml'
     )
 
-    args = '--disable-rosout-logs' if True else ''
+    args = ['--ros-args', '--log-level', 'warn'] if True else ''
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -52,7 +48,7 @@ def generate_test_description():
             output='screen',
             name='mission_control',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_navigation',
@@ -61,7 +57,7 @@ def generate_test_description():
             output='screen',
             name='navigation',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_motor_control',
@@ -72,7 +68,7 @@ def generate_test_description():
             parameters=[config,
                 {'use_sim_odom': True}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_driver',
@@ -84,7 +80,7 @@ def generate_test_description():
                 {'simulation': True},
                 {'motor_output_scale': 0.5}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_guidance_system',
@@ -93,14 +89,14 @@ def generate_test_description():
             output='screen',
             name='guidance_system',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_position',
             namespace='/athena/position/',
             executable='position_node',
             name='pos',
-            arguments=[args]
+            arguments=args
           ),
         launch_ros.actions.Node(
             package='athena_position',
@@ -109,7 +105,8 @@ def generate_test_description():
             name='imu',
             parameters=[
                 {"simulated": True}
-            ]
+            ],
+            arguments=args
           ),
         launch_ros.actions.Node(
             package='athena_position',
@@ -118,11 +115,12 @@ def generate_test_description():
             name='gps',
             parameters=[
                 {"simulated": True}
-            ]
+            ],
+            arguments=args
           ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
-        ])
+    ])
 
 class MinimalServiceClient(Node):
     def __init__(self):
@@ -238,7 +236,7 @@ class MinimalActionClient(Node):
 
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
-        self.get_logger().info('Received feedback: {0}'.format(feedback.partial_sequence))
+        #self.get_logger().info('Received feedback: {0}'.format(feedback.partial_sequence))
         self.waypoints_completed = feedback.waypoints_completed
 
 
