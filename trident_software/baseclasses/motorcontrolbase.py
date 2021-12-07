@@ -109,6 +109,9 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         # Rate object with relative sleeping period that controls the motor update frequency
         self._motor_update_rate = self.create_rate(self._motor_update_frequency)
 
+        self._last_teleop_handled_timestamp = -np.inf
+        self._teleop_handle_hz = 10
+
         # Subscriptions
         # -------------
         if self._use_sim_odom:
@@ -127,7 +130,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
             )
         self._teleop_twist_subscription = self.create_subscription(
             Twist,
-            'motor_control/teleop/cmd_vel',
+            # 'motor_control/teleop/cmd_vel', # TODO
+            '/cmd_vel',
             self._teleop_twist_callback,
             2 # Keep 2 messages to act as a tiny buffer
         )
@@ -501,6 +505,14 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         if not self._manual_override:
             self.get_logger().info("Received teleop message but manual override is currently not active. Discarding message.")
             return
+        timestamp = self.get_clock().now().nanoseconds/1000000000
+        time_delta = timestamp - self._last_teleop_handled_timestamp
+        # self.get_logger().info(f"Timestamp: {timestamp}. Time delta: {time_delta}")
+        if time_delta < 1/self._teleop_handle_hz:
+            self.get_logger().info("Received teleop, discarding due to rate limit.")
+            return
+        self._last_teleop_handled_timestamp = timestamp
+
         # Translate the cmd vel into motor values
         motor_outputs = self._twist_to_motor_outputs(msg)
         # Create and publish the motor output message

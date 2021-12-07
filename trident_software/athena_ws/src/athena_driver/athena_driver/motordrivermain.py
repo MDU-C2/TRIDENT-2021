@@ -1,5 +1,6 @@
 import sys
 import threading
+from collections import deque
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
 import serial
@@ -8,12 +9,33 @@ from cola2_msgs.msg import Setpoints
 from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
 
+
+def serial_write_thread_fn(write_queue, node):
+   ser = serial.Serial(
+       port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+       baudrate=9600,
+       timeout=0.5,
+       write_timeout=1
+   )
+   while True:
+       try:
+           values = write_queue.popleft()
+           node.get_logger().info(f"Attempting to write values to serial: {values}")
+           ser.write(values)
+       except IndexError as e:
+           pass
+       node.get_logger().info(f"No serial value to write, sleeping.")
+       node.serial_max_write_rate.sleep()
+
 class MotorDriverNode(MotorDriverBase):
     """The main node for the motor driver module in NAIAD.
     """
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
+        self.serial_max_write_rate = self.create_rate(100)
+        self.writing_serial = False
+        self.serial_write_deque = deque(maxlen=2)
 
         if not self._simulation_env:
             # import subprocess
@@ -27,8 +49,18 @@ class MotorDriverNode(MotorDriverBase):
             # ttyacm = result.split("tty")[-1]
 
             # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
-            self.ser = serial.Serial(port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",baudrate=9600,timeout=0.5)
+            # self.ser = None
+            self.ser = serial.Serial(
+                port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+                baudrate=9600,
+                timeout=0.5,
+                write_timeout=1
+            )
+            # Start write thread
+            # self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
+            # self.serial_write_thread.start()
         
+   
 
     @staticmethod
     def integer_to_maestro_bytes(value):
@@ -53,6 +85,9 @@ class MotorDriverNode(MotorDriverBase):
         Args:
             motor_outputs: The list of motor_id, motor_output pairs that should be sent to the motor.
         """
+        if self.writing_serial:
+            return
+        self.writing_serial = True
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
         for motor_output in motor_outputs:
@@ -61,8 +96,15 @@ class MotorDriverNode(MotorDriverBase):
             mm_query[1] =  maestro_id
             mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
             mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
-            self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-            self.ser.write(mm_query)
+            try:
+                self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+                # self.serial_write_deque.append(mm_query)
+                self.ser.write(mm_query)
+                self.get_logger().info(f"Successfully wrote to serial.")
+            except serial.SERIAL_TIMEOUT_EXCEPTION:
+                self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
+        self.writing_serial = False
+
 
 
 def main(args=None):
