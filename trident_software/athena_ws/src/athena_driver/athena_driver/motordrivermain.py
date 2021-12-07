@@ -43,6 +43,8 @@ class MotorDriverNode(MotorDriverBase):
         self.serial_write_queue = self.queue_manager.Queue(len(self._motor_interface)*2)
         self.serial_write_queue_lock = self.queue_manager.Lock()
 
+        self.get_logger().info("Created queue lock.")
+
         if not self._simulation_env:
             # import subprocess
             # process = subprocess.Popen(
@@ -64,6 +66,7 @@ class MotorDriverNode(MotorDriverBase):
             # )
             # Start serial write process
             self.serial_write_process = Process(target=serial_write_process_fn, args=(self.serial_write_queue, self))
+            self.serial_write_process.start()
             # self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
             # self.serial_write_thread.start()
         

@@ -13,5 +13,5 @@ athena:
       scale_angular:
         yaw: 0.7
 
-      enable_button: 10  # L1 shoulder button
-      enable_turbo_button: 8  # Triangle button?
+      enable_button: 5  # L1 shoulder button
+      enable_turbo_button: 2  # Triangle button?

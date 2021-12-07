@@ -32,6 +32,7 @@ def generate_launch_description():
             package='teleop_twist_joy', executable='teleop_node',
             name='teleop_twist_joy_node', parameters=[config_filepath],
             namespace='athena',
-            remappings={('/cmd_vel', launch.substitutions.LaunchConfiguration('joy_vel'))},
+            remappings={('/athena/cmd_vel', launch.substitutions.LaunchConfiguration('joy_vel'))},
+            # remappings={('/athena/cmd_vel', 'motor_control/teleop/cmd_vel')},
             ),
     ])
