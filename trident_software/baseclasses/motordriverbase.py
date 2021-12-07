@@ -192,7 +192,8 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         # TODO: Change the motor output message contain a timestamp and let the serial check if the message is too old, and if it 
         # is, send zero values instead.
         for _ in range(1):
-            self.set_zero_motor_output()
+            # self.set_zero_motor_output()
+            # self.get_logger().info('Watchdog timer for motor output silence triggered.')
             self._motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
 
     def _motor_output_sub_callback(self, msg):
