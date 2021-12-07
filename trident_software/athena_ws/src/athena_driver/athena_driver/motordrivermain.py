@@ -21,9 +21,9 @@ def serial_write_process_fn(write_queue, node):
    while True:
     #    try:
         values = write_queue.get()
-        # node.get_logger().info(f"Attempting to write values to serial: {values}")
+        node.get_logger().info(f"Attempting to write values to serial: {values}")
         ser.write(values)
-        # node.get_logger().info(f"Successfully wrote to serial: {values}")
+        node.get_logger().info(f"Successfully wrote to serial: {values}")
     #    except IndexError as e:
         #    pass
     #    node.get_logger().info(f"No serial value to write, sleeping.")
