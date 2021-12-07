@@ -46,7 +46,8 @@ class IMUNode(sensbase.SensorNode):
     
     def TakeMeasurement(self):
         # TODO: Check that these are all correct!
-        self.imu_history.append([
+            
+        new_measurement = [
             self.sensor.quaternion[0],          # QW
             self.sensor.quaternion[1],          # QX
             self.sensor.quaternion[2],          # QY
@@ -57,7 +58,10 @@ class IMUNode(sensbase.SensorNode):
             self.sensor.gyro[0],                # X Rot
             self.sensor.gyro[1],                # Y Rot
             self.sensor.gyro[2]                 # Z Rot
-        ])
+        ]
+        if None in new_measurement or np.NaN in new_measurement:
+            return
+        self.imu_history.append(new_measurement)
         self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
     def SimulatedMeasurement(self, msg):
