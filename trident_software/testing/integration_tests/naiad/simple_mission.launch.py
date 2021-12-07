@@ -92,14 +92,14 @@ def generate_test_description():
            ),
         launch_ros.actions.Node(
             package='naiad_position',
-            namespace='/naiad/position/',
+            namespace='/naiad/position',
             executable='position_node',
             name='pos',
             arguments=[args]
           ),
         launch_ros.actions.Node(
             package='naiad_position',
-            namespace='/naiad/sensor/',
+            namespace='/naiad/sensor',
             executable='imu_node',
             name='imu',
             parameters=[
@@ -109,7 +109,7 @@ def generate_test_description():
           ),
         launch_ros.actions.Node(
             package='naiad_position',
-            namespace='/naiad/sensor/',
+            namespace='/naiad/sensor',
             executable='gps_node',
             name='gps',
             parameters=[
@@ -119,7 +119,7 @@ def generate_test_description():
         ),
         launch_ros.actions.Node(
             package='naiad_position',
-            namespace='/naiad/sensor/',
+            namespace='/naiad/sensor',
             executable='usbl_node',
             name='usbl',
             parameters=[
@@ -129,7 +129,7 @@ def generate_test_description():
         ),
         launch_ros.actions.Node(
             package='naiad_position',
-            namespace='/naiad/sensor/',
+            namespace='/naiad/sensor',
             executable='pressure_node',
             name='pressure',
             parameters=[
