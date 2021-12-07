@@ -186,10 +186,14 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """
 
         self.get_logger().info('Watchdog timer for motor output silence triggered.')
-        self.set_zero_motor_output()
-        self._motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
         # Cancel the timer so it behaves like a oneshot timer.
         self._motor_output_silence_watchdog_timer.cancel()
+        # Send the output 100 times to increase the chances of the message not being timed out when added to serial write queue.
+        # TODO: Change the motor output message contain a timestamp and let the serial check if the message is too old, and if it 
+        # is, send zero values instead.
+        for _ in range(100):
+            self.set_zero_motor_output()
+            self._motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
 
     def _motor_output_sub_callback(self, msg):
         """Callback for messages received on the motor_control/motor_output topic.

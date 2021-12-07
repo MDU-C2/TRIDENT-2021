@@ -1,5 +1,6 @@
 import sys
 import threading
+from multiprocessing import Process, Manager, Lock
 from collections import deque
 from baseclasses.motorcontrolbase import MotorControlBase
 import rclpy
@@ -10,18 +11,19 @@ from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
 
 
-def serial_write_thread_fn(write_queue, node):
+def serial_write_process_fn(write_queue, node):
    ser = serial.Serial(
        port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
        baudrate=9600,
        timeout=0.5,
-       write_timeout=1
+    #    write_timeout=1
    )
    while True:
        try:
-           values = write_queue.popleft()
+           values = write_queue.get()
            node.get_logger().info(f"Attempting to write values to serial: {values}")
            ser.write(values)
+           node.get_logger().info(f"Successfully wrote to serial: {values}")
        except IndexError as e:
            pass
        node.get_logger().info(f"No serial value to write, sleeping.")
@@ -33,9 +35,13 @@ class MotorDriverNode(MotorDriverBase):
     def __init__(self, node_name) -> None:
         super().__init__(node_name)
         self.get_logger().info("Created motor driver node.")
-        self.serial_max_write_rate = self.create_rate(100)
-        self.writing_serial = False
-        self.serial_write_deque = deque(maxlen=2)
+        # self.serial_max_write_rate = self.create_rate(100)
+        # self.writing_serial = False
+        # self.serial_write_deque = deque(maxlen=2)
+
+        self.queue_manager = Manager()
+        self.serial_write_queue = self.queue_manager.Queue(len(self._motor_interface)*2)
+        self.serial_write_queue_lock = self.queue_manager.Lock()
 
         if not self._simulation_env:
             # import subprocess
@@ -50,13 +56,14 @@ class MotorDriverNode(MotorDriverBase):
 
             # self.ser = serial.Serial(port=f"/dev/tty{ttyacm}",baudrate=9600,timeout=0.5)
             # self.ser = None
-            self.ser = serial.Serial(
-                port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
-                baudrate=9600,
-                timeout=0.5,
-                write_timeout=1
-            )
-            # Start write thread
+            # self.ser = serial.Serial(
+            #     port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+            #     baudrate=9600,
+            #     timeout=0.5,
+            #     write_timeout=1
+            # )
+            # Start serial write process
+            self.serial_write_process = Process(target=serial_write_process_fn, args=(self.serial_write_queue, self))
             # self.serial_write_thread = threading.Thread(target=serial_write_thread_fn, args=(self.serial_write_deque, self))
             # self.serial_write_thread.start()
         
@@ -90,19 +97,21 @@ class MotorDriverNode(MotorDriverBase):
         self.writing_serial = True
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
-        for motor_output in motor_outputs:
-            # Translate the motor id to the correct mini maestro id
-            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
-            mm_query[1] =  maestro_id
-            mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
-            mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
-            try:
-                self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-                # self.serial_write_deque.append(mm_query)
-                self.ser.write(mm_query)
-                self.get_logger().info(f"Successfully wrote to serial.")
-            except serial.SERIAL_TIMEOUT_EXCEPTION:
-                self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
+        with self.serial_write_queue_lock:
+            for motor_output in motor_outputs:
+                # Translate the motor id to the correct mini maestro id
+                maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
+                mm_query[1] =  maestro_id
+                mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
+                mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
+                try:
+                    self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+                    self.serial_write_deque.put(mm_query, block=True, timeout=0.2)
+                    self.get_logger().info(f"Sent motor values to queue.")
+                    # self.ser.write(mm_query)
+                    self.get_logger().info(f"Successfully wrote to serial.")
+                except serial.SERIAL_TIMEOUT_EXCEPTION:
+                    self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
         self.writing_serial = False
 
 
