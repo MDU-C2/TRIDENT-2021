@@ -26,7 +26,7 @@ def generate_launch_description():
             parameters=[{
                 'dev': joy_dev,
                 'deadzone': 0.3,
-                'autorepeat_rate': 20.0,
+                'autorepeat_rate': 5.0,
             }]),
         launch_ros.actions.Node(
             package='teleop_twist_joy', executable='teleop_node',
