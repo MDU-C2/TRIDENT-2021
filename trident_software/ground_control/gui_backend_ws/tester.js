@@ -111,7 +111,8 @@ rclnodejs
     let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
     let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
     let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
-    let state = new State();
+    let state1 = new State();
+    let state2 = new State();
 
     twist.linear.x = 0.0;
     twist.linear.y = 0.0;
@@ -120,7 +121,7 @@ rclnodejs
     twist.angular.y = 0.0;
     twist.angular.z = 0.0;
 
-    point.x = 0.0;
+    point.x = -40.0;
     point.y = 0.0;
     point.z = 0.0;
     //Temporarily set orientation to zero
@@ -131,13 +132,18 @@ rclnodejs
     pose.position = point;
     pose.orientation = quaternion;
 
-    state.twist = twist;
-    state.pose = pose;
+    state1.twist = twist;
+    state1.pose = pose;
+
+    state2.twist = twist;
+    state2.pose = pose;
+    state2.pose.position.x = 40.0;
+    
 
      //Publish state
     setInterval(function(){
-      statePublisherAthena.publish(state);
-      statePublisherNaiad.publish(state);
+      statePublisherAthena.publish(state1);
+      statePublisherNaiad.publish(state2);
     },1000);
     
 
@@ -186,6 +192,7 @@ rclnodejs
       'trident_msgs/srv/LoadMission',
       prefixTopics+'athena/mission_control/mission/load',
       (request, response) => {
+        console.log(JSON.stringify(request));
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on athena";;
@@ -198,6 +205,7 @@ rclnodejs
       'trident_msgs/srv/LoadMission',
       prefixTopics+'naiad/mission_control/mission/load',
       (request, response) => {
+        console.log(JSON.stringify(request));
         let result = response.template;
         result.success = true;
         result.message = "mission plan loaded on naiad";
@@ -278,11 +286,20 @@ rclnodejs
         response.send(result);
       }
     );
+    node.createService('trident_msgs/srv/GetState',prefixTopics+'athena/guidance_system/state/get',
+      (request, response) => {
+        let result = response.template;
+        result.success = true;
+        result.state = "None";
+        result.int_state = states.athena.position;
+        response.send(result);
+      }
+    );
 
     /*
       Setup get state handlers for each module (Athena)
     */
-      node.createService('trident_msgs/srv/GetState',prefixTopics+'naiad/mission_control/state/get',
+    node.createService('trident_msgs/srv/GetState',prefixTopics+'naiad/mission_control/state/get',
       (request, response) => {
         let result = response.template;
         result.success = true;
@@ -320,6 +337,15 @@ rclnodejs
       }
     );
     node.createService('trident_msgs/srv/GetState',prefixTopics+'naiad/position/state/get',
+      (request, response) => {
+        let result = response.template;
+        result.success = true;
+        result.state = "None";
+        result.int_state = states.naiad.position;
+        response.send(result);
+      }
+    );
+    node.createService('trident_msgs/srv/GetState',prefixTopics+'naiad/guidance_system/state/get',
       (request, response) => {
         let result = response.template;
         result.success = true;

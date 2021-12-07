@@ -30,7 +30,7 @@ class Server
     this.io = require("socket.io")(this.server, {  
       cors: {
         origin: "http://localhost:"+this.port,
-        methods: ["GET", "POST"]  
+        methods: ["GET", "POST"],
       }
     });
   }
@@ -83,7 +83,7 @@ class Server
       //Get state from Athena navigation module
       ROS2handle.getStatesAthena.navigation.waitForService(1900).then((result) => {
         if (!result) {
-          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.missionControl._serviceName+' not available'});
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.navigation._serviceName+' not available'});
           return;
         }
         ROS2handle.getStatesAthena.navigation.sendRequest(request, (response) => {
@@ -121,6 +121,17 @@ class Server
         }
         ROS2handle.getStatesAthena.position.sendRequest(request, (response) => {
           this.io.emit('state/get/position',{target:'Athena',module:'position',state:response.state,intState:response.int_state})
+        });
+      });
+
+      //Get state from Athena guidance module
+      ROS2handle.getStatesAthena.guidance.waitForService(1900).then((result) => {
+        if (!result) {
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesAthena.guidance._serviceName+' not available'});
+          return;
+        }
+        ROS2handle.getStatesAthena.guidance.sendRequest(request, (response) => {
+          this.io.emit('state/get/guidance_system',{target:'Athena',module:'guidance_system',state:response.state,intState:response.int_state})
         });
       });
 
@@ -181,6 +192,17 @@ class Server
           this.io.emit('state/get/position',{target:'Naiad',module:'position',state:response.state,intState:response.int_state})
         });
       });
+
+      //Get state from Naiad guidance module
+      ROS2handle.getStatesNaiad.guidance.waitForService(1900).then((result) => {
+        if (!result) {
+          this.io.emit('state/get/error',{errMsg: 'Error: service '+ROS2handle.getStatesNaiad.guidance._serviceName+' not available'});
+          return;
+        }
+        ROS2handle.getStatesNaiad.guidance.sendRequest(request, (response) => {
+          this.io.emit('state/get/guidance_system',{target:'Naiad',module:'guidance_system',state:response.state,intState:response.int_state})
+        });
+      });
     },500);
   }
 
@@ -198,17 +220,17 @@ class Server
           case 'load_mission_plan':
             //Setup mission parameters
             let mission = rclnodejs.createMessageObject('trident_msgs/msg/Mission');
-            let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
-            let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
-            let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
-            let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
-            let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
             let loadMission = new LoadMission.Request();
-
+            
             for (var wp of req.data.waypoints)
             {
-              wpAction.action_type = 0;
-              wpAction.action_param = 0;
+              let waypoint = rclnodejs.createMessageObject('trident_msgs/msg/Waypoint');
+              let wpAction = rclnodejs.createMessageObject('trident_msgs/msg/WaypointAction');
+              let pose = rclnodejs.createMessageObject('geometry_msgs/msg/Pose');
+              let point = rclnodejs.createMessageObject('geometry_msgs/msg/Point');
+              let quaternion = rclnodejs.createMessageObject('geometry_msgs/msg/Quaternion');
+              wpAction.action_type = wp[3];
+              wpAction.action_param = wp[4];
               point.x = wp[0];
               point.y = wp[1];
               point.z = wp[2];
@@ -223,7 +245,9 @@ class Server
               waypoint.action = wpAction;
               mission.waypoints.push(waypoint);
             }
+
             loadMission.mission = mission;
+            
             if (req.data.target == 'athena')
             {
               ROS2handle.loadMissionPlanAthena.waitForService(1000).then((result) => {
@@ -351,12 +375,14 @@ class ROS2
     this.startMissionPlanNaiad = null;
     this.abortAthena = null;
     this.abortNaiad = null;
-    this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
-    this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null};
+    this.getStatesAthena = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null,guidance:null};
+    this.getStatesNaiad = {missionControl:null,navigation:null,motorControl:null,motorDriver:null,position:null,guidance:null};
     this.startMissionAthena = null;
     this.startMissionNaiad = null;
     this.stateAthena = null;
     this.stateNaiad = null;
+    this.simStateAthena = null;
+    this.simStateNaiad = null;
     this.logging = null;
   }
 
@@ -383,6 +409,22 @@ class ROS2
       var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
       this.heartbeatNaiad.active = true;
       serverHandle.io.emit('state/naiad', {x:msg.pose.position.x, y:msg.pose.position.y, yaw:rotation._z*(180/Math.PI)});
+    });
+
+    //Create and start state listener Athena
+    this.simStateAthena = this.node.createSubscription('nav_msgs/msg/Odometry', prefixTopics+'athena/simulation/odometry', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
+      this.heartbeatAthena.active = true;
+      serverHandle.io.emit('state/athena', {x:msg.pose.pose.position.x, y:msg.pose.pose.position.y, yaw:rotation._z*(180/Math.PI)});
+    });
+
+    //Create and start state listener Naiad
+    this.simStateNaiad = this.node.createSubscription('nav_msgs/msg/Odometry', prefixTopics+'naiad/simulation/odometry', (msg) => {
+      var quaternion = new THREE.Quaternion(msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
+      var rotation = new THREE.Euler().setFromQuaternion( quaternion, 'XYZ' );
+      this.heartbeatNaiad.active = true;
+      serverHandle.io.emit('state/naiad', {x:msg.pose.pose.position.x, y:msg.pose.pose.position.y, yaw:rotation._z*(180/Math.PI)});
     });
 
     //Create and start logging listener Athena & Naiad
@@ -421,12 +463,14 @@ class ROS2
     this.getStatesAthena.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_control/state/get');
     this.getStatesAthena.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/motor_driver/state/get');
     this.getStatesAthena.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/position/state/get');
+    this.getStatesAthena.guidance       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'athena/guidance_system/state/get');
 
     this.getStatesNaiad.missionControl = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/mission_control/state/get');
     this.getStatesNaiad.navigation     = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/navigation/state/get');
     this.getStatesNaiad.motorControl   = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_control/state/get');
     this.getStatesNaiad.motorDriver    = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/motor_driver/state/get');
     this.getStatesNaiad.position       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/position/state/get');
+    this.getStatesNaiad.guidance       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/guidance_system/state/get');
 
     //Create service: abort
     this.abortAthena = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
