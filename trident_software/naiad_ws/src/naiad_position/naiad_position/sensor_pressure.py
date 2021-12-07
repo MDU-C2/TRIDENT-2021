@@ -17,7 +17,7 @@ class PressureNode(sensbase.SensorNode):
         super().__init__('pressure', 'naiad', 0.25,
                          init_obs_mat, 1, noise_mat)
             
-        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # If the simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('simulated', False)
         if(self.get_parameter('simulated').value):

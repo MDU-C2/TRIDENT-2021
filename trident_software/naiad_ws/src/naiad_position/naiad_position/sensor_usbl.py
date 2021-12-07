@@ -24,7 +24,7 @@ class USBLNode(sensbase.SensorNode):
         self.declare_parameter('athena_position/x', 0)
         self.declare_parameter('athena_position/y', 0)
             
-        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # If the simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('simulated', False)
         if(self.get_parameter('simulated').value):

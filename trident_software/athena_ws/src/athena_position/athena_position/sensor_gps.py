@@ -32,10 +32,10 @@ class GPSNode(sensbase.SensorNode):
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'athena', 0,
                          init_obs_mat, 2, np.identity(2)*0.000005**2)
-        # If the is_simulated parameter exists and is set, listen to the simulated sensor.
+        # If the simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
-        self.declare_parameter('is_simulated', False)
-        if(self.get_parameter('is_simulated').value):
+        self.declare_parameter('simulated', False)
+        if(self.get_parameter('simulated').value):
             self.simul_sensor = self.create_subscription(
                                 NavSatFix, '/athena/simulation/gps',
                                 self.SimulatedMeasurement, 10)

@@ -16,7 +16,7 @@ def generate_launch_description():
             executable='imu_node',
             name='imu',
             parameters=[
-                {"is_simulated": True}
+                {"simulated": True}
             ]
         ),
         Node(
@@ -25,7 +25,7 @@ def generate_launch_description():
             executable='gps_node',
             name='gps',
             parameters=[
-                {"is_simulated": True}
+                {"simulated": True}
             ]
         )
     ])

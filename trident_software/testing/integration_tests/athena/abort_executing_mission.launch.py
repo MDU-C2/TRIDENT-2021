@@ -108,9 +108,8 @@ def generate_test_description():
             executable='imu_node',
             name='imu',
             parameters=[
-                {"is_simulated": True}
-            ],
-            arguments=[args]
+                {"simulated": True}
+            ]
           ),
         launch_ros.actions.Node(
             package='athena_position',
@@ -118,9 +117,8 @@ def generate_test_description():
             executable='gps_node',
             name='gps',
             parameters=[
-                {"is_simulated": True}
-            ],
-            arguments=[args]
+                {"simulated": True}
+            ]
           ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
