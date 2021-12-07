@@ -108,7 +108,7 @@ class MotorDriverNode(MotorDriverBase):
                 mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
                 # try:
                 self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-                self.serial_write_deque.put(mm_query, block=True, timeout=0.2)
+                self.serial_write_queue.put(mm_query, block=True, timeout=0.2)
                 self.get_logger().info(f"Sent motor values to queue.")
                 # self.ser.write(mm_query)
                 self.get_logger().info(f"Successfully wrote to serial.")
