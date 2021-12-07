@@ -21,9 +21,9 @@ def serial_write_process_fn(write_queue, node):
    while True:
     #    try:
         values = write_queue.get()
-        node.get_logger().info(f"Attempting to write values to serial: {values}")
+        # node.get_logger().info(f"Attempting to write values to serial: {values}")
         ser.write(values)
-        node.get_logger().info(f"Successfully wrote to serial: {values}")
+        # node.get_logger().info(f"Successfully wrote to serial: {values}")
     #    except IndexError as e:
         #    pass
     #    node.get_logger().info(f"No serial value to write, sleeping.")
@@ -43,7 +43,7 @@ class MotorDriverNode(MotorDriverBase):
         self.serial_write_queue = self.queue_manager.Queue(len(self._motor_interface)*2)
         self.serial_write_queue_lock = self.queue_manager.Lock()
 
-        self.get_logger().info("Created queue lock.")
+        # self.get_logger().info("Created queue lock.")
 
         if not self._simulation_env:
             # import subprocess
@@ -109,9 +109,9 @@ class MotorDriverNode(MotorDriverBase):
                 # try:
                 self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
                 self.serial_write_queue.put(mm_query, block=True, timeout=0.2)
-                self.get_logger().info(f"Sent motor values to queue.")
+                # self.get_logger().info(f"Sent motor values to queue.")
                 # self.ser.write(mm_query)
-                self.get_logger().info(f"Successfully wrote to serial.")
+                # self.get_logger().info(f"Successfully wrote to serial.")
                 # except serial.SERIAL_TIMEOUT_EXCEPTION:
                     # self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
 
