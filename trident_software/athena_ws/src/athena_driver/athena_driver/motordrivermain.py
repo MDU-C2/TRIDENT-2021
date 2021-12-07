@@ -98,22 +98,22 @@ class MotorDriverNode(MotorDriverBase):
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
         # self.get_logger().info(f"Attempting to get queue lock.")
-        with self.serial_write_queue_lock:
+        # with self.serial_write_queue_lock:
             # self.get_logger().info(f"Took queue lock.")
-            for motor_output in motor_outputs:
-                # Translate the motor id to the correct mini maestro id
-                maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
-                mm_query[1] =  maestro_id
-                mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
-                mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
-                # try:
-                self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
-                self.serial_write_queue.put(mm_query, block=True, timeout=0.2)
-                # self.get_logger().info(f"Sent motor values to queue.")
-                # self.ser.write(mm_query)
-                # self.get_logger().info(f"Successfully wrote to serial.")
-                # except serial.SERIAL_TIMEOUT_EXCEPTION:
-                    # self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
+        for motor_output in motor_outputs:
+            # Translate the motor id to the correct mini maestro id
+            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
+            mm_query[1] =  maestro_id
+            mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
+            mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
+            # try:
+            self.get_logger().info(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+            self.serial_write_queue.put(mm_query, block=True, timeout=0.2)
+            # self.get_logger().info(f"Sent motor values to queue.")
+            # self.ser.write(mm_query)
+            # self.get_logger().info(f"Successfully wrote to serial.")
+            # except serial.SERIAL_TIMEOUT_EXCEPTION:
+                # self.get_logger().info(f"SERIAL WRITE TIMED OUT.")
 
 
 
