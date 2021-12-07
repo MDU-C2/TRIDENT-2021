@@ -1,9 +1,25 @@
 import rclpy
 import serial
+import queue
+from multiprocessing import Process, Manager, Lock
 from baseclasses.motordriverbase import MotorDriverBase
 from cola2_msgs.msg import Setpoints
 from rclpy.executors import MultiThreadedExecutor
 from trident_msgs.msg import MotorOutputs
+
+
+def serial_write_process_fn(write_queue, node):
+   ser = serial.Serial(
+       port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+       baudrate=9600,
+       timeout=0.5,
+    #    write_timeout=1
+   )
+   while True:
+        values = write_queue.get()
+        node.get_logger().debug(f"Attempting to write values to serial: {values}")
+        ser.write(values)
+        node.get_logger().debug(f"Successfully wrote to serial: {values}")
 
 
 class MotorDriverNode(MotorDriverBase):
@@ -14,7 +30,13 @@ class MotorDriverNode(MotorDriverBase):
         self.get_logger().info("Created motor driver node.")
 
         if not self._simulation_env:
-            self.ser = serial.Serial(port="COM7",baudrate=9600,timeout=0.5)
+            self.queue_manager = Manager()
+            self.serial_write_queue = self.queue_manager.Queue(len(self._motor_interface)*2)
+            self.serial_write_queue_lock = self.queue_manager.Lock()
+
+            # Start serial write process
+            self.serial_write_process = Process(target=serial_write_process_fn, args=(self.serial_write_queue, self))
+            self.serial_write_process.start()
         
 
     @staticmethod
@@ -42,14 +64,18 @@ class MotorDriverNode(MotorDriverBase):
         """
         mm_query = bytearray(4)
         mm_query[0] = 0x84 # Set target
-        for id_, value in motor_outputs.motor_outputs:
+        for motor_output in motor_outputs:
             # Translate the motor id to the correct mini maestro id
-            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == id_][0]
+            maestro_id = [motor["maestro_id"] for motor in self._motor_interface if motor["id"] == motor_output.id][0]
             mm_query[1] =  maestro_id
-            motor_output = MotorDriverNode.motor_output_to_mm_output(value * self._motor_output_scale)
-            mm_query[2:] = self.integer_to_maestro_bytes(motor_output)
-            self.get_logger().info(f"Sending motor value {motor_output} to motor with id {id_} (on maestro_id={maestro_id})")
-            self.ser.write(mm_query)
+            mm_output = MotorDriverNode.motor_output_to_mm_output(motor_output.value * self._motor_output_scale)
+            mm_query[2:] = self.integer_to_maestro_bytes(mm_output)
+            self.get_logger().debug(f"Sending motor value {mm_output} to motor with id {motor_output.id} (on maestro_id={maestro_id})")
+            try:
+                self.serial_write_queue.put(mm_query, block=True, timeout=0.2)
+            except queue.Full:
+                self.get_logger().debug(f"Could not send motor values to queue: queue is full. (timed out 0.2s)")
+                
 
 
 def main(args=None):
