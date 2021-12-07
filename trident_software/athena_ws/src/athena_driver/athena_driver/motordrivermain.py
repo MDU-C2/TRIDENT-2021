@@ -20,7 +20,7 @@ def serial_write_process_fn(write_queue, node):
    )
    while True:
        try:
-           values = write_queue.get()
+           values = write_queue.get(True, timeout=0.1)
            node.get_logger().info(f"Attempting to write values to serial: {values}")
            ser.write(values)
            node.get_logger().info(f"Successfully wrote to serial: {values}")
