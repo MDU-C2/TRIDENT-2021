@@ -16,12 +16,11 @@ import time
 from squaternion import Quaternion
 from rclpy.action import ActionClient
 
+from baseclasses.tridentstates import WaypointActionType
 from geometry_msgs.msg import Pose      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
-from std_srvs.srv import SetBool        # https://github.com/ros2/common_interfaces/blob/master/std_srvs/srv/Trigger.srv
 from trident_msgs.srv import LoadMission, GetState
 from trident_msgs.action import StartMission
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
-from baseclasses.tridentstates import WaypointActionType
 
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -29,7 +28,7 @@ import os
 @pytest.mark.launch_test
 def generate_test_description():
     config = os.path.join(
-        get_package_share_directory('athena_bringup'),
+        get_package_share_directory('naiad_bringup'),
         'config',
         'system_launch_params.yaml'
     )
@@ -42,8 +41,8 @@ def generate_test_description():
             default_value=[launch.substitutions.EnvironmentVariable('USER'), '_'],
             description='Prefix for node names'),
         launch_ros.actions.Node(
-            package='athena_mission_control',
-            namespace='athena',
+            package='naiad_mission_control',
+            namespace='naiad',
             executable='mission_control',
             output='screen',
             name='mission_control',
@@ -51,8 +50,8 @@ def generate_test_description():
             arguments=[args]
            ),
         launch_ros.actions.Node(
-            package='athena_navigation',
-            namespace='athena',
+            package='naiad_navigation',
+            namespace='naiad',
             executable='navigation',
             output='screen',
             name='navigation',
@@ -60,8 +59,8 @@ def generate_test_description():
             arguments=[args]
            ),
         launch_ros.actions.Node(
-            package='athena_motor_control',
-            namespace='athena',
+            package='naiad_motor_control',
+            namespace='naiad',
             executable='motor_control',
             output='screen',
             name='motor_control',
@@ -71,8 +70,8 @@ def generate_test_description():
             arguments=[args]
            ),
         launch_ros.actions.Node(
-            package='athena_driver',
-            namespace='athena',
+            package='naiad_driver',
+            namespace='naiad',
             executable='motor_driver',
             output='screen',
             name='motor_driver',
@@ -83,8 +82,8 @@ def generate_test_description():
             arguments=[args]
            ),
         launch_ros.actions.Node(
-            package='athena_guidance_system',
-            namespace='athena',
+            package='naiad_guidance_system',
+            namespace='naiad',
             executable='guidance_system',
             output='screen',
             name='guidance_system',
@@ -92,15 +91,15 @@ def generate_test_description():
             arguments=[args]
            ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/position/',
+            package='naiad_position',
+            namespace='/naiad/position/',
             executable='position_node',
             name='pos',
             arguments=[args]
           ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
+            package='naiad_position',
+            namespace='/naiad/sensor/',
             executable='imu_node',
             name='imu',
             parameters=[
@@ -109,8 +108,8 @@ def generate_test_description():
             arguments=[args]
           ),
         launch_ros.actions.Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
+            package='naiad_position',
+            namespace='/naiad/sensor/',
             executable='gps_node',
             name='gps',
             parameters=[
@@ -125,13 +124,12 @@ def generate_test_description():
 class MinimalServiceClient(Node):
     def __init__(self):
         super().__init__('get_state_client')
-        self.mission_control_getstate = self.create_client(GetState, 'athena/mission_control/state/get')
-        self.navigation_getstate = self.create_client(GetState, 'athena/navigation/state/get')
-        self.motor_control_getstate = self.create_client(GetState, 'athena/motor_control/state/get')
-        self.motor_driver_getstate = self.create_client(GetState, 'athena/motor_driver/state/get')
-        self.guidance_system_getstate = self.create_client(GetState, 'athena/guidance_system/state/get')
-        self.cliLoadMission = self.create_client(LoadMission, 'athena/mission_control/mission/load')
-        self.manual_override = self.create_client(SetBool, 'athena/motor_control/manual_override')
+        self.mission_control_getstate = self.create_client(GetState, 'naiad/mission_control/state/get')
+        self.navigation_getstate = self.create_client(GetState, 'naiad/navigation/state/get')
+        self.motor_control_getstate = self.create_client(GetState, 'naiad/motor_control/state/get')
+        self.motor_driver_getstate = self.create_client(GetState, 'naiad/motor_driver/state/get')
+        self.guidance_system_getstate = self.create_client(GetState, 'naiad/guidance_system/state/get')
+        self.cliLoadMission = self.create_client(LoadMission, 'naiad/mission_control/mission/load')
 
         while not self.mission_control_getstate.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('mission control service not available, waiting again...')
@@ -145,8 +143,6 @@ class MinimalServiceClient(Node):
             self.get_logger().info('guidance system service not available, waiting again...')
         while not self.cliLoadMission.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service LoadMission not available, waiting again...')
-        while not self.manual_override.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service manual override not available, waiting again...')
 
         self.mission_control_req = GetState.Request()
         self.navigation_req = GetState.Request()
@@ -154,7 +150,6 @@ class MinimalServiceClient(Node):
         self.motor_driver_req = GetState.Request()
         self.guidance_system_req = GetState.Request()
         self.reqLoadMission = LoadMission.Request()
-        self.reqManualOverride = SetBool.Request()
 
     def send_getstate_request(self, module):
         if module == "mission_control":
@@ -176,54 +171,39 @@ class MinimalServiceClient(Node):
             print("Error: Invalid request parameter")
             exit(1)
 
-    def send_load_request(self, points):
+    def send_load_request(self, x, y, z, yaw, pitch, roll, sec):
         mission = Mission()
-        for point in points:
-            waypoint = Waypoint()
-            wp_action = WaypointAction()
-            if point[7]:
-                wp_action.action_type = WaypointActionType.HOLD
-                wp_action.action_param = point[6]
-            else:
-                wp_action.action_type = WaypointActionType.NO_ACTION
-                wp_action.action_param = 0
-            pose = Pose()
-            pose.position.x = point[0]
-            pose.position.y = point[1]
-            pose.position.z = point[2]
-            q = Quaternion.from_euler(point[3], point[4], point[5], degrees=True)
-            pose.orientation.x = q.x
-            pose.orientation.y = q.y
-            pose.orientation.z = q.z
-            pose.orientation.w = q.w
-            waypoint.pose = pose
-            waypoint.action = wp_action
-            mission.waypoints.append(waypoint)
+        waypoint = Waypoint()
+        wp_action = WaypointAction()
+        wp_action.action_type = WaypointActionType.HOLD
+        wp_action.action_param = sec
+        pose = Pose()
+        pose.position.x = x
+        pose.position.y = y
+        pose.position.z = z
+        q = Quaternion.from_euler(yaw, pitch, roll, degrees=True)
+        pose.orientation.x = q.x
+        pose.orientation.y = q.y
+        pose.orientation.z = q.z
+        pose.orientation.w = q.w
+        waypoint.pose = pose
+        waypoint.action = wp_action
+        mission.waypoints = [waypoint]
         self.get_logger().info("Loaded debug mission.")
         self.reqLoadMission.mission = mission
         self.load_future = self.cliLoadMission.call_async(self.reqLoadMission)
-
-    def send_manual_override_request(self, value):
-        self.reqManualOverride.data = value
-        self.manual_override_future = None
-        self.manual_override_future = self.manual_override.call_async(self.reqManualOverride)
 
 class MinimalActionClient(Node):
 
     def __init__(self):
         super().__init__('load_mission_client')
-        self.cliStartMission = ActionClient(self, StartMission, 'athena/mission_control/mission/start')
+        self.cliStartMission = ActionClient(self, StartMission, 'naiad/mission_control/mission/start')
         self.mission_done = False
-        self.start_waypoints_completed = 0
 
     def send_start_request(self):
         start = StartMission.Goal()
-        self.start_future = self.cliStartMission.send_goal_async(start, self.start_mission_feedback_callback)
+        self.start_future = self.cliStartMission.send_goal_async(start)
         self.start_future.add_done_callback(self.start_mission_response_callback)
-
-    def start_mission_feedback_callback(self, feedback_msg):
-        start_feedback = feedback_msg.feedback
-        self.start_waypoints_completed = start_feedback.waypoints_completed
 
     def start_mission_response_callback(self, future):
         handle = future.result()
@@ -252,7 +232,7 @@ class TestTalkerListenerLink(unittest.TestCase):
 
     def setUp(self):
         # Create a ROS node for tests
-        self.node = rclpy.create_node('manual_override_test')
+        self.node = rclpy.create_node('test_mission_control_link')
 
     def tearDown(self):
         self.node.destroy_node()
@@ -285,8 +265,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         # (2) Load mission
         #--------------------------
         time.sleep(0.5)
-        service_client.send_load_request([[5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2, True],
-                                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2, False]])
+        service_client.send_load_request(5.0, 5.0, 3.0, 0.0, 0.0, 0.0, 2)
         print("Sending load mission")
         rclpy.spin_until_future_complete(service_client, service_client.load_future)
         print("Load mission result: %s" % service_client.load_future.result())
@@ -298,20 +277,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         time.sleep(0.5)
         service_client.send_getstate_request("mission_control")
         rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
-        service_client.send_getstate_request("navigation")
-        rclpy.spin_until_future_complete(service_client, service_client.navigation_future)
-        service_client.send_getstate_request("motor_control")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_control_future)
-        service_client.send_getstate_request("motor_driver")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_driver_future)
-        service_client.send_getstate_request("guidance_system")
-        rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
-
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_LOADED')
-        self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
-        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
         # (4) Start mission
@@ -343,18 +309,12 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
-        # (6) Await 1st waypoint complete and turn on manual override
+        # (6) Await mission finish response
         #--------------------------
-        while action_client.start_waypoints_completed < 1:
+        time.sleep(0.5)
+        while not action_client.mission_done:
             rclpy.spin_once(action_client)
-        service_client.send_manual_override_request(True)
-        rclpy.spin_until_future_complete(service_client, service_client.manual_override_future)
-        try:
-            response = service_client.manual_override_future.result()
-        except Exception as e:
-            service_client.get_logger().info('Service call failed %r' % (e,))
-        else:
-            self.assertTrue(response.success)
+        self.assertTrue(action_client.start_mission_result.success)
 
         #--------------------------
         # (7) Get state of modules
@@ -371,72 +331,10 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
-        self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
-        self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
-        self.assertEqual(service_client.motor_control_future.result().state, 'MANUAL_OVERRIDE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE')
-        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
-
-        #--------------------------
-        # (8) Turn off manual override
-        #--------------------------
-        service_client.send_manual_override_request(False)
-        rclpy.spin_until_future_complete(service_client, service_client.manual_override_future)
-        try:
-            response = service_client.manual_override_future.result()
-        except Exception as e:
-            service_client.get_logger().info('Service call failed %r' % (e,))
-        else:
-            self.assertTrue(response.success)
-
-        #--------------------------
-        # (9) Get state of modules
-        #--------------------------
-        time.sleep(0.5)
-        service_client.send_getstate_request("mission_control")
-        rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
-        service_client.send_getstate_request("navigation")
-        rclpy.spin_until_future_complete(service_client, service_client.navigation_future)
-        service_client.send_getstate_request("motor_control")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_control_future)
-        service_client.send_getstate_request("motor_driver")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_driver_future)
-        service_client.send_getstate_request("guidance_system")
-        rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
-
-        self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
-        self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
-        self.assertEqual(service_client.motor_control_future.result().state, 'EXECUTING')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'ACTIVE')
-        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
-
-        #--------------------------
-        # (10) Await mission finish response
-        #--------------------------
-        time.sleep(0.5)
-        while not action_client.mission_done:
-            rclpy.spin_once(action_client)
-        self.assertTrue(action_client.start_mission_result.success)
-
-        #--------------------------
-        # (11) Get state of modules
-        #--------------------------
-        time.sleep(0.5)
-        service_client.send_getstate_request("mission_control")
-        rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
-        service_client.send_getstate_request("navigation")
-        rclpy.spin_until_future_complete(service_client, service_client.navigation_future)
-        service_client.send_getstate_request("motor_control")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_control_future)
-        service_client.send_getstate_request("motor_driver")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_driver_future)
-        service_client.send_getstate_request("guidance_system")
-        rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
-
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_FINISHED')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE')
+        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE') # changed
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         service_client.destroy_node()
