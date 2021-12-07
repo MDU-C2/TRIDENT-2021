@@ -16,6 +16,7 @@ import time
 from squaternion import Quaternion
 from rclpy.action import ActionClient
 
+from std_srvs.srv import Trigger
 from baseclasses.tridentstates import WaypointActionType
 from geometry_msgs.msg import Pose      # https://github.com/ros2/common_interfaces/blob/master/geometry_msgs/msg/Pose.msg
 from trident_msgs.srv import LoadMission, GetState
@@ -150,6 +151,7 @@ class MinimalServiceClient(Node):
         self.motor_driver_getstate = self.create_client(GetState, 'naiad/motor_driver/state/get')
         self.guidance_system_getstate = self.create_client(GetState, 'naiad/guidance_system/state/get')
         self.cliLoadMission = self.create_client(LoadMission, 'naiad/mission_control/mission/load')
+        self.abort = self.create_client(Trigger, 'naiad/motor_driver/motors/kill')
 
         while not self.mission_control_getstate.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('mission control service not available, waiting again...')
@@ -163,6 +165,8 @@ class MinimalServiceClient(Node):
             self.get_logger().info('guidance system service not available, waiting again...')
         while not self.cliLoadMission.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service LoadMission not available, waiting again...')
+        while not self.abort.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service abort not available, waiting again...')
 
         self.mission_control_req = GetState.Request()
         self.navigation_req = GetState.Request()
@@ -170,6 +174,7 @@ class MinimalServiceClient(Node):
         self.motor_driver_req = GetState.Request()
         self.guidance_system_req = GetState.Request()
         self.reqLoadMission = LoadMission.Request()
+        self.reqAbort = Trigger.Request()
 
     def send_getstate_request(self, module):
         if module == "mission_control":
@@ -191,27 +196,36 @@ class MinimalServiceClient(Node):
             print("Error: Invalid request parameter")
             exit(1)
 
-    def send_load_request(self, x, y, z, yaw, pitch, roll, sec):
+    def send_load_request(self, points):
         mission = Mission()
-        waypoint = Waypoint()
-        wp_action = WaypointAction()
-        wp_action.action_type = WaypointActionType.HOLD
-        wp_action.action_param = sec
-        pose = Pose()
-        pose.position.x = x
-        pose.position.y = y
-        pose.position.z = z
-        q = Quaternion.from_euler(yaw, pitch, roll, degrees=True)
-        pose.orientation.x = q.x
-        pose.orientation.y = q.y
-        pose.orientation.z = q.z
-        pose.orientation.w = q.w
-        waypoint.pose = pose
-        waypoint.action = wp_action
-        mission.waypoints = [waypoint]
+        for point in points:
+            waypoint = Waypoint()
+            wp_action = WaypointAction()
+            if point[7]:
+                wp_action.action_type = WaypointActionType.HOLD
+                wp_action.action_param = point[6]
+            else:
+                wp_action.action_type = WaypointActionType.NO_ACTION
+                wp_action.action_param = 0
+            pose = Pose()
+            pose.position.x = point[0]
+            pose.position.y = point[1]
+            pose.position.z = point[2]
+            q = Quaternion.from_euler(point[3], point[4], point[5], degrees=True)
+            pose.orientation.x = q.x
+            pose.orientation.y = q.y
+            pose.orientation.z = q.z
+            pose.orientation.w = q.w
+            waypoint.pose = pose
+            waypoint.action = wp_action
+            mission.waypoints.append(waypoint)
         self.get_logger().info("Loaded debug mission.")
         self.reqLoadMission.mission = mission
         self.load_future = self.cliLoadMission.call_async(self.reqLoadMission)
+
+    def send_abort(self):
+        self.get_logger().info("Sending abort")
+        self.abort_future = self.abort.call_async(self.reqAbort)
 
 class MinimalActionClient(Node):
 
@@ -219,10 +233,12 @@ class MinimalActionClient(Node):
         super().__init__('load_mission_client')
         self.cliStartMission = ActionClient(self, StartMission, 'naiad/mission_control/mission/start')
         self.mission_done = False
+        self.waypoints_completed = 0
+
 
     def send_start_request(self):
         start = StartMission.Goal()
-        self.start_future = self.cliStartMission.send_goal_async(start)
+        self.start_future = self.cliStartMission.send_goal_async(start, feedback_callback=self.feedback_callback)
         self.start_future.add_done_callback(self.start_mission_response_callback)
 
     def start_mission_response_callback(self, future):
@@ -237,6 +253,13 @@ class MinimalActionClient(Node):
     def start_mission_done_callback(self, future):
         self.start_mission_result = future.result().result
         self.mission_done = True
+
+    def feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+        #self.get_logger().info('Received feedback: {0}'.format(feedback.partial_sequence))
+        self.waypoints_completed = feedback.waypoints_completed
+
+
 
 class TestTalkerListenerLink(unittest.TestCase):
 
@@ -275,7 +298,6 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
-        rclpy.logging.get_logger("TEST").info("Checking states")
         self.assertEqual(service_client.mission_control_future.result().state, 'NO_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
@@ -286,10 +308,13 @@ class TestTalkerListenerLink(unittest.TestCase):
         # (2) Load mission
         #--------------------------
         time.sleep(0.5)
-        service_client.send_load_request(5.0, 5.0, 3.0, 0.0, 0.0, 0.0, 2)
+        service_client.send_load_request([[5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2, True],
+                                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2, False]])
+        print("Sending load mission")
         rclpy.spin_until_future_complete(service_client, service_client.load_future)
-        rclpy.logging.get_logger("TEST").info("Sending load mission request")
+        print("Load mission result: %s" % service_client.load_future.result())
         self.assertTrue(service_client.load_future.result().success)
+
 
         #--------------------------
         # (3) Get state of mission control
@@ -297,28 +322,14 @@ class TestTalkerListenerLink(unittest.TestCase):
         time.sleep(0.5)
         service_client.send_getstate_request("mission_control")
         rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
-        service_client.send_getstate_request("navigation")
-        rclpy.spin_until_future_complete(service_client, service_client.navigation_future)
-        service_client.send_getstate_request("motor_control")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_control_future)
-        service_client.send_getstate_request("motor_driver")
-        rclpy.spin_until_future_complete(service_client, service_client.motor_driver_future)
-        service_client.send_getstate_request("guidance_system")
-        rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
-
-        rclpy.logging.get_logger("TEST").info("Checking states")
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_LOADED')
-        self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
-        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
         # (4) Start mission
         #--------------------------
         time.sleep(0.5)
         action_client.send_start_request()
-        rclpy.logging.get_logger("TEST").info("Sending start mission request")
+        print("Sending start mission")
         rclpy.spin_until_future_complete(action_client, action_client.start_future)
 
         #--------------------------
@@ -336,7 +347,6 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
-        rclpy.logging.get_logger("TEST").info("Checking states")
         self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
         self.assertEqual(service_client.motor_control_future.result().state, 'EXECUTING')
@@ -344,13 +354,14 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
-        # (6) Await mission finish response
+        # (6) Await first waypoint to be completed and send abort
         #--------------------------
         time.sleep(0.5)
-        while not action_client.mission_done:
+        while (action_client.waypoints_completed != 1):
             rclpy.spin_once(action_client)
-        self.assertTrue(action_client.start_mission_result.success)
-        rclpy.logging.get_logger("TEST").info("Got mission finish response")
+
+        service_client.send_abort()
+        rclpy.spin_until_future_complete(service_client, service_client.abort_future)
 
         #--------------------------
         # (7) Get state of modules
@@ -367,11 +378,10 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
-        rclpy.logging.get_logger("TEST").info("Checking states")
-        self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_FINISHED')
-        self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE')
+        self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
+        self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
+        self.assertEqual(service_client.motor_control_future.result().state, 'EXECUTING')
+        self.assertEqual(service_client.motor_driver_future.result().state, 'KILLED') # changed
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         service_client.destroy_node()

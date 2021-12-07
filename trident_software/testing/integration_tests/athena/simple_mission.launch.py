@@ -38,7 +38,7 @@ def generate_test_description():
         'system_launch_params.yaml'
     )
 
-    args = '--disable-rosout-logs' if True else ''
+    args = ['--ros-args', '--log-level', 'warn'] if True else ''
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -52,7 +52,7 @@ def generate_test_description():
             output='screen',
             name='mission_control',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_navigation',
@@ -61,7 +61,7 @@ def generate_test_description():
             output='screen',
             name='navigation',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_motor_control',
@@ -72,7 +72,7 @@ def generate_test_description():
             parameters=[config,
                 {'use_sim_odom': True}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_driver',
@@ -84,7 +84,7 @@ def generate_test_description():
                 {'simulation': True},
                 {'motor_output_scale': 0.5}
             ],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_guidance_system',
@@ -93,14 +93,14 @@ def generate_test_description():
             output='screen',
             name='guidance_system',
             parameters=[config],
-            arguments=[args]
+            arguments=args
            ),
         launch_ros.actions.Node(
             package='athena_position',
             namespace='/athena/position/',
             executable='position_node',
             name='pos',
-            arguments=[args]
+            arguments=args
           ),
         launch_ros.actions.Node(
             package='athena_position',
@@ -110,7 +110,7 @@ def generate_test_description():
             parameters=[
                 {"simulated": True}
             ],
-            arguments=[args]
+            arguments=args
           ),
         launch_ros.actions.Node(
             package='athena_position',
@@ -120,11 +120,11 @@ def generate_test_description():
             parameters=[
                 {"simulated": True}
             ],
-            arguments=[args]
+            arguments=args
           ),
         #launch_testing.util.KeepAliveProc(),
         launch_testing.actions.ReadyToTest(),
-        ])
+    ])
 
 class MinimalServiceClient(Node):
     def __init__(self):
@@ -245,7 +245,7 @@ class TestTalkerListenerLink(unittest.TestCase):
     def tearDown(self):
         self.node.destroy_node()
 
-    def test_service1(self,test_args):
+    def test_service1(self, test_args):
         service_client = MinimalServiceClient()
         action_client = MinimalActionClient()
 
@@ -263,6 +263,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
+        rclpy.logging.get_logger("TEST").info("Checking states...")
         self.assertEqual(service_client.mission_control_future.result().state, 'NO_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
@@ -274,9 +275,8 @@ class TestTalkerListenerLink(unittest.TestCase):
         #--------------------------
         time.sleep(0.5)
         service_client.send_load_request(5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2)
-        print("Sending load mission")
         rclpy.spin_until_future_complete(service_client, service_client.load_future)
-        print("Load mission result: %s" % service_client.load_future.result())
+        rclpy.logging.get_logger("TEST").info("Sending load mission request")
         self.assertTrue(service_client.load_future.result().success)
 
 
@@ -286,14 +286,28 @@ class TestTalkerListenerLink(unittest.TestCase):
         time.sleep(0.5)
         service_client.send_getstate_request("mission_control")
         rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
+        service_client.send_getstate_request("navigation")
+        rclpy.spin_until_future_complete(service_client, service_client.navigation_future)
+        service_client.send_getstate_request("motor_control")
+        rclpy.spin_until_future_complete(service_client, service_client.motor_control_future)
+        service_client.send_getstate_request("motor_driver")
+        rclpy.spin_until_future_complete(service_client, service_client.motor_driver_future)
+        service_client.send_getstate_request("guidance_system")
+        rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
+
+        rclpy.logging.get_logger("TEST").info("Checking states...")
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_LOADED')
+        self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
+        self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
+        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
+        self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
         # (4) Start mission
         #--------------------------
         time.sleep(0.5)
         action_client.send_start_request()
-        print("Sending start mission")
+        rclpy.logging.get_logger("TEST").info("Sending start mission request")
         rclpy.spin_until_future_complete(action_client, action_client.start_future)
 
         #--------------------------
@@ -311,6 +325,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
+        rclpy.logging.get_logger("TEST").info("Checking states...")
         self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
         self.assertEqual(service_client.motor_control_future.result().state, 'EXECUTING')
@@ -324,6 +339,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         while not action_client.mission_done:
             rclpy.spin_once(action_client)
         self.assertTrue(action_client.start_mission_result.success)
+        rclpy.logging.get_logger("TEST").info("Got mission finish response")
 
         #--------------------------
         # (7) Get state of modules
@@ -340,6 +356,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         service_client.send_getstate_request("guidance_system")
         rclpy.spin_until_future_complete(service_client, service_client.guidance_system_future)
 
+        rclpy.logging.get_logger("TEST").info("Checking states...")
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_FINISHED')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
