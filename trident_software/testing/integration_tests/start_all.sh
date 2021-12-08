@@ -65,12 +65,8 @@ restart_bridge_sim() {
 	    roslaunch trident_sim trident_simulation.launch camera_show:=false" C-m
     fi
 
-    # Attach if outside of tmux, switch if you're in tmux.
-    if [[ -z "$TMUX" ]]; then
-	tmux attach -t $session
-    else
-	tmux switch-client -t $session
-    fi
+    # Attach to new session in new terminal
+    gnome-terminal -- tmux attach -t $session
 }
 set +a # Stop exporting
 
@@ -85,14 +81,14 @@ else
     printf "${red}WARNING: ROS setup file not found in ~/ros2_foxy/ros2-linux/setup.bash or /opt/ros/foxy/setup.bash.\n${end}"
 fi
 
-printf "${cyn}\n=========================\nBuilding Trident project\n==========================\n${end}"
+printf "${cyn}\n=========================\nBuilding Trident project\n=========================\n${end}"
 cd ../../
 colcon build --symlink-install --packages-skip ros1_bridge
 
-printf "${cyn}\n=========================\nSourcing Trident environment\n======================\n${end}"
+printf "${cyn}\n=========================\nSourcing Trident environment\n=========================\n${end}"
 source install/setup.bash
 
-printf "${cyn}\n=========================\nStart integration tests\n===========================\n${end}"
+printf "${cyn}\n=========================\nStart integration tests\n=========================\n${end}"
 cd testing/integration_tests
 
 printf "${cyn}\nStarting Ros Bridge and Athena Simulation\n${cyn}"
