@@ -11,7 +11,7 @@ from trident_msgs.msg import MotorOutputs
 
 def serial_write_process_fn(write_queue, node):
    ser = serial.Serial(
-       port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00146301-if00",
+       port="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_18-Channel_USB_Servo_Controller_00146776-if00",
        baudrate=9600,
        timeout=0.5,
     #    write_timeout=1
