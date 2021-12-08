@@ -74,7 +74,7 @@ athena:
       position_update_frequency: 1 # Hz. The rate at which the position node computes a new state based on sensor readings and publish it.
   motor_driver:
     ros__parameters:
-      motor_output_silence_period: 0.5   # Allowed time period in seconds that the motor driver
+      motor_output_silence_period: 0.3   # Allowed time period in seconds that the motor driver
                                          # will operate without receiving a command from motor contorl.
       motor_output_scale: 0.5 # Scales the motor output values to limit maximum thrust
       motor_interface: >

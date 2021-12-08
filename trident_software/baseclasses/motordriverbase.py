@@ -188,9 +188,12 @@ class MotorDriverBase(Node, metaclass=ABCMeta):
         """
 
         self.get_logger().debug('Watchdog timer for motor output silence triggered.')
-        timestamp = self.get_clock().now().nanoseonds/1000000000
+        timestamp = self.get_clock().now().nanoseconds/1000000000
         time_delta = timestamp - self._last_motor_output_timestamp
-        if time_delta > self._motor_output_silence_period:
+        self.get_logger().debug(f"Motor output time delta: {time_delta}")
+        # Check if the time delta is greater than the allowed silence period - 0.05 
+        # (since the timer doesn't always wake up exactly on time)
+        if time_delta > self._motor_output_silence_period - 0.05:
             self.set_zero_motor_output()
             self.get_logger().info('Watchdog timer noticed that no motor output has been sent to to motors within accepted interval. Setting motors to zero.')
             self._motor_driver_state = MotorDriverState.MOTOR_OUTPUT_SILENCE
