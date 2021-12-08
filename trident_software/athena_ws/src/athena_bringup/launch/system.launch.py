@@ -59,25 +59,25 @@ def generate_launch_description():
             arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
             parameters=[config]
         ),
-        Node(
-            package='athena_position',
-            namespace='/athena/position/',
-            executable='position_node',
-            name='pos',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
-        Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
-            executable='imu_node',
-            name='imu',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
-        Node(
-            package='athena_position',
-            namespace='/athena/sensor/',
-            executable='gps_node',
-            name='gps',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        )
+        # Node(
+        #     package='athena_position',
+        #     namespace='/athena/position/',
+        #     executable='position_node',
+        #     name='pos',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
+        # Node(
+        #     package='athena_position',
+        #     namespace='/athena/sensor/',
+        #     executable='imu_node',
+        #     name='imu',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
+        # Node(
+        #     package='athena_position',
+        #     namespace='/athena/sensor/',
+        #     executable='gps_node',
+        #     name='gps',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # )
     ])
