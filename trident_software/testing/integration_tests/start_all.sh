@@ -35,12 +35,15 @@ athena_disable_teleop() { ros2 service call /athena/motor_control/manual_overrid
 naiad_start_teleop() { ros2 launch naiad_bringup teleop.launch.py; }
 athena_start_teleop() { ros2 launch athena_bringup teleop.launch.py; }
 restart_bridge_sim() {
-    # Create new tmux session
-    tmux kill-session -t $session
-    tmux new-session -d -s $session
+    # Create new tmux session, kill first if exists
+    tmux has-session -t $session 2>/dev/null
+    if [ $? == 0 ]; then
+	tmux kill-session -t $session
+    fi
+    TMUX='' tmux new-session -d -s $session
 
     # Start the bridge
-    tmux new-window -t $session:0 -n 'Ros1bridge'
+    tmux rename-window -t $session:0 'Ros1bridge'
     tmux send-keys -t $session:0 "source ${ros2_install} &&
 	source ${ros1_install} &&
 	source ${trident_dir_path}/${ros2_local_install} &&
@@ -62,7 +65,12 @@ restart_bridge_sim() {
 	    roslaunch trident_sim trident_simulation.launch camera_show:=false" C-m
     fi
 
-    tmux attach-session -t $session
+    # Attach if outside of tmux, switch if you're in tmux.
+    if [[ -z "$TMUX" ]]; then
+	tmux attach -t $session
+    else
+	tmux switch-client -t $session
+    fi
 }
 set +a # Stop exporting
 
