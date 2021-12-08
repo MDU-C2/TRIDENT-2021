@@ -14,11 +14,11 @@ naiad:
             "id": 1,
             "descriptive_name": "middle_right",
             "pose_effect": {
-                "x":     -0.7070,
+                "x":     -1.0,
                 "y":     0,
                 "z":     0,
                 "pitch": 0,
-                "yaw":   -0.5,
+                "yaw":   -1.0,
                 "roll":  0
             }
           },
@@ -26,11 +26,11 @@ naiad:
             "id": 2,
             "descriptive_name": "middle_left",
             "pose_effect": {
-                "x":     -0.7070,
+                "x":     -1.0,
                 "y":     0,
                 "z":     0,
                 "pitch": 0,
-                "yaw":   0.5,
+                "yaw":   1.0,
                 "roll":  0
             }
           },
@@ -43,7 +43,7 @@ naiad:
                 "z":     -1.0,
                 "pitch": 0.6,
                 "yaw":   0.0,
-                "roll":  0.8
+                "roll":  1.0
             }
           },
           {
