@@ -5,24 +5,24 @@ naiad:
         x: 1
         z: 7
       scale_linear:
+        x: 0.15
+        z: -0.15
+      scale_linear_turbo:
         x: 0.3
         z: -0.3
-      scale_linear_turbo:
-        x: 0.7
-        z: -0.7
 
       axis_angular:
         yaw: 0
         pitch: 4
         roll: 3
       scale_angular:
+        yaw: 0.15
+        pitch: 0.15
+        roll: 0.15
+      scale_angular_turbo:
         yaw: 0.3
         pitch: 0.3
         roll: 0.3
-      scale_angular_turbo:
-        yaw: 0.7
-        pitch: 0.7
-        roll: 0.7
 
       enable_button: 5  # R1 shoulder button
       enable_turbo_button: 2  # Triangle button

@@ -75,25 +75,25 @@ def generate_launch_description():
             name='imu',
             arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
         ),
-        Node(
-            package='naiad_position',
-            namespace='/naiad/sensor/',
-            executable='gps_node',
-            name='gps',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
-        Node(
-            package='naiad_position',
-            namespace='/naiad/sensor/',
-            executable='usbl_node',
-            name='usbl',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
-        Node(
-            package='naiad_position',
-            namespace='/naiad/sensor/',
-            executable='pressure_node',
-            name='pressure',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        )
+        # Node(
+        #     package='naiad_position',
+        #     namespace='/naiad/sensor/',
+        #     executable='gps_node',
+        #     name='gps',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
+        # Node(
+        #     package='naiad_position',
+        #     namespace='/naiad/sensor/',
+        #     executable='usbl_node',
+        #     name='usbl',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
+        # Node(
+        #     package='naiad_position',
+        #     namespace='/naiad/sensor/',
+        #     executable='pressure_node',
+        #     name='pressure',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # )
     ])
