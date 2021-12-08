@@ -430,17 +430,17 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         pitch_control = self._pids["pitch"](curr_orientation[1])
 
         # EXPERIMENTAL ----------------------------
-        current_pitch_degrees = degrees(curr_orientation[2])
-        pitch_percentage_of_limit = current_pitch_degrees / self._pitch_limit
-        # NOTE: This inline function returns a scaling value that is 0 when the input x == z, which is
-        #       the percentage of the pitch limit. E.g., a pitch limit of 45 degrees and z=0.9, the scaling value
-        #       will be zero when the agent's pitch is 0.9*45=40.5, meaning that the pid affecting x will be set to 0.
-        #       When the pitch is greater than 40.5 in this example, the output value will be negative, meaning that
-        #       the agent will try very hard not to hit the pitch limit.
-        pitch_vel_scaling_fn = lambda x, z: 1 - (x/z)**4
-        # Scale the x/y pid contorl values based on current pitch to avoid the agent from tipping over.
-        pitch_vel_scaling =  pitch_vel_scaling_fn(pitch_percentage_of_limit, 0.9)
-        twist_msg.linear.x *= pitch_vel_scaling
+        # current_pitch_degrees = degrees(curr_orientation[2])
+        # pitch_percentage_of_limit = current_pitch_degrees / self._pitch_limit
+        # # NOTE: This inline function returns a scaling value that is 0 when the input x == z, which is
+        # #       the percentage of the pitch limit. E.g., a pitch limit of 45 degrees and z=0.9, the scaling value
+        # #       will be zero when the agent's pitch is 0.9*45=40.5, meaning that the pid affecting x will be set to 0.
+        # #       When the pitch is greater than 40.5 in this example, the output value will be negative, meaning that
+        # #       the agent will try very hard not to hit the pitch limit.
+        # pitch_vel_scaling_fn = lambda x, z: 1 - (x/z)**4
+        # # Scale the x/y pid contorl values based on current pitch to avoid the agent from tipping over.
+        # pitch_vel_scaling =  pitch_vel_scaling_fn(pitch_percentage_of_limit, 0.9)
+        # twist_msg.linear.x *= pitch_vel_scaling
         # -----------------------------
         # self.get_logger().info(f"Roll_control = {roll_control}")
         # self.get_logger().info(f"pitch_control = {pitch_control}")
