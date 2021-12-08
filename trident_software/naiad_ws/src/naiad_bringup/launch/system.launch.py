@@ -61,20 +61,20 @@ def generate_launch_description():
             parameters=[config]
         ),
         # Position and sensor nodes
-        Node(
-            package='naiad_position',
-            namespace='/naiad/position/',
-            executable='position_node',
-            name='pos',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
-        Node(
-            package='naiad_position',
-            namespace='/naiad/sensor/',
-            executable='imu_node',
-            name='imu',
-            arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
-        ),
+        # Node(
+        #     package='naiad_position',
+        #     namespace='/naiad/position/',
+        #     executable='position_node',
+        #     name='pos',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
+        # Node(
+        #     package='naiad_position',
+        #     namespace='/naiad/sensor/',
+        #     executable='imu_node',
+        #     name='imu',
+        #     arguments=['--ros-args', '--log-level', launch.substitutions.LaunchConfiguration('log_level')],
+        # ),
         # Node(
         #     package='naiad_position',
         #     namespace='/naiad/sensor/',

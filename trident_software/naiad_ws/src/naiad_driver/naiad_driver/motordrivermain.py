@@ -1,7 +1,7 @@
 import rclpy
 import serial
 import queue
-import setproctitle
+# import setproctitle
 from multiprocessing import Process, Manager, Lock, current_process
 from baseclasses.motordriverbase import MotorDriverBase
 from cola2_msgs.msg import Setpoints
@@ -16,7 +16,7 @@ def serial_write_process_fn(write_queue, node):
        timeout=0.5,
     #    write_timeout=1
    )
-   setproctitle.setproctitle("TEST TITLE")
+#    setproctitle.setproctitle("TEST TITLE")
    while True:
         values = write_queue.get()
         node.get_logger().debug(f"Attempting to write values to serial: {values}")
