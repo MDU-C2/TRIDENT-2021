@@ -420,14 +420,14 @@ class MotorControlBase(Node, metaclass=ABCMeta):
         base_speed = 1 # TODO: This needs to be discussed.
         motor_outputs = []
         # PID the pitch and roll so the agents stay level during teleop
-        self._pids["pitch"].setpoint = 0
-        self._pids["roll"].setpoint = 0
+        # self._pids["pitch"].setpoint = 0
+        # self._pids["roll"].setpoint = 0
         curr_orientation = SQuaternion(w=self._agent_state.pose.orientation.w,
                             x=self._agent_state.pose.orientation.x,
                             y=self._agent_state.pose.orientation.y,
                             z=self._agent_state.pose.orientation.z).to_euler(degrees=False)
-        roll_control = self._pids["roll"](curr_orientation[0])
-        pitch_control = self._pids["pitch"](curr_orientation[1])
+        # roll_control = self._pids["roll"](curr_orientation[0])
+        # pitch_control = self._pids["pitch"](curr_orientation[1])
 
         # EXPERIMENTAL ----------------------------
         # current_pitch_degrees = degrees(curr_orientation[2])
@@ -453,8 +453,8 @@ class MotorControlBase(Node, metaclass=ABCMeta):
                             motor["pose_effect"]["y"] * twist_msg.linear.y +
                             motor["pose_effect"]["z"] * twist_msg.linear.z +
                             motor["pose_effect"]["yaw"] * twist_msg.angular.z +
-                            motor["pose_effect"]["roll"] * roll_control +
-                            motor["pose_effect"]["pitch"] * pitch_control)
+                            motor["pose_effect"]["roll"] * twist_msg.angular.x +
+                            motor["pose_effect"]["pitch"] * twist_msg.angular.y)
 
             output.value *= base_speed
             motor_outputs.append(output)
