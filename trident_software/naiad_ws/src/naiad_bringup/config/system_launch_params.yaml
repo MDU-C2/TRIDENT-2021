@@ -156,27 +156,27 @@ naiad:
         [
           {
             "id": 1,
-            "maestro_id": 0
-          },
-          {
-            "id": 2,
             "maestro_id": 1
           },
           {
-            "id": 3,
+            "id": 2,
             "maestro_id": 2
           },
           {
-            "id": 4,
+            "id": 3,
             "maestro_id": 3
           },
           {
-            "id": 5,
+            "id": 4,
             "maestro_id": 4
           },
           {
-            "id": 6,
+            "id": 5,
             "maestro_id": 5
+          },
+          {
+            "id": 6,
+            "maestro_id": 6
           }
         ]
           
