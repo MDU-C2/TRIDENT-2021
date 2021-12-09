@@ -91,6 +91,10 @@ def signal_handler(sig, frame):
     rclpy.shutdown()
     sys.exit(0)
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
     signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
