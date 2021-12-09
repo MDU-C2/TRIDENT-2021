@@ -35,12 +35,15 @@ athena_disable_teleop() { ros2 service call /athena/motor_control/manual_overrid
 naiad_start_teleop() { ros2 launch naiad_bringup teleop.launch.py; }
 athena_start_teleop() { ros2 launch athena_bringup teleop.launch.py; }
 restart_bridge_sim() {
-    # Create new tmux session
-    tmux kill-session -t $session
-    tmux new-session -d -s $session
+    # Create new tmux session, kill first if exists
+    tmux has-session -t $session 2>/dev/null
+    if [ $? == 0 ]; then
+	tmux kill-session -t $session
+    fi
+    TMUX='' tmux new-session -d -s $session
 
     # Start the bridge
-    tmux new-window -t $session:0 -n 'Ros1bridge'
+    tmux rename-window -t $session:0 'Ros1bridge'
     tmux send-keys -t $session:0 "source ${ros2_install} &&
 	source ${ros1_install} &&
 	source ${trident_dir_path}/${ros2_local_install} &&
@@ -62,7 +65,8 @@ restart_bridge_sim() {
 	    roslaunch trident_sim trident_simulation.launch camera_show:=false" C-m
     fi
 
-    tmux attach-session -t $session
+    # Attach to new session in new terminal
+    gnome-terminal -- tmux attach -t $session
 }
 set +a # Stop exporting
 
@@ -77,14 +81,14 @@ else
     printf "${red}WARNING: ROS setup file not found in ~/ros2_foxy/ros2-linux/setup.bash or /opt/ros/foxy/setup.bash.\n${end}"
 fi
 
-printf "${cyn}\n=========================\nBuilding Trident project\n==========================\n${end}"
+printf "${cyn}\n=========================\nBuilding Trident project\n=========================\n${end}"
 cd ../../
 colcon build --symlink-install --packages-skip ros1_bridge
 
-printf "${cyn}\n=========================\nSourcing Trident environment\n======================\n${end}"
+printf "${cyn}\n=========================\nSourcing Trident environment\n=========================\n${end}"
 source install/setup.bash
 
-printf "${cyn}\n=========================\nStart integration tests\n===========================\n${end}"
+printf "${cyn}\n=========================\nStart integration tests\n=========================\n${end}"
 cd testing/integration_tests
 
 printf "${cyn}\nStarting Ros Bridge and Athena Simulation\n${cyn}"
