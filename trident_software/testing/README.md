@@ -18,6 +18,7 @@ A testing platform has been developed to follow the [continuous integration (CI)
 * [Install ROS 2 Foxy](https://docs.ros.org/en/foxy/)
 * [Clone the Trident project](https://github.com/ProjectMDH/TRIDENT-2021)
 * [Clone the Trident simulation projet](https://github.com/ProjectMDH/TRIDENT-2021-SIM)
+* TMUX: `sudo apt install tmux`
 
 ## Usage
 For unit testing:
