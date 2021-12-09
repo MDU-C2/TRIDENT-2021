@@ -23,9 +23,9 @@ A testing platform has been developed to follow the [continuous integration (CI)
 ## Usage
 For unit testing:
 1. Navigate to TRIDENT-2021/trident_software/testing/unit_tests
-2. Run `bash start_all.sh`, which will run each unit test sequentially. Alternatively, run a specific unit test with the following command: `launch_test path/to/launch_file`.
+2. Run `bash start_all.sh`, which will run each unit test sequentially. Alternatively, run a specific unit test with the following command: `launch_test path/to/unit_test_launch_file`.
 
 For integration testing:
 1. [Build the ros1_bridge](https://github.com/ProjectMDH/TRIDENT-2021/tree/dev/trident_software#building-the-ros1_bridge)
 2. Navigate to TRIDENT-2021/trident_software/testing/integration_tests
-3. Run `bash start_all.sh` to run each integration test for both Athena and Naiad. Alternatively, run only Athena or Naiad with `bash start_sim_athena.sh` or `bash start_sim_naiad.sh`.
+3. Run `bash start_all.sh`, which will start the simulation and run through each integration test. Alternatively, run `bash start_sim_athena.sh` or `bash start_sim_naiad.sh` to start up the simulation with only Athena or Naiad. Then open a new terminal, source ROS 2, and run `launch_test path/to/integration_test_launch_file`.
