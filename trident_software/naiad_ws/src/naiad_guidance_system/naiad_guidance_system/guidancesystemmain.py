@@ -6,6 +6,8 @@ tell the navigation module when a new reference position is needed.
 Author: Johannes Deivard 2021-11
 """
 import rclpy
+import signal
+import sys
 from baseclasses.tridentstates import GotoWaypointStatus, NaiadGuidanceSystemState
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
@@ -16,7 +18,7 @@ from std_srvs.srv import Trigger                           # https://github.com/
 from std_msgs.msg import String
 from trident_msgs.action import StartMission, GotoWaypoint
 from trident_msgs.msg import Waypoint, WaypointAction, Mission
-from trident_msgs.srv import GuidanceRequest, GetGoalPose
+from trident_msgs.srv import GuidanceRequest, GetGoalPose, GetState
 
 
 class GuidanceSystemNode(Node):
@@ -47,15 +49,21 @@ class GuidanceSystemNode(Node):
 
         # Servers
         # -------
-
+        # Service to retrieve the state of the node
+        self._get_state_server = self.create_service(
+            GetState,
+            'guidance_system/state/get',
+            self._get_state_callback
+        )
 
         # Publishers
         # ----------
-        self._guidance_system_state_publisher = self.create_publisher(
-            String,
-            'guidance_system/state',
-            1
-        )
+        # Commented out since it seems not to be in use, instead use the _get_state_server
+        # self._guidance_system_state_publisher = self.create_publisher(
+        #     String,
+        #     'guidance_system/state',
+        #     1
+        # )
         self._guidance_system_reference_position_publisher = self.create_publisher(
             Point,
             'guidance_system/reference_position',
@@ -161,6 +169,15 @@ class GuidanceSystemNode(Node):
 
     # CALLBACKS
     # ---------
+    def _get_state_callback(self, _, response):
+        """Simple getter for the node's state.
+        """
+        response.success = True
+        response.state = str(self._guidance_system_state)
+        response.int_state = self._guidance_system_state
+
+        return response
+
     def _goto_waypoint_status_subscriber_callback(self, msg):
         """Callback that handles the GotoWaypoint status messages sent by the Navigation node.
         NOTE: It might be better to make this a Getter service instead of constantly reading and
@@ -170,7 +187,12 @@ class GuidanceSystemNode(Node):
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     guidance_system_node = GuidanceSystemNode("guidance_system")
     executor = MultiThreadedExecutor()

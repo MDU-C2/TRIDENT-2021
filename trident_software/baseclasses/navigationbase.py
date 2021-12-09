@@ -372,6 +372,7 @@ class NavigationBase(Node):
         self.path_to_waypoint = self.compute_path(goal_handle.request.waypoint)
         feedback_msg = GotoWaypoint.Feedback()
         self.get_logger().info('Path computed.')
+        self._navigation_state = NavigationState.EXECUTING
 
         # Future work: Start a timer to continously compute the path to the waypoint.
         # Store goal handle for feedback propagation
@@ -419,4 +420,5 @@ class NavigationBase(Node):
         result.distance_to_goal = self.distance_to_goal(self._agent_state.pose.position, goal_handle.request.waypoint.pose.position)
 
         self.get_logger().info(f'Returning result: {result}')
+        self._navigation_state = NavigationState.IDLE
         return result

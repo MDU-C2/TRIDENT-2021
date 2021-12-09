@@ -6,6 +6,7 @@ from time import time, sleep
 from abc import ABC, abstractmethod
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from rclpy.exceptions import ROSInterruptException
 
 from std_msgs.msg import String
 from trident_msgs.msg import State
@@ -171,7 +172,10 @@ class PosNode(Node, ABC):
             # AND publish the new state
             self.state_publish()
             # Sleep until next update interval
-            self._position_update_rate.sleep()
+            try:
+                self._position_update_rate.sleep()
+            except ROSInterruptException:
+                break
 
 def main(args=None):
     rclpy.init(args=args)

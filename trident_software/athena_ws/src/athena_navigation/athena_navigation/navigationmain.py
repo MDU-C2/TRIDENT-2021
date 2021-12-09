@@ -1,7 +1,12 @@
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from baseclasses.navigationbase import NavigationBase
+import signal
+import sys
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 class NavigationNode(NavigationBase):
     """The main node for the navigation module in Athena.
@@ -13,6 +18,7 @@ class NavigationNode(NavigationBase):
 
 def main(args=None):
     rclpy.init(args=args)
+    signal.signal(signal.SIGINT, signal_handler)
     navigation_node = NavigationNode("navigation")
     executor = MultiThreadedExecutor()
     rclpy.spin(navigation_node, executor)

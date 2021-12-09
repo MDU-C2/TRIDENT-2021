@@ -3,6 +3,9 @@ import queue
 from multiprocessing import Process, Manager, Lock
 import rclpy
 import serial
+import signal
+import sys
+from rclpy.executors import MultiThreadedExecutor
 from baseclasses.motordriverbase import MotorDriverBase
 from cola2_msgs.msg import Setpoints
 from rclpy.executors import MultiThreadedExecutor
@@ -76,8 +79,12 @@ class MotorDriverNode(MotorDriverBase):
                 self.get_logger().debug(f"Could not send motor values to queue: queue is full. (timed out 0.2s)")
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
