@@ -6,6 +6,7 @@ ros2_install=/opt/ros/foxy/setup.bash
 ros1_install=/opt/ros/noetic/setup.bash
 ros2_local_install="install/local_setup.bash"
 ros1_local_install="devel/setup.bash"
+logdir="logs"
 
 session="Trident"
 
@@ -91,6 +92,9 @@ source install/setup.bash
 printf "${cyn}\n=========================\nStart integration tests\n=========================\n${end}"
 cd testing/integration_tests
 
+rm -rf $logdir
+mkdir $logdir
+
 printf "${cyn}\nStarting Ros Bridge and Athena Simulation\n${cyn}"
 #Startup the ros1_bridge and the athena simulation
 restart_bridge_sim "athena"
@@ -98,7 +102,7 @@ restart_bridge_sim "athena"
 ################################################################
 #Athena test cases
 printf "${cyn}\nStart Athena abort mission test...\n${end}"
-launch_test athena/abort_executing_mission.launch.py &> logs.txt
+launch_test athena/abort_executing_mission.launch.py &> $logdir/athena_abort_executing_mission.txt
 if [ $? -ne 0 ]
 then
     res_athena_abort_mission="${red}Fail${end}"
@@ -107,7 +111,7 @@ else
 fi
 
 printf "${cyn}\nStart Athena manual override test...\n${end}"
-launch_test athena/manual_override.launch.py &>> logs.txt
+launch_test athena/manual_override.launch.py &>> $logdir/athena_manual_override.txt
 if [ $? -ne 0 ]
 then
     res_athena_manual_override="${red}Fail${end}"
@@ -116,7 +120,7 @@ else
 fi
 
 printf "${cyn}\nStart Athena simple mission test...\n${end}"
-launch_test athena/simple_mission.launch.py &>> logs.txt
+launch_test athena/simple_mission.launch.py &>> $logdir/athena_simple_mission.txt
 if [ $? -ne 0 ]
 then
     res_athena_simple_mission="${red}Fail${end}"
@@ -131,7 +135,7 @@ restart_bridge_sim "naiad"
 ################################################################
 #Naiad test cases
 printf "${cyn}\nStart Naiad abort mission test...\n${end}"
-launch_test naiad/abort_executing_mission.launch.py &>> logs.txt
+launch_test naiad/abort_executing_mission.launch.py &>> $logdir/naiad_abort_executing_mission.txt
 if [ $? -ne 0 ]
 then
     res_naiad_abort_mission="${red}Fail${end}"
@@ -140,7 +144,7 @@ else
 fi
 
 printf "${cyn}\nStart Naiad manual override test...\n${end}"
-launch_test naiad/manual_override.launch.py &>> logs.txt
+launch_test naiad/manual_override.launch.py &>> $logdir/naiad_manual_override.txt
 if [ $? -ne 0 ]
 then
     res_naiad_manual_override="${red}Fail${end}"
@@ -149,7 +153,7 @@ else
 fi
 
 printf "${cyn}\nStart Naiad simple mission test...\n${end}"
-launch_test naiad/simple_mission.launch.py &>> logs.txt
+launch_test naiad/simple_mission.launch.py &>> $logdir/naiad_simple_mission.txt
 if [ $? -ne 0 ]
 then
     res_naiad_simple_mission="${red}Fail${end}"
