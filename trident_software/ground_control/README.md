@@ -36,15 +36,24 @@ The state window shows the current sub state of each module in Athena and Naiad.
 | Motor driver      | ACTIVE                | Motor power is turned on.                                                         |
 
 ## Setup
-The following packages needs to be installed:
-1. ROS2 Foxy
-2. Nodejs version 10.23.1-12.x, the version may be updated in the future depending on what version rclnodejs (bridge between javascript and ROS2) is installed. Check https://github.com/RobotWebTools/rclnodejs for more information.
-3. npm, express, socket.io, three js.
+1. [Install ROS2 Foxy](https://docs.ros.org/en/foxy/index.html)
+2. Install Nodejs version 10.23.1-12.x, the version may be updated in the future depending on what version rclnodejs is used. Check https://github.com/RobotWebTools/rclnodejs for more information.
+3. Install npm
+4. Clone Trident Github repository and hea
+
+In case there are unresolved errors with the node modules in the ground_control/gui_backend folder a reinstall of the node modules can be done:
+1. Head in to trident_software/ground_control/gui_backend_ws
+2. Delete node_modules folder, package.json, and package-lock.json
+3. run `npm init` to initialize node modules
+4. Install [express](https://expressjs.com/en/starter/installing.html), [socket.io](https://socket.io/get-started/chat), [three.js](https://threejs.org/docs/index.html#manual/en/introduction/Installation), and [rclnodejs](https://github.com/RobotWebTools/rclnodejs#installation).
 
 ## Usage
 There are two ways of starting the ground control:
 ###### Method 1:
 Run `bash start_gc.sh` script in the ground control folder. Table shown below shows the mandatory and optional parameters for the script.
+
+Example: `bash start_gc.sh index`
+
 
 | Argument          | Description                                                           | Type          |
 | :--------------   | :-------------------------------------------------------------------- | :------------ |
@@ -53,7 +62,7 @@ Run `bash start_gc.sh` script in the ground control folder. Table shown below sh
 | -g                | Generate ROS2 messages from Trident project in to the ground control  | Optional      |
 
 ###### Method 2:
-1. `source ~/ros2_foxy/ros2-linux/setup.bash`, alternatively `source /opt/ros/foxy/setup.bash`
-2. Head to trident_software folder and run `colcon build`
-3. `source install/setup.bash`
-4. Head to ground_control folder and run `node index.js` to start server or `node tester.js` to start tester.
+1. Run `source /opt/ros/foxy/setup.bash`
+2. Head in to trident_software folder and run `colcon build`
+3. Run `source install/setup.bash`
+4. Head in to ground_control folder and run `node index.js` to start server or `node tester.js` to start tester.
