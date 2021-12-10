@@ -89,7 +89,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 def main(args=None):
-    signal.signal(signal.SIGINT, signal_handler
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = GPSNode()
     rclpy.spin(node)

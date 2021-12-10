@@ -34,7 +34,7 @@ def generate_test_description():
         'system_launch_params.yaml'
     )
 
-    args = ['--ros-args', '--log-level', 'warn'] if True else ''
+    args = ['--ros-args', '--log-level', 'warn'] if False else ''
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
