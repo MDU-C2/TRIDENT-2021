@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import cv2
 import os
 import math
@@ -122,30 +123,9 @@ def getAngle(angle, magnitude, center, n, frame):
     # print('rotations = ' + str(rotations))
     return median(rotations)
 
-
-# ----------- INPUTS -------------------------------------------------------------
-videopath = '../optical_flow_test/Naiad_in_trondheim_firstTrial_pt1_2.mp4'
-resultpath = './opticalFlowResult.txt'
-drawPts = True
-showImages = False
-showPrints = False
-
-
-# ------------ VIDEO CAP START ----------------------------------------
-cap = cv2.VideoCapture(videopath)
-ret, frame = cap.read()
-prev = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-result = np.empty((1,3))
-
-while(cap.isOpened()):
-    # Read next frame 
-    ret, frame = cap.read()
-    if not ret:
-        print('End of video, exiting loop')
-        break
-    
+# ADD COMMETNS
+def calculateMovement(prev, next, frame):
     # Initialisations
-    next = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     flow = np.zeros((prev.shape[0], prev.shape[1], 2), dtype = np.dtype('float32'))
     magn = np.zeros((prev.shape[0], prev.shape[1]), dtype = np.dtype('float32'))
     ang = np.zeros((prev.shape[0], prev.shape[1]), dtype = np.dtype('float32'))
@@ -195,11 +175,67 @@ while(cap.isOpened()):
         if abs(rot) > 0.0005:
             cv2.waitKey(0)
 
-    # Save values to file
+    return meanH, meanV, rot
+
+
+# ----------- INPUTS -------------------------------------------------------------
+videopath = '../optical_flow_test/Naiad_in_trondheim_firstTrial_pt1_2.mp4'
+imagePath = '../../test2/'
+gtPath = '../../test2/odometry.csv'
+resultpath = './opticalFlowResult.csv'
+drawPts = True
+showImages = False
+showPrints = False
+usingVideo = False
+evaluate = True
+frameSkip = 3       # =1 to use all images
+
+
+# ------------ START ----------------------------------------
+result = np.empty((1,3))
+if usingVideo:
+    cap = cv2.VideoCapture(videopath)
+    ret, frame = cap.read()
+    prev = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+else:
+    # imageList = os.listdir(imagePath)
+    nFrames = len(os.listdir(imagePath))-2
+    # print(imageList[0:10])
+    # imageList = imageList[:-2]
+    prev = cv2.imread(imagePath + 'frame000000.png', cv2.IMREAD_GRAYSCALE)
+    n = 0   # for interating
+
+# Looping through video / dataset and processing movement
+while(True):
+    # Read next frame 
+    if usingVideo:
+        ret, frame = cap.read()
+        if not ret:
+            print('End of video, exiting loop')
+            break
+    else: 
+        n += frameSkip
+        if n >= nFrames-1:
+            print('End of dataset, exiting loop')
+            break
+        frame = cv2.imread(imagePath + 'frame00' + f'{n:04d}' + '.png')
+
+    # Calculate movement of agent
+    next = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    meanH, meanV, rot = calculateMovement(prev, next, frame)
+
+    # Save values in array
     result = np.append(result, [[meanH, meanV, rot]], axis=0)
+    # ------------------------------------------------------------------------------------------------------------------------------------
 
     prev = next
 
-savetxt(resultpath, result, fmt='%.5f', delimiter=',', header='Horizontal Translation, Vertical Translation, Rotation')
-cap.release()
+if evaluate:
+    # Evaluate result
+    gt = pd.read_csv(gtPath)
+
+# Save results to file
+savetxt(resultpath, result, fmt='%.5f', delimiter=',', header='Horizontal Translation,Vertical Translation,Rotation')
 cv2.destroyAllWindows()
+if usingVideo:
+    cap.release()
