@@ -363,7 +363,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         #--------------------------
         # (7) Get state of modules
         #--------------------------
-        time.sleep(0.5)
+        time.sleep(2)
         service_client.send_getstate_request("mission_control")
         rclpy.spin_until_future_complete(service_client, service_client.mission_control_future)
         service_client.send_getstate_request("navigation")
