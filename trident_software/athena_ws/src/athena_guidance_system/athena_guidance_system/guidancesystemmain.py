@@ -1,3 +1,5 @@
+import signal
+import sys
 """The main node for the guidance system that is repsonsible for handling
 the guidance of NAIAD. The node can start and stop pinging sessions,
 responds to guidance requests and send reference position.
@@ -139,8 +141,8 @@ class GuidanceSystemNode(Node):
             return response
 
         return response
-        
-        
+
+
     def _guidance_stop_callback(self, _, response):
         """Callback for the guidance stop service.
         Tries to stop the pinger and resets the guidance status.
@@ -169,8 +171,12 @@ class GuidanceSystemNode(Node):
         self.get_logger().info(f"Read GotoWaypoint status update: {msg.data}. Updating state in guidance system.")
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     guidance_system_node = GuidanceSystemNode("guidance_system")
     executor = MultiThreadedExecutor()

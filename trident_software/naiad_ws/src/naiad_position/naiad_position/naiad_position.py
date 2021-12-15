@@ -1,3 +1,5 @@
+import signal
+import sys
 import rclpy
 import numpy as np
 from baseclasses import positionbase
@@ -10,14 +12,14 @@ from squaternion import Quaternion
 
 class NaiadPosNode(positionbase.PosNode):
     def __init__(self):
-        
+
         init_state = np.zeros(13)  # Starts at 0,0
         init_noise = np.array([0.25, 0.25, 0.25, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]) # These are just guesses!
-            
+
         super().__init__("naiad_position_node", "state", 0.5,
                          init_state, init_noise, ["/naiad/sensor/imu", "/naiad/sensor/pressure", "/naiad/sensor/usbl"],
                          6, "/naiad/simulation/thruster_setpoints")
-    
+
     def state_trans(self, prev, dt):
         x, y, z, qw, qx, qy, qz, dx, dy, dz, dr, dp, dh = prev
         quat = Quaternion(qw,qx,qy,qz)
@@ -40,11 +42,11 @@ class NaiadPosNode(positionbase.PosNode):
              1.375 *self.control_vec[2]+1.375 *self.control_vec[3]-1.375 *self.control_vec[4]-1.375 *self.control_vec[5],
             -2.874 *self.control_vec[0]+2.874 *self.control_vec[1]])
         return transition
-    
+
     def get_ctrl_vec(self, msg):
         self.get_logger().info("Control vector: %s" % msg)
         self.control_vec = msg.setpoints
-    
+
     def state_publish(self):
         msg = State()
         msg.pose.position.x    = self.state[0]
@@ -61,8 +63,13 @@ class NaiadPosNode(positionbase.PosNode):
         msg.twist.angular.y    = self.state[11]
         msg.twist.angular.z    = self.state[12]
         self.publisher_.publish(msg)
-    
+
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     naiad_pos_node = NaiadPosNode()
     # Create an executor thread that spins the node

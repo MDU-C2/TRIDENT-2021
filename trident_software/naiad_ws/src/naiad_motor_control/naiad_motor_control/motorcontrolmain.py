@@ -1,3 +1,5 @@
+import signal
+import sys
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from geometry_msgs.msg import Pose
@@ -11,8 +13,12 @@ class MotorControlNode(MotorControlBase):
         super().__init__(node_name)
         self.get_logger().info("Created motor control node.")
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     motor_control_node = MotorControlNode("motor_control")
     executor = MultiThreadedExecutor()

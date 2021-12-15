@@ -1,3 +1,5 @@
+import signal
+import sys
 """The main node for the guidance system that is repsonsible for handling
 the guidance logic in NAIAD. Currently, the node can only request a guiding
 session from Athena, but in the future, it will be more intelligent and
@@ -92,7 +94,7 @@ class GuidanceSystemNode(Node):
             self.get_logger().info(f"Guidance request rejected: {response.message}")
             response = self._guidance_request_client.call(request)
             rate.sleep()
-        
+
         self.get_logger().info(f"Guidance request accepted: {response.message}. Reference position: {response.reference_position}")
         self.update_state(NaiadGuidanceSystemState.BEING_GUIDED)
         self.update_reference_position(response.reference_position)
@@ -169,8 +171,12 @@ class GuidanceSystemNode(Node):
         self.get_logger().info(f"Read GotoWaypoint status update: {msg.data}. Updating state in guidance system.")
         self._goto_waypoint_status = GotoWaypointStatus[msg.data]
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     guidance_system_node = GuidanceSystemNode("guidance_system")
     executor = MultiThreadedExecutor()

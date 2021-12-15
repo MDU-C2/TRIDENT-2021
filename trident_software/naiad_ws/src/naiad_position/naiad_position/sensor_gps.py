@@ -1,3 +1,5 @@
+import signal
+import sys
 import baseclasses.sensorbase as sensbase
 import rclpy
 import numpy as np
@@ -21,11 +23,11 @@ class GPSNode(sensbase.SensorNode):
         self.m_per_deg_lon = 2*earth_radius*asin(sqrt(
             hav(0.0) + cos(torad(self.origin[0]))**2 *hav(torad(1.0))
         ))
-        
+
         # NOTE: the noise value may need to be changed
         super().__init__('gps', 'naiad', 0,
                          2, np.array([0.000005, 0.000005]))
-        
+
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('simulated', False)
@@ -40,7 +42,7 @@ class GPSNode(sensbase.SensorNode):
             import pynmea2
             self.ser = serial.Serial(port="/dev/ttyACM0",baudrate=9600,timeout=0.5)
             self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
-    
+
     def state_guess(self, current_state):
         #self.get_logger().info("Latitude: %s Longitude: %s" % (self.measure[0], self.measure[1]))
         guess = np.array([(self.measure[0]-self.origin[0])*self.m_per_deg_lat,
@@ -53,7 +55,7 @@ class GPSNode(sensbase.SensorNode):
                           np.inf,np.inf,np.inf,
                           np.inf,np.inf,np.inf])
         return guess, noise
-    
+
     def TakeMeasurement(self):
         try:
             line = self.sio.readline()
@@ -82,7 +84,12 @@ class GPSNode(sensbase.SensorNode):
         else:
             self.measure_noise = np.array([np.inf, np.inf]) # Set the noise to inifnite if the gps in unavailable
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = GPSNode()
     rclpy.spin(node)

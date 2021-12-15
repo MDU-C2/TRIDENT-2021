@@ -1,3 +1,5 @@
+import signal
+import sys
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from baseclasses.missioncontrolbase import MissionControlBase
@@ -10,8 +12,12 @@ class MissionControlNode(MissionControlBase):
         super().__init__(node_name)
         self.get_logger().info("Created mission control node.")
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     mission_control_node = MissionControlNode("mission_control")
     executor = MultiThreadedExecutor()

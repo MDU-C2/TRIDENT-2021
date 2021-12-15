@@ -1,3 +1,5 @@
+import signal
+import sys
 import rclpy
 import numpy as np
 import baseclasses.sensorbase as sensbase
@@ -12,12 +14,12 @@ from sensor_msgs.msg import Imu
 class IMUNode(sensbase.SensorNode):
     def __init__(self):
         noise_mat = np.array([.3, .3, .3, .3, .1, .1, .1, .17, .17, .17])
-        
+
         super().__init__('imu', 'athena', 0.25,
                          10, noise_mat)
-        
+
         self.imu_history = deque(maxlen=5)
-            
+
         # If the is_simulated parameter exists and is set, listen to the simulated sensor.
         # Otherwise, default is False and it will act like normal.
         self.declare_parameter('simulated', False)
@@ -32,7 +34,7 @@ class IMUNode(sensbase.SensorNode):
             import adafruit_bno055
             self.i2c = busio.I2C(board.SCL, board.SDA)
             self.sensor = adafruit_bno055.BNO055_I2C(self.i2c)
-    
+
     def state_guess(self, current_state):
         guess = np.array([0,0,0,
                           self.measure[0],self.measure[1],self.measure[2],self.measure[3],
@@ -43,10 +45,10 @@ class IMUNode(sensbase.SensorNode):
                           np.inf,np.inf,np.inf,
                           self.measure_noise[7],self.measure_noise[8],self.measure_noise[9]])
         return guess, noise
-    
+
     def TakeMeasurement(self):
         # TODO: Check that these are all correct!
-            
+
         new_measurement = [
             self.sensor.quaternion[0],          # QW
             self.sensor.quaternion[1],          # QX
@@ -79,7 +81,12 @@ class IMUNode(sensbase.SensorNode):
         ])
         self.measure = np.sum(self.imu_history, axis=0) / len(self.imu_history)
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     node = IMUNode()
     rclpy.spin(node)

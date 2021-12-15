@@ -1,3 +1,5 @@
+import signal
+import sys
 import rclpy
 import numpy as np
 from baseclasses import positionbase
@@ -10,14 +12,14 @@ from squaternion import Quaternion
 
 class AthenaPosNode(positionbase.PosNode):
     def __init__(self):
-        
+
         init_state = np.zeros(13)  # Starts at 0,0
         init_noise = np.array([0.2, 0.2, 100, 0.8, 100, 100, 0.8, 0.2, 0.2, 100, 100, 100, 0.2]) # These are just guesses!
-            
+
         super().__init__("athena_position_node", "state", 0.5,
                          init_state, init_noise, ["/athena/sensor/imu", "/athena/sensor/gps"],
                          2, "/athena/simulation/thruster_setpoints")
-    
+
     def state_trans(self, prev, dt):
         x, y, z, qw, qx, qy, qz, dx, dy, dz, dr, dp, dh = prev
         quat = Quaternion(qw,qx,qy,qz)
@@ -39,12 +41,12 @@ class AthenaPosNode(positionbase.PosNode):
             0,
             5.2*self.control_vec[0]-5.2*self.control_vec[1]])
         return transition
-    
+
     def get_ctrl_vec(self, msg):
         self.get_logger().info("Control vector: %s" % msg)
         self.control_vec[0] = msg.setpoints[0]
         self.control_vec[1] = msg.setpoints[1]
-    
+
     def state_publish(self):
         msg = State()
         msg.pose.position.x = self.state[0]
@@ -61,8 +63,13 @@ class AthenaPosNode(positionbase.PosNode):
         msg.twist.angular.y = self.state[11]
         msg.twist.angular.z = self.state[12]
         self.publisher_.publish(msg)
-    
+
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    sys.exit(0)
+
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     athena_pos_node = AthenaPosNode()
     # Create an executor thread that spins the node

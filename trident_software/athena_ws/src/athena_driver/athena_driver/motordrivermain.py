@@ -1,3 +1,5 @@
+import signal
+import sys
 import sys
 import queue
 from multiprocessing import Process, Manager, Lock
@@ -36,7 +38,7 @@ class MotorDriverNode(MotorDriverBase):
             # Start serial write process
             self.serial_write_process = Process(target=serial_write_process_fn, args=(self.serial_write_queue, self))
             self.serial_write_process.start()
-   
+
 
     @staticmethod
     def integer_to_maestro_bytes(value):
@@ -76,8 +78,12 @@ class MotorDriverNode(MotorDriverBase):
                 self.get_logger().debug(f"Could not send motor values to queue: queue is full. (timed out 0.2s)")
 
 
+def signal_handler(sig, frame):
+   rclpy.shutdown()
+   sys.exit(0)
 
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     motor_driver_node = MotorDriverNode("motor_driver")
     executor = MultiThreadedExecutor()
