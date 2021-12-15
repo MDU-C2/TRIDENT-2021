@@ -473,8 +473,8 @@ class ROS2
     this.getStatesNaiad.guidance       = this.node.createClient('trident_msgs/srv/GetState', prefixTopics+'naiad/guidance_system/state/get');
 
     //Create service: abort
-    this.abortAthena = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/abort');
-    this.abortNaiad = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'naiad/abort');
+    this.abortAthena = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'athena/motor_driver/motors/kill');
+    this.abortNaiad = this.node.createClient('std_srvs/srv/Trigger', prefixTopics+'naiad/motor_driver/motors/kill');
 
     this.node.spin();
   }

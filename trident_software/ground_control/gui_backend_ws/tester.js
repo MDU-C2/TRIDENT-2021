@@ -216,7 +216,7 @@ rclnodejs
     //abort tester (Athena)
     node.createService(
       'std_srvs/srv/Trigger',
-      prefixTopics+'athena/abort',
+      prefixTopics+'athena/motor_driver/motors/kill',
       (request, response) => {
         let result = response.template;
         result.success = true;
@@ -228,7 +228,7 @@ rclnodejs
     //abort tester (Athena)
     node.createService(
       'std_srvs/srv/Trigger',
-      prefixTopics+'naiad/abort',
+      prefixTopics+'naiad/motor_driver/motors/kill',
       (request, response) => {
         let result = response.template;
         result.success = true;
