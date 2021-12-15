@@ -39,9 +39,6 @@ then
     cd ../
 fi
 
-echo "Starting teleop in new terminal"
-gnome-terminal -e 'bash -c "source /opt/ros/foxy/setup.bash; ros2 run teleop_twist_keyboard teleop_twist_keyboard"'
-
 #Start selected target
 cd gui_backend_ws/
 

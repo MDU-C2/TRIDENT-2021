@@ -44,8 +44,11 @@ The state window shows the current sub state of each module in Athena and Naiad.
 In case there are unresolved errors with the node modules in the ground_control/gui_backend folder a reinstall of the node modules can be done:
 1. Head in to trident_software/ground_control/gui_backend_ws
 2. Delete node_modules folder, package.json, and package-lock.json
-3. run `npm init` to initialize node modules
-4. Install [express](https://expressjs.com/en/starter/installing.html), [socket.io](https://socket.io/get-started/chat), [three.js](https://threejs.org/docs/index.html#manual/en/introduction/Installation), and [rclnodejs](https://github.com/RobotWebTools/rclnodejs#installation).
+3. Run `npm init` to initialize node modules
+4. Install [express](https://expressjs.com/en/starter/installing.html): `npm i express`
+5. Install [socket.io](https://socket.io/get-started/chat): `npm i socket.io`
+6. Install [three.js](https://threejs.org/docs/index.html#manual/en/introduction/Installation): `npm i three`
+7. Install [rclnodejs](https://github.com/RobotWebTools/rclnodejs#installation): `npm i rclnodejs`. Make sure to source ROS 2, as well as build and source project, before installing rclnodejs.
 
 ## Usage
 There are two ways of starting the ground control:
