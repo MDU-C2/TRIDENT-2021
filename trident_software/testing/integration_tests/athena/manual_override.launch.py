@@ -34,7 +34,7 @@ def generate_test_description():
         'system_launch_params.yaml'
     )
 
-    args = ['--ros-args', '--log-level', 'warn'] if True else ''
+    args = ['--ros-args', '--log-level', 'warn'] if False else ''
 
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -279,14 +279,14 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.mission_control_future.result().state, 'NO_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
+        self.assertIn(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE IDLE')
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
         # (2) Load mission
         #--------------------------
         time.sleep(0.5)
-        service_client.send_load_request([[5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2, True],
+        service_client.send_load_request([[5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 2, False],
                                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2, False]])
         rclpy.logging.get_logger("TEST").info("Sending load mission request")
         rclpy.spin_until_future_complete(service_client, service_client.load_future)
@@ -311,7 +311,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_LOADED')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
+        self.assertIn(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE IDLE')
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
@@ -379,7 +379,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.mission_control_future.result().state, 'EXECUTING_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'EXECUTING')
         self.assertEqual(service_client.motor_control_future.result().state, 'MANUAL_OVERRIDE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE')
+        self.assertIn(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE IDLE')
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
@@ -445,7 +445,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.mission_control_future.result().state, 'MISSION_FINISHED')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE')
+        self.assertIn(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE IDLE')
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         service_client.destroy_node()

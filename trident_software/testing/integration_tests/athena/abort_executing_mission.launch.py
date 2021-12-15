@@ -281,7 +281,7 @@ class TestTalkerListenerLink(unittest.TestCase):
         self.assertEqual(service_client.mission_control_future.result().state, 'NO_MISSION')
         self.assertEqual(service_client.navigation_future.result().state, 'IDLE')
         self.assertEqual(service_client.motor_control_future.result().state, 'IDLE')
-        self.assertEqual(service_client.motor_driver_future.result().state, 'IDLE')
+        self.assertIn(service_client.motor_driver_future.result().state, 'MOTOR_OUTPUT_SILENCE IDLE')
         self.assertEqual(service_client.guidance_system_future.result().state, 'IDLE')
 
         #--------------------------
