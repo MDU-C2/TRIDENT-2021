@@ -2,6 +2,7 @@ import signal
 import sys
 import rclpy
 import numpy as np
+import time
 from baseclasses import positionbase
 from trident_msgs.msg import State
 from math import sin, cos, pi, tau
@@ -76,11 +77,13 @@ def main(args=None):
     executor = MultiThreadedExecutor()
     executor.add_node(naiad_pos_node)
     executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.daemon = True
     executor_thread.start()
     # Run the main loop in the node
     naiad_pos_node.spin()
     # Wait for the executor to finish
-    executor_thread.join()
+    while executor_thread.is_alive():
+        time.sleep(1)
 
     naiad_pos_node.destroy_node()
     rclpy.shutdown()

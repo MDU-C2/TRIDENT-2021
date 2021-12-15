@@ -1,11 +1,15 @@
+import sys
+import signal
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
 import numpy as np
 from random import gauss
 from time import time, sleep
 from abc import ABC, abstractmethod
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from rclpy.exceptions import ROSInterruptException
 
 from std_msgs.msg import String
 from trident_msgs.msg import State
@@ -171,9 +175,17 @@ class PosNode(Node, ABC):
             # AND publish the new state
             self.state_publish()
             # Sleep until next update interval
-            self._position_update_rate.sleep()
+            try:
+                self._position_update_rate.sleep()
+            except ROSInterruptException:
+                break
 
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+            
 def main(args=None):
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.init(args=args)
     
     pos_node = PosNode("unnamed_position_node", "unnamed_current_state", 1)
@@ -181,11 +193,13 @@ def main(args=None):
     executor = MultiThreadedExecutor()
     executor.add_node(pos_node)
     executor_thread = threading.Thread(target=executor.spin)
+    executor_thread.daemon = True
     executor_thread.start()
     # Run the main loop in the node
     pos_node.spin()
     # Wait for the executor to finish
-    executor_thread.join()
+    while executor_thread.is_alive():
+        time.sleep(1)
     
     rclpy.shutdown()
 
