@@ -9,6 +9,11 @@ from numpy.lib.function_base import median, mean
 from numpy.lib.npyio import savetxt
 
 
+# FUTURE WORK
+# meanH and meanV are wonky
+# smoothing or some filter for rot, to make result less noisy
+
+
 # Normalises the input
 # img - image, any number of channels
 # out - normalised image
@@ -123,7 +128,11 @@ def getAngle(angle, magnitude, center, n, frame):
     # print('rotations = ' + str(rotations))
     return median(rotations)
 
-# ADD COMMETNS
+
+# Calculates the movement made by agent between images prev and next
+# prev, next - images to calculate movement between, 1ch
+# frame - colourised version of 'next', only for visialisation purposes, 3ch
+# out - meanH (horizontal movement), meanV (vertical movement, + -> moving forward), rot (angle of rotation in degrees, + -> cw Naiad movement, - -> ccw Naiad movement)
 def calculateMovement(prev, next, frame):
     # Initialisations
     flow = np.zeros((prev.shape[0], prev.shape[1], 2), dtype = np.dtype('float32'))
@@ -184,11 +193,11 @@ imagePath = '../../test2/'
 gtPath = '../../test2/odometry.csv'
 resultpath = './opticalFlowResult.csv'
 drawPts = True
-showImages = False
-showPrints = False
+showImages = True
+showPrints = True
 usingVideo = False
 evaluate = True
-frameSkip = 3       # =1 to use all images
+frameSkip = 1       # =1 to use all images
 
 
 # ------------ START ----------------------------------------
