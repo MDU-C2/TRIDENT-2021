@@ -1,2 +1,4 @@
 *.bmp
 *.csv#
+
+.idea/*
