@@ -1,4 +1,6 @@
 *.bmp
 *.csv#
+*.jpg
+*.png
 
 .idea/*

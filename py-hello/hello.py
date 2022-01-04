@@ -10,7 +10,6 @@ from numpy.lib.npyio import savetxt
 
 
 # FUTURE WORK
-# meanH and meanV are wonky
 # smoothing or some filter for rot, to make result less noisy
 
 
@@ -57,7 +56,7 @@ def getLine(img):
         x2 = int(x0 - 1000*(-b))
         y2 = int(y0 - 1000*(a))
         
-        cv2.line(closing,(x1,y1), (x2,y2), .5, 2)
+        cv2.imshow('closing', cv2.line(closing,(x1,y1), (x2,y2), .5, 2))
 
         if showPrints:
             print('Lines were found')
@@ -188,15 +187,15 @@ def calculateMovement(prev, next, frame):
 
 
 # ----------- INPUTS -------------------------------------------------------------
-videopath = '../optical_flow_test/Naiad_in_trondheim_firstTrial_pt1_2.mp4'
-imagePath = '../../test2/'
-gtPath = '../../test2/odometry.csv'
+# videopath = '../optical_flow_test/Naiad_in_trondheim_firstTrial_pt1_2.mp4'
+imagePath = './../test2/'
+# gtPath = '../../test2/odometry.csv'
 resultpath = './opticalFlowResult.csv'
 drawPts = True
 showImages = True
-showPrints = True
+showPrints = False
 usingVideo = False
-evaluate = True
+evaluate = False
 frameSkip = 1       # =1 to use all images
 
 
