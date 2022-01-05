@@ -1,0 +1,18 @@
+openvslam/
+!/openvslam/Installation_notes.txt
+!/openvslam/example/
+!/openvslam/results/
+
+FBoW/
+Pangolin/
+eigen-3.3.7/
+g2o/
+opencv-4.5.4/
+opencv_contrib/
+
+!/instructions for evaluation.txt
+
+KITTI/dataset/sequences/
+
+*.mp4
+*.bmp

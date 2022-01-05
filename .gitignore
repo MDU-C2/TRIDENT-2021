@@ -150,3 +150,7 @@ tags
 */install/*
 */build/*
 */log/*
+
+
+test2/
+vslam results/
